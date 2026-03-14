@@ -1,0 +1,2366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创意工坊 | Creative Workshop</title>
+
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@500;600;700&family=Noto+Serif+SC:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        :root {
+            --primary: #2d3436;
+            --secondary: #636e72;
+            --accent: #2d6a4f;
+            --accent-hover: #1b4332;
+            --gold: #d4a853;
+            --gold-dim: #b8860b;
+            --danger: #c0392b;
+            --success: #27ae60;
+            --bg-body: #fdfbf7;
+            --glass-bg: rgba(255, 254, 249, 0.95);
+            --glass-border: rgba(212, 202, 186, 0.4);
+
+            --font-main: 'Noto Serif SC', 'Libre Baskerville', serif;
+            --font-num: 'Rajdhani', sans-serif;
+            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+            --radius-lg: 24px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+
+            --shadow-card: 0 10px 40px rgba(45, 52, 54, 0.1);
+            --shadow-float: 0 20px 60px rgba(45, 52, 54, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--bg-body);
+            color: var(--primary);
+            min-height: 100vh;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ======== Header ======== */
+        .workshop-header {
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+        .workshop-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .workshop-brand h1 {
+            font-family: var(--font-main);
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .workshop-brand i { font-size: 1.6rem; color: var(--accent); }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .discord-login {
+            background: linear-gradient(135deg, #5865f2, #4752c4);
+            color: white;
+            box-shadow: 0 8px 24px rgba(88, 101, 242, 0.22);
+        }
+        .discord-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(88, 101, 242, 0.28);
+        }
+        .discord-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: white;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: var(--shadow-card);
+        }
+        .discord-avatar,
+        .author-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #eceff4, #dfe6e9);
+            flex-shrink: 0;
+        }
+        .discord-avatar.placeholder,
+        .author-avatar.placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary);
+            font-size: 1rem;
+        }
+        .discord-meta {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .discord-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+        .discord-subtitle {
+            font-size: 0.74rem;
+            color: var(--secondary);
+            line-height: 1.2;
+        }
+
+        /* ======== Tabs ======== */
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            padding: 0 32px;
+            background: white;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .tab-item {
+            padding: 16px 32px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+        .tab-item:hover { color: var(--primary); background: rgba(45,106,79,0.03); }
+        .tab-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-count {
+            background: rgba(45,106,79,0.1);
+            color: var(--accent);
+            font-family: var(--font-num);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* ======== Main ======== */
+        .workshop-main { flex: 1; padding: 32px; }
+
+        /* ======== Toolbar ======== */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            border: 2px solid rgba(0,0,0,0.06);
+            border-radius: var(--radius-md);
+            padding: 10px 16px;
+            flex: 1;
+            max-width: 400px;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus-within { border-color: var(--accent); }
+        .search-box i { color: var(--secondary); font-size: 1.1rem; }
+        .search-box input {
+            border: none; outline: none; background: transparent;
+            font-size: 0.95rem; width: 100%; color: var(--primary);
+        }
+
+        .publish-panel {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .publish-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .publish-header h2 {
+            font-family: var(--font-main);
+            font-size: 1.35rem;
+            margin-bottom: 6px;
+        }
+        .publish-header p {
+            color: var(--secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .publish-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+            gap: 24px;
+        }
+        .publish-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-field label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .form-field input,
+        .form-field textarea {
+            width: 100%;
+            border: 2px solid rgba(0,0,0,0.06);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            font-size: 0.92rem;
+            color: var(--primary);
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: var(--font-ui);
+        }
+        .form-field textarea {
+            min-height: 144px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+        .form-field input:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(45,106,79,0.08);
+        }
+        .field-hint {
+            font-size: 0.78rem;
+            color: var(--secondary);
+        }
+        .tag-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .tag-option {
+            border: 1px solid rgba(0,0,0,0.08);
+            background: #f8f9fa;
+            color: var(--secondary);
+            padding: 8px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .tag-option.active {
+            color: white;
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 8px 18px rgba(45,106,79,0.18);
+        }
+        .publish-preview {
+            background: linear-gradient(180deg, rgba(45,106,79,0.05), rgba(45,52,54,0.02));
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 100%;
+        }
+        .form-account {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            background: rgba(88,101,242,0.08);
+            border: 1px solid rgba(88,101,242,0.14);
+        }
+        .form-account-body {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        .form-account-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #4752c4;
+        }
+        .form-account-subtitle {
+            font-size: 0.78rem;
+            color: var(--secondary);
+            line-height: 1.5;
+        }
+        .preview-cover {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: linear-gradient(135deg, #dfe6e9, #f7f7f2);
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .preview-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .preview-cover-empty {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0a7ac;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        .preview-meta h3 {
+            font-family: var(--font-main);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .preview-meta p {
+            font-size: 0.86rem;
+            color: var(--secondary);
+            line-height: 1.65;
+        }
+        .publish-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+        .publish-actions .btn-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* ======== Build Card Grid ======== */
+        .build-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        .build-card {
+            background: white;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            position: relative;
+        }
+        .build-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-card);
+            border-color: rgba(45,106,79,0.15);
+        }
+
+        /* Cover */
+        .build-cover {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            overflow: hidden;
+        }
+        .cover-placeholder {
+            width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+        }
+        .cover-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .cover-overlay {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 12px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .race-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Card Body */
+        .build-body { padding: 16px; }
+        .build-title {
+            font-family: var(--font-main);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        .build-author-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .author-info {
+            min-width: 0;
+        }
+        .author-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .author-meta {
+            font-size: 0.75rem;
+            color: var(--secondary);
+        }
+        .build-desc {
+            font-size: 0.85rem;
+            color: var(--secondary);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .build-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .build-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .build-tag.race { background: rgba(225,112,85,0.1); color: #e17055; }
+        .build-tag.class-tag { background: rgba(45,106,79,0.08); color: var(--accent); }
+        .build-tag.companion { background: rgba(108,92,231,0.08); color: #6c5ce7; }
+
+        /* Card Footer */
+        .build-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+        .build-stats { display: flex; gap: 12px; }
+        .build-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: var(--secondary);
+        }
+        .build-stat i { font-size: 0.9rem; }
+        .download-btn {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(45,106,79,0.08);
+            color: var(--accent);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .download-btn:hover {
+            background: var(--accent); color: white;
+            transform: scale(1.05);
+        }
+        .download-btn.edit {
+            background: rgba(108,92,231,0.1);
+            color: #6c5ce7;
+        }
+        .download-btn.edit:hover {
+            background: #6c5ce7;
+            color: white;
+        }
+        .download-btn.danger {
+            background: rgba(192,57,43,0.1);
+            color: #c0392b;
+        }
+        .download-btn.danger:hover {
+            background: #c0392b;
+            color: white;
+        }
+        .build-action-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .management-strip {
+            display: flex;
+            justify-content: flex-end;
+            margin: -8px 0 20px;
+        }
+        .modal-footer .btn-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* ======== Modal ======== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+        .modal-panel {
+            background: var(--bg-body);
+            border-radius: var(--radius-lg);
+            width: 90%; max-width: 860px;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-float);
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal-header {
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            background: white;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            position: sticky; top: 0; z-index: 10;
+        }
+        .modal-title {
+            font-family: var(--font-main);
+            font-size: 1.4rem; font-weight: 700;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .modal-title .title-badge {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 700;
+        }
+        .modal-close {
+            width: 36px; height: 36px;
+            border-radius: 50%; border: none;
+            background: #f1f2f6; color: var(--primary);
+            font-size: 1.2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .modal-close:hover { background: var(--danger); color: white; transform: rotate(90deg); }
+        .modal-body { padding: 32px; }
+
+        /* Detail Sections */
+        .detail-section { margin-bottom: 32px; }
+        .detail-section:last-child { margin-bottom: 0; }
+        .section-heading {
+            font-family: var(--font-main);
+            font-size: 1.05rem; font-weight: 700;
+            margin-bottom: 16px;
+            display: flex; align-items: center; gap: 10px;
+            color: var(--primary);
+        }
+        .section-heading i { color: var(--accent); }
+
+        /* Race Info */
+        .race-info-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex; gap: 20px; align-items: flex-start;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .race-icon-lg {
+            width: 64px; height: 64px;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            overflow: hidden;
+            background: #dfe6e9;
+        }
+        .race-icon-lg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .race-meta h3 {
+            font-family: var(--font-main);
+            font-size: 1.15rem; font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .race-meta .race-class {
+            font-size: 0.8rem; font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .race-meta p {
+            font-size: 0.85rem; color: var(--secondary); line-height: 1.6;
+        }
+
+        /* Skill Tree */
+        .skill-tree-preview {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .skill-tier { margin-bottom: 20px; }
+        .skill-tier:last-child { margin-bottom: 0; }
+        .tier-label {
+            font-size: 0.75rem; font-weight: 700;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .tier-label::after {
+            content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.06);
+        }
+        .skill-nodes { display: flex; flex-wrap: wrap; gap: 8px; }
+        .skill-node {
+            display: flex; align-items: center; gap: 6px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            font-size: 0.85rem; font-weight: 600;
+            color: var(--primary);
+            border: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .skill-node:hover {
+            background: rgba(45,106,79,0.08);
+            border-color: rgba(45,106,79,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .skill-icon-placeholder {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            color: white;
+            background: rgba(45, 106, 79, 0.65);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+        }
+        .skill-icon-placeholder.special { background: rgba(184, 134, 11, 0.82); }
+        .skill-icon-placeholder.summon { background: rgba(108, 92, 231, 0.82); }
+        .skill-icon-placeholder.awakening { background: rgba(192, 57, 43, 0.82); }
+        .skill-icon-svg {
+            width: 1.1em;
+            height: 1.1em;
+            fill: currentColor;
+            transition: transform 0.2s;
+            pointer-events: none;
+        }
+        .skill-node:hover .skill-icon-svg {
+            transform: scale(1.08);
+        }
+
+        /* Trait Tags */
+        .trait-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .trait-tag {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem; font-weight: 600;
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .trait-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .trait-tag.positive {
+            background: rgba(45,106,79,0.08);
+            color: var(--accent);
+            border: 1px solid rgba(45,106,79,0.15);
+        }
+        .trait-tag.negative {
+            background: rgba(192,57,43,0.08);
+            color: var(--danger);
+            border: 1px solid rgba(192,57,43,0.15);
+        }
+
+        /* Companion */
+        .companion-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex; gap: 20px; align-items: flex-start;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .companion-card:hover {
+            border-color: rgba(108,92,231,0.2);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .companion-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: white;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .companion-meta h4 {
+            font-family: var(--font-main);
+            font-size: 1rem; font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .companion-meta .companion-class {
+            font-size: 0.75rem; font-weight: 600;
+            color: #6c5ce7;
+            margin-bottom: 6px;
+        }
+        .companion-meta p {
+            font-size: 0.82rem; color: var(--secondary); line-height: 1.5;
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ======== Sub Detail Panel (skill/trait detail) ======== */
+        .sub-detail-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            animation: fadeIn 0.15s;
+        }
+        .sub-detail-panel {
+            background: white;
+            border-radius: var(--radius-lg);
+            width: 90%; max-width: 520px;
+            max-height: 75vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-float);
+            animation: modalSlide 0.25s ease;
+        }
+        .sub-detail-header {
+            padding: 20px 24px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            position: sticky; top: 0; z-index: 5;
+            background: white;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+        .sub-detail-header h3 {
+            font-family: var(--font-main);
+            font-size: 1.2rem; font-weight: 700;
+        }
+        .sub-detail-header .type-label {
+            font-size: 0.7rem; font-weight: 700;
+            padding: 3px 8px; border-radius: 4px;
+            color: white; margin-top: 4px;
+            display: inline-block;
+        }
+        .sub-detail-body { padding: 24px; }
+        .sub-detail-body .desc-block {
+            font-size: 0.9rem; line-height: 1.7;
+            color: var(--primary);
+            padding: 16px;
+            background: rgba(45,106,79,0.03);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            white-space: pre-line;
+        }
+        .sub-detail-body .effect-block {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .sub-detail-body .effect-label {
+            font-size: 0.7rem; font-weight: 700;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .sub-detail-body .effect-text {
+            font-size: 0.85rem; line-height: 1.6;
+            color: var(--primary);
+        }
+        .sub-detail-body .flavor-text {
+            font-size: 0.85rem;
+            color: var(--secondary);
+            font-style: italic;
+            padding: 12px 16px;
+            border-left: 3px solid var(--glass-border);
+            margin-top: 12px;
+        }
+        .level-list {
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .level-item {
+            display: flex; gap: 10px; align-items: flex-start;
+            font-size: 0.82rem; line-height: 1.5;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+        .level-item:last-child { border-bottom: none; }
+        .level-num {
+            font-family: var(--font-num);
+            font-weight: 700;
+            color: var(--accent);
+            width: 24px; flex-shrink: 0;
+            text-align: center;
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+            padding: 20px 32px;
+            border-top: 1px solid rgba(0,0,0,0.06);
+            display: flex; justify-content: flex-end; gap: 12px;
+            background: white;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            position: sticky; bottom: 0;
+        }
+
+        /* Buttons */
+        .btn {
+            border: none; outline: none;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 8px;
+            font-family: var(--font-ui);
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-ghost { background: transparent; color: var(--secondary); }
+        .btn-ghost:hover { background: rgba(0,0,0,0.04); color: var(--primary); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #40916c);
+            color: white;
+            box-shadow: 0 4px 15px rgba(45,106,79,0.3);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(45,106,79,0.4);
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            background: white;
+            border: 2px solid rgba(45,106,79,0.3);
+            color: var(--accent);
+        }
+        .btn-outline:hover { border-color: var(--accent); background: rgba(45,106,79,0.04); }
+
+        /* Placeholder */
+        .placeholder-section {
+            text-align: center;
+            padding: 80px 32px;
+            color: var(--secondary);
+        }
+        .placeholder-section i { font-size: 4rem; opacity: 0.15; margin-bottom: 16px; }
+        .placeholder-section h3 {
+            font-family: var(--font-main);
+            font-size: 1.2rem; font-weight: 700;
+            margin-bottom: 8px; color: var(--primary); opacity: 0.4;
+        }
+        .placeholder-section p { font-size: 0.9rem; opacity: 0.5; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .workshop-header { padding: 16px 20px; }
+            .workshop-brand h1 { font-size: 1.2rem; }
+            .tab-bar { padding: 0 16px; overflow-x: auto; }
+            .tab-item { padding: 12px 20px; font-size: 0.85rem; white-space: nowrap; }
+            .workshop-main { padding: 20px 16px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .search-box { max-width: 100%; }
+            .publish-form { grid-template-columns: 1fr; }
+            .publish-header { flex-direction: column; }
+            .publish-actions { flex-direction: column; align-items: stretch; }
+            .publish-actions .btn-row { width: 100%; }
+            .publish-actions .btn { justify-content: center; width: 100%; }
+            .build-grid { grid-template-columns: 1fr; }
+            .modal-panel { width: 95%; max-height: 92vh; }
+            .modal-body { padding: 20px; }
+            .race-info-card { flex-direction: column; }
+            .companion-card { flex-direction: column; }
+            .sub-detail-panel { width: 95%; }
+        }
+        @media (max-width: 480px) {
+            .header-actions { display: none; }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="workshop-header">
+            <div class="workshop-brand">
+                <i class="ri-rocket-2-line"></i>
+                <h1>创意工坊</h1>
+            </div>
+            <div class="header-actions">
+                <template v-if="discordUser">
+                    <div class="discord-user">
+                        <img v-if="discordUser.avatarUrl" class="discord-avatar" :src="discordUser.avatarUrl" :alt="discordUser.username">
+                        <span v-else class="discord-avatar placeholder"><i class="ri-user-3-line"></i></span>
+                        <div class="discord-meta">
+                            <div class="discord-name">{{ discordUser.username }}</div>
+                            <div class="discord-subtitle">已连接 Discord</div>
+                        </div>
+                        <button class="btn btn-ghost" @click="logoutDiscord" style="padding:8px 12px;">
+                            <i class="ri-logout-box-line"></i> 退出
+                        </button>
+                    </div>
+                </template>
+                <button v-else class="btn discord-login" @click="startDiscordLogin">
+                    <i class="ri-discord-fill"></i> 使用 Discord 登录
+                </button>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <nav class="tab-bar">
+            <div class="tab-item" :class="{ active: activeTab === 'build' }" @click="activeTab = 'build'">
+                <i class="ri-hammer-line"></i> Build 区
+                <span class="tab-count">{{ builds.length }}</span>
+            </div>
+            <div class="tab-item" :class="{ active: activeTab === 'character' }" @click="activeTab = 'character'">
+                <i class="ri-user-heart-line"></i> 人设区
+            </div>
+            <div class="tab-item" :class="{ active: activeTab === 'extension' }" @click="activeTab = 'extension'">
+                <i class="ri-puzzle-line"></i> 拓展区
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="workshop-main">
+
+            <!-- ===== Build 区 ===== -->
+            <template v-if="activeTab === 'build'">
+                <template v-if="buildView === 'list'">
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <i class="ri-search-line"></i>
+                            <input type="text" placeholder="搜索 Build 名称、职业、作者…" v-model="searchQuery">
+                        </div>
+                        <span class="field-hint" style="flex: 1; text-align: right; min-width: 220px;">{{ buildDataStatus }}</span>
+                        <button class="btn btn-outline" @click="openPublishPage" style="white-space:nowrap;">
+                            <i class="ri-upload-2-line"></i> 上传预设
+                        </button>
+                    </div>
+                    <div class="management-strip" v-if="discordUser">
+                        <div class="tag-picker">
+                            <button type="button" class="tag-option" :class="{ active: buildScope === 'all' }" @click="buildScope = 'all'">全部预设</button>
+                            <button type="button" class="tag-option" :class="{ active: buildScope === 'mine' }" @click="buildScope = 'mine'">我的预设 {{ ownedBuildCount }}</button>
+                        </div>
+                    </div>
+
+                    <div class="build-grid">
+                        <!-- Build Cards -->
+                        <div class="build-card" v-for="(build, idx) in filteredBuilds" :key="idx" @click="openDetail(build)">
+                            <div class="build-cover">
+                                <img class="cover-image" :src="build.coverUrl" :alt="build.name + ' 封面'">
+                                <div class="cover-overlay">
+                                    <span class="race-badge" :style="{ background: build.badgeColor }">{{ build.race }}</span>
+                                </div>
+                            </div>
+                            <div class="build-body">
+                                <div class="build-title">{{ build.name }}</div>
+                                <div class="build-author-row">
+                                    <img v-if="build.authorAvatar" class="author-avatar" :src="build.authorAvatar" :alt="build.author">
+                                    <span v-else class="author-avatar placeholder"><i class="ri-user-3-line"></i></span>
+                                    <div class="author-info">
+                                        <div class="author-name">作者:{{ build.author }}</div>
+                                        <div class="author-meta">{{ build.className }} 路 {{ build.race }}</div>
+                                    </div>
+                                </div>
+                                <div class="build-desc">{{ build.intro }}</div>
+                                <div class="build-tags">
+                                    <span class="build-tag class-tag" v-if="isBuildOwnedByCurrentUser(build)">
+                                        <i class="ri-user-settings-line" style="margin-right:2px;"></i> 我的
+                                    </span>
+                                    <span class="build-tag race" v-for="t in build.tags" :key="t.text">
+                                        <i :class="t.icon" style="margin-right:2px;"></i> {{ t.text }}
+                                    </span>
+                                </div>
+                                <div class="build-footer">
+                                    <div class="build-stats">
+                                        <span class="build-stat"><i class="ri-download-line"></i> {{ build.downloads }}</span>
+                                        <span class="build-stat"><i class="ri-heart-line"></i> {{ build.likes }}</span>
+                                    </div>
+                                    <div class="build-action-row">
+                                        <button v-if="isBuildOwnedByCurrentUser(build)" class="download-btn edit" @click.stop="editOwnedBuild(build)" title="编辑预设">
+                                            <i class="ri-edit-line"></i>
+                                        </button>
+                                        <button v-if="isBuildOwnedByCurrentUser(build)" class="download-btn danger" @click.stop="deleteOwnedBuild(build)" title="删除预设">
+                                            <i class="ri-delete-bin-line"></i>
+                                        </button>
+                                        <button class="download-btn" @click.stop="downloadBuild(build)" title="下载 JSON">
+                                            <i class="ri-download-2-line"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="placeholder-section" v-if="!filteredBuilds.length">
+                        <i class="ri-file-search-line"></i>
+                        <h3>没有可展示的预设</h3>
+                        <p>{{ buildDataStatus }}</p>
+                    </div>
+                </template>
+
+                <template v-else>
+                    <section class="publish-panel">
+                        <div class="publish-header">
+                            <div>
+                                <h2>上传预设</h2>
+                                <p>导入“开局.html”导出的预设 JSON，补全名称和封面后即可发布。</p>
+                            </div>
+                            <button class="btn btn-ghost" @click="closePublishPage">
+                                <i class="ri-arrow-left-line"></i> 返回列表
+                            </button>
+                        </div>
+
+                        <div class="publish-form">
+                            <div class="publish-section">
+                                <div class="form-field">
+                                    <label for="preset-name">预设名称</label>
+                                    <input id="preset-name" type="text" v-model="publishForm.name" placeholder="例如：癌骑士 / 夜斗">
+                                </div>
+                                <div class="form-field">
+                                    <label for="preset-summary">简介</label>
+                                    <textarea id="preset-summary" v-model="publishForm.intro" placeholder="一句话说明这个预设的玩法或亮点。"></textarea>
+                                </div>
+                                <div class="form-field">
+                                    <label for="preset-author">作者名</label>
+                                    <div v-if="discordUser" class="form-account">
+                                        <img v-if="discordUser.avatarUrl" class="discord-avatar" :src="discordUser.avatarUrl" :alt="discordUser.username">
+                                        <span v-else class="discord-avatar placeholder"><i class="ri-user-3-line"></i></span>
+                                        <div class="form-account-body">
+                                            <div class="form-account-title">已同步 Discord 账号</div>
+                                            <div class="form-account-subtitle">发布时会自动带上头像和昵称。</div>
+                                        </div>
+                                    </div>
+                                    <input id="preset-author" type="text" v-model="publishForm.author" :readonly="!!discordUser" :placeholder="discordUser ? '已同步 Discord 昵称' : '填写作者署名'">
+                                </div>
+                                <div class="form-field">
+                                    <label for="preset-cover">封面图片地址</label>
+                                    <input id="preset-cover" type="url" v-model="publishForm.coverUrl" placeholder="https://example.com/cover.jpg">
+                                    <span class="field-hint">可留空，优先使用预设自带封面。</span>
+                                </div>
+                                <div class="form-field">
+                                    <label>预设 JSON</label>
+                                    <div class="build-tags">
+                                        <span class="build-tag class-tag" v-if="publishForm.importedFileName">
+                                            <i class="ri-file-code-line" style="margin-right:2px;"></i> {{ publishForm.importedFileName }}
+                                        </span>
+                                        <span class="build-tag race" v-if="publishForm.importedPresetData">
+                                            <i class="ri-check-line" style="margin-right:2px;"></i> 已解析预设内容
+                                        </span>
+                                    </div>
+                                    <span class="field-hint">选择后会自动识别职业、种族和技能树。</span>
+                                </div>
+                                <div class="form-field">
+                                    <label>风格标签</label>
+                                    <div class="tag-picker">
+                                        <button
+                                            v-for="tag in presetTagOptions"
+                                            :key="tag"
+                                            type="button"
+                                            class="tag-option"
+                                            :class="{ active: publishForm.tags.includes(tag) }"
+                                            @click="togglePublishTag(tag)">
+                                            {{ tag }}
+                                        </button>
+                                    </div>
+                                    <span class="field-hint">最多 3 个，已选 {{ publishForm.tags.length }}/3</span>
+                                </div>
+                            </div>
+                            <aside class="publish-preview">
+                                <div class="preview-cover">
+                                    <img v-if="publishForm.coverUrl" :src="publishForm.coverUrl" alt="预设封面预览">
+                                    <div v-else class="preview-cover-empty">封面预览</div>
+                                </div>
+                                <div class="preview-meta">
+                                    <h3>{{ publishForm.name || '未命名预设' }}</h3>
+                                    <p>{{ publishForm.intro || '这里会显示简介预览。' }}</p>
+                                </div>
+                                <div class="build-tags">
+                                    <span class="build-tag class-tag" v-if="publishForm.author">
+                                        <i class="ri-user-3-line" style="margin-right:2px;"></i> {{ publishForm.author }}
+                                    </span>
+                                    <span class="build-tag class-tag" v-if="publishForm.importedPresetData">
+                                        <i class="ri-sword-line" style="margin-right:2px;"></i> {{ getImportedClassName() }}
+                                    </span>
+                                    <span class="build-tag race" v-if="publishForm.importedPresetData">
+                                        <i class="ri-ghost-smile-line" style="margin-right:2px;"></i> {{ getImportedRaceName() }}
+                                    </span>
+                                    <span class="build-tag race" v-for="tag in publishForm.tags" :key="tag">{{ tag }}</span>
+                                </div>
+                            </aside>
+                        </div>
+
+                        <div class="publish-actions">
+                            <span class="field-hint">先导入 JSON，再发布。</span>
+                            <div class="btn-row">
+                                <button class="btn btn-outline" @click="triggerPresetJsonImport">
+                                    <i class="ri-file-upload-line"></i> 导入 JSON
+                                </button>
+                                <button class="btn btn-ghost" @click="resetPublishForm">重置</button>
+                                <button class="btn btn-primary" @click="publishPresetBuild">
+                                    <i class="ri-check-line"></i> 发布预设
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+            </template>
+
+            <!-- ===== 人设区 Placeholder ===== -->
+            <template v-if="activeTab === 'character'">
+                <div class="placeholder-section">
+                    <i class="ri-user-heart-line"></i>
+                    <h3>人设区</h3>
+                    <p>角色人设、背景故事、关系图谱等内容即将上线…</p>
+                </div>
+            </template>
+
+            <!-- ===== 拓展区 Placeholder ===== -->
+            <template v-if="activeTab === 'extension'">
+                <div class="placeholder-section">
+                    <i class="ri-puzzle-line"></i>
+                    <h3>拓展区</h3>
+                    <p>更多自定义模组、世界规则和剧情拓展包敬请期待…</p>
+                </div>
+            </template>
+        </main>
+
+        <!-- ===== Build Detail Modal ===== -->
+        <div class="modal-overlay" v-if="selectedBuild" @click.self="selectedBuild = null">
+            <div class="modal-panel">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        {{ selectedBuild.name }}
+                        <span class="title-badge" :style="{ background: selectedBuild.badgeColor }">{{ selectedBuild.race }}</span>
+                    </div>
+                    <button class="modal-close" @click="selectedBuild = null">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- Basic Info -->
+                    <div class="detail-section">
+                        <div class="section-heading">
+                            <i class="ri-user-star-line"></i> 基本信息
+                        </div>
+                        <div class="race-info-card">
+                            <div class="race-icon-lg" :style="{ background: selectedBuild.badgeColor }">
+                                <img :src="selectedBuild.coverUrl" :alt="selectedBuild.name + ' 头像'">
+                            </div>
+                            <div class="race-meta">
+                                <h3>{{ selectedBuild.name }}</h3>
+                                <div class="race-class">{{ selectedBuild.className }} · {{ selectedBuild.race }}</div>
+                                <p>{{ selectedBuild.intro }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skill Tree -->
+                    <div class="detail-section">
+                        <div class="section-heading">
+                            <i class="ri-node-tree"></i> 技能树
+                        </div>
+                        <div class="skill-tree-preview">
+                            <div class="skill-tier" v-for="tier in selectedBuild.skillTree" :key="tier.name">
+                                <div class="tier-label">{{ tier.name }}</div>
+                                <div class="skill-nodes">
+                                    <div class="skill-node" v-for="skill in tier.skills" :key="skill.name"
+                                         @click.stop="openSkillDetail(skill)">
+                                        <span
+                                            class="skill-icon-placeholder"
+                                            :class="skill.typeClass"
+                                            :data-skill-type="skill.rawType"
+                                            :data-skill-tier="skill.tierKey"
+                                            v-html="skill.iconSvg"></span>
+                                        {{ skill.name }}
+                                        <i class="ri-arrow-right-s-line" style="opacity:0.3; margin-left:auto; font-size:0.9rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Traits -->
+                    <div class="detail-section">
+                        <div class="section-heading">
+                            <i class="ri-sparkling-line"></i> 固有特质
+                        </div>
+                        <div class="trait-grid" v-if="selectedBuild.traits.positive.length || selectedBuild.traits.negative.length">
+                            <div class="trait-tag positive" v-for="t in selectedBuild.traits.positive" :key="t.name"
+                                 @click.stop="openTraitDetail(t, 'positive')">
+                                <i :class="t.icon"></i>
+                                {{ t.name }}
+                                <i class="ri-arrow-right-s-line" style="opacity:0.3; margin-left:4px; font-size:0.85rem;"></i>
+                            </div>
+                            <div class="trait-tag negative" v-for="t in selectedBuild.traits.negative" :key="t.name"
+                                 @click.stop="openTraitDetail(t, 'negative')">
+                                <i :class="t.icon"></i>
+                                {{ t.name }}
+                                <i class="ri-arrow-right-s-line" style="opacity:0.3; margin-left:4px; font-size:0.85rem;"></i>
+                            </div>
+                        </div>
+                        <div class="placeholder-section" v-else style="padding: 28px 12px;">
+                            <i class="ri-inbox-line"></i>
+                            <h3>当前 JSON 未包含特质</h3>
+                            <p>这一块只展示预设导出文件里实际存在的数据。</p>
+                        </div>
+                    </div>
+
+                    <!-- Companion -->
+                    <div class="detail-section">
+                        <div class="section-heading">
+                            <i class="ri-team-line"></i> 初始羁绊
+                        </div>
+                        <div class="companion-card" v-if="selectedBuild.companion" @click.stop="openCompanionDetail(selectedBuild.companion)">
+                            <div class="companion-icon" :style="{ background: selectedBuild.companion.iconColor }">
+                                <i :class="selectedBuild.companion.icon"></i>
+                            </div>
+                            <div class="companion-meta">
+                                <h4>{{ selectedBuild.companion.name }}</h4>
+                                <div class="companion-class">{{ selectedBuild.companion.race }} · {{ selectedBuild.companion.class }}</div>
+                                <p>{{ selectedBuild.companion.desc }}</p>
+                            </div>
+                        </div>
+                        <div class="placeholder-section" v-else style="padding: 28px 12px;">
+                            <i class="ri-group-line"></i>
+                            <h3>当前 JSON 未包含同伴数据</h3>
+                            <p>如果后续把队友详情也导出到 JSON，这里会直接跟着渲染。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-ghost" @click="selectedBuild = null">
+                        <i class="ri-close-line"></i> 关闭
+                    </button>
+                    <div class="btn-row">
+                        <button v-if="isBuildOwnedByCurrentUser(selectedBuild)" class="btn btn-outline" @click="editOwnedBuild(selectedBuild)">
+                            <i class="ri-edit-line"></i> 编辑预设
+                        </button>
+                        <button v-if="isBuildOwnedByCurrentUser(selectedBuild)" class="btn btn-ghost" @click="deleteOwnedBuild(selectedBuild)">
+                            <i class="ri-delete-bin-line"></i> 删除预设
+                        </button>
+                        <button class="btn btn-primary" @click="downloadBuild(selectedBuild)">
+                            <i class="ri-download-2-line"></i> 下载 JSON
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Skill Detail Sub-Panel ===== -->
+        <div class="sub-detail-overlay" v-if="skillDetail" @click.self="skillDetail = null">
+            <div class="sub-detail-panel">
+                <div class="sub-detail-header">
+                    <div>
+                        <h3>{{ skillDetail.name }}</h3>
+                        <span class="type-label" :style="{ background: getSkillTypeColor(skillDetail.type) }">{{ skillDetail.type }}</span>
+                    </div>
+                    <button class="modal-close" @click="skillDetail = null" style="flex-shrink:0;">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="sub-detail-body">
+                    <div class="desc-block">{{ skillDetail.desc }}</div>
+                    <template v-if="skillDetail.levels && skillDetail.levels.length">
+                        <div class="effect-block">
+                            <div class="effect-label">等级效果</div>
+                            <div class="level-list">
+                                <div class="level-item" v-for="(lv, i) in skillDetail.levels" :key="i">
+                                    <span class="level-num">{{ lv.level }}</span>
+                                    <span class="effect-text">{{ lv.text }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template v-if="skillDetail.singleEffect">
+                        <div class="effect-block">
+                            <div class="effect-label">特殊效果</div>
+                            <div class="effect-text">{{ skillDetail.singleEffect }}</div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Trait Detail Sub-Panel ===== -->
+        <div class="sub-detail-overlay" v-if="traitDetail" @click.self="traitDetail = null">
+            <div class="sub-detail-panel">
+                <div class="sub-detail-header">
+                    <div>
+                        <h3><i :class="traitDetail.icon" style="margin-right:8px;"></i>{{ traitDetail.name }}</h3>
+                        <span class="type-label" :style="{ background: traitDetail.typeColor }">{{ traitDetail.typeLabel }}</span>
+                    </div>
+                    <button class="modal-close" @click="traitDetail = null" style="flex-shrink:0;">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="sub-detail-body">
+                    <div class="desc-block">{{ traitDetail.desc }}</div>
+                    <div class="effect-block">
+                        <div class="effect-label">效果</div>
+                        <div class="effect-text">{{ traitDetail.effect }}</div>
+                    </div>
+                    <div class="flavor-text" v-if="traitDetail.flavor">{{ traitDetail.flavor }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Companion Detail Sub-Panel ===== -->
+        <div class="sub-detail-overlay" v-if="companionDetail" @click.self="companionDetail = null">
+            <div class="sub-detail-panel">
+                <div class="sub-detail-header">
+                    <div>
+                        <h3>{{ companionDetail.name }}</h3>
+                        <span class="type-label" style="background: #6c5ce7;">{{ companionDetail.class }}</span>
+                    </div>
+                    <button class="modal-close" @click="companionDetail = null" style="flex-shrink:0;">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="sub-detail-body">
+                    <div class="desc-block">{{ companionDetail.desc }}</div>
+                    <div class="effect-block">
+                        <div class="effect-label">能力</div>
+                        <div class="effect-text">{{ companionDetail.skill }}</div>
+                    </div>
+                    <div class="effect-block" v-if="companionDetail.powerLimit">
+                        <div class="effect-label">限制</div>
+                        <div class="effect-text">{{ companionDetail.powerLimit }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    // ===== 技能 SVG 图标（由 scripts/sync_skill_svg.js 从“开局.html”同步） =====
+    // SKILL_SVG_SYNC_START
+// SVG路径数据 - 按类型和阶位分类
+                const SKILL_SVG_PATHS = {
+                    // ========== 主动技能 (Active) ==========
+                    // 主动技能图标风格：攻击性、动态感、武器相关
+                    主动: {
+                        Tier1: 'M43.53 15.75c-15.73 0-28.31 12.583-28.31 28.313 0 14.086 10.092 25.644 23.5 27.906L42.687 68 68.81 41.906l2.626-2.625C69.188 25.86 57.63 15.75 43.53 15.75zm33.72 44.125-17 17c15.885 39.37 43.45 66.684 78.75 87.406a512.629 512.629 0 0 1 25.438-24.936c-22.488-35.103-51.535-62.294-87.188-79.47zM322.594 79.03l-51.25 4.314c-79.356 48.134-143.878 108.1-186.72 186.53l-4.31 51.47 44.155-18.656-2.94-34.094-.25-3.063 1.626-2.624c35.94-58.47 79.93-109.41 141.5-141.25l2.406-1.25 2.688.25 34.125 2.906 18.97-44.53zm-62.438 66.376c-10.008 5.886-19.5 12.338-28.562 19.313 46.688 47.93 87.208 108.588 114.72 166.5l11.248 23.717-23.718-11.28c-57.995-27.554-117.918-67.57-165.688-113.907a497.06 497.06 0 0 0-20.625 29.28c101.918 94.91 227.05 177.304 347.845 234.69-57.063-120.125-140.038-246.18-235.22-348.314zm-43.03 31.22c-13.37 11.703-25.72 24.58-37.282 38.436 39.36 38.452 88.085 72.83 136.687 98.844-26.054-48.633-60.754-97.847-99.405-137.28z',   // 基础攻击 - 匕首
+                        Tier2: 'm491.844 22.533-83.42 14.865L196.572 249.25c3.262 4.815 5.37 10.72 5.37 16.932 0 5.863-1.71 11.35-4.643 15.996a52.936 52.936 0 0 0-16.027-2.477c-15.724 0-29.904 6.89-39.69 17.796l-9.112-9.113 17.237-17.237a545.915 545.915 0 0 1-13.19-17.6l-19.443 19.44-13.215-13.215 21.828-21.827a548.134 548.134 0 0 1-12.792-20.068L72.093 258.68l58.314 58.314a52.94 52.94 0 0 0-2.49 16.063 52.86 52.86 0 0 0 4.592 21.564l-72.14 72.14-14.56-14.56L21.013 437l14.558 14.56-8.607 8.608 27.246 27.246 8.606-8.61 14.56 14.56 24.798-24.8-14.557-14.556 72.158-72.16a52.885 52.885 0 0 0 21.498 4.562 52.94 52.94 0 0 0 16.063-2.49l58.363 58.363L296.5 401.48a548.745 548.745 0 0 1-20.068-12.793l-21.83 21.83L241.39 397.3l19.442-19.44a550.258 550.258 0 0 1-17.603-13.194l-17.238 17.238-9.16-9.16c10.905-9.785 17.795-23.965 17.795-39.69 0-5.346-.806-10.51-2.285-15.39 4.703-3.04 10.288-4.817 16.265-4.816 6.21 0 11.776 1.77 16.52 4.955L476.98 105.95l14.864-83.417zm-66.227 53.012 13.215 13.215-191.684 191.68-13.214-13.213L425.617 75.545zM181.273 298.39c19.257 0 34.665 15.41 34.665 34.665 0 19.256-15.408 34.666-34.665 34.666-19.256 0-34.666-15.41-34.666-34.665s15.41-34.666 34.666-34.666z',   // 进阶战斗 - 阔剑
+                        Tier3: 'm311.313 25.625-23 10.656-29.532 123.032 60.814-111.968-8.28-21.72zM59.625 50.03c11.448 76.937 48.43 141.423 100.188 195.75a3267.323 3267.323 0 0 0 42.718-29.405c-22.156-27.314-37.85-56.204-43.593-86.28-34.214-26.492-67.613-53.376-99.312-80.064zm390.47.032C419.178 76.1 386.64 102.33 353.31 128.22c-10.333 58.234-58.087 112.074-118.218 158.624-65.433 50.654-146.56 92.934-215.28 121.406l-.002 32.78c93.65-34.132 195.55-81.378 276.875-146.592 79.035-63.378 138.329-143.063 153.41-244.375zm-236.158 9.344-8.5 27.813 40.688 73.06-6.875-85.31-25.313-15.564zm114.688 87.813C223.39 227.47 112.257 302.862 19.812 355.905V388c65.917-27.914 142.58-68.51 203.844-115.938 49.83-38.574 88.822-81.513 104.97-124.843zm-144.563 2.155c7.35 18.89 19.03 37.68 34 56.063 7.03-4.98 14.056-10.03 21.094-15.094-18.444-13.456-36.863-27.12-55.094-40.97zM352.656 269.72c-9.573 9.472-19.58 18.588-29.906 27.405 54.914 37.294 117.228 69.156 171.906 92.156V358.19c-43.86-24.988-92.103-55.13-142-88.47zm-44.906 39.81c-11.65 9.32-23.696 18.253-36.03 26.845 70.326 45.135 149.33 79.775 222.935 106.375v-33.22c-58.858-24.223-127.1-58.727-186.906-100zm-58.625 52.033-46.188 78.25 7.813 23.593 27.75-11.344 10.625-90.5zm15.844.812L316.343 467l36.47 10.28-3.533-31.967-84.31-82.938z',   // 属性打击 - 剑击
+                        Tier4: 'M386.97 17.688c-.678 24.347-8.144 49.282-22.19 71.843-37.465 60.192-112.748 86.84-181.874 69.907 5.208-2.31 10.233-4.83 15.03-7.593 39.057-22.5 57.284-55.454 54.314-91.688-7.388 21.814-24.62 41.314-50.22 56.063-48.047 27.68-118.01 31.687-187.468 16.936v37.375c41.04 8.176 82.086 9.6 118.563 3.47.365.25.726.503 1.094.75l.093-.03 3.28 2.124c32.687 21.385 79.955 25.336 123.75 16.28 43.797-9.054 83.514-31.274 101.126-57.343l4-5.905 6.75 2.28c39.1 13.354 75.938 17.096 119.06 14.94.718-.056 1.442-.098 2.158-.157v-39.125c-36.865 3.595-75.212.762-111.407-9.032 9.5-26.66 10.5-54.67 3.94-81.093zM323.75 191.28c-17.796 9.052-37.843 15.86-58.625 20.157-31.336 6.48-64.594 7.087-94.688-.53L251.28 305l-93.06 20.375L457.874 495.97 348.53 319.936l58.064-14.968-82.844-113.69z',   // 强力处决 - 闪电风暴
+                        Tier5: 'M222.25 51.813c-59.778.797-102.472 36.19-97.47 91.593-175.105 173.99-42.24 388.292 82.72 301.281 234.398 24.897 320.07-138.203 253.688-215.875-68.157-127.71-166.197-177.97-238.938-177zm35.28 54c59.782-.537 138.234 35.254 194.314 113.593-32.668-28.783-91.096-41.137-175.594-17.906 233.673-4.713 159.012 242.056-65.813 241.094 23.605-17.352 46.84-45.562 67.563-86.97-141.047 157.87-264.124-48.664-152.094-203.78 6.14 35.83 31.486 79.165 83.5 126.5-75.762-109.73-29.625-171.834 48.125-172.53zm20.314 112.03c-28.427-.322-54.126 19.32-60.375 48.188-7.143 32.992 13.82 65.547 46.81 72.69 32.992 7.14 65.516-13.823 72.658-46.814 7.14-32.99-13.822-65.545-46.813-72.687a61.062 61.062 0 0 0-12.28-1.376z',   // 终极爆发 - 原子斩击
+                        觉醒一: 'M107.5 18c40.728 58.21-63.708 25.914-88.03 2.47 1.058 40.082 100.03 99.633 147.374 72.124C195.904 75.71 136.984 22.936 107.5 18zm97.75 57.28.875 1.47c120.364 99-4.023 175.247-64.97 48.78 15.823 82.506-78.425 44.2-89.655-30.655C-13.17 230.463 172.715 231.293 178.438 324c3.23 52.3-77.82 19.908-113.875-48.844C308.49 797.09 814.024 262.64 205.25 75.28zm134.97 136.376c44.577 0 85.52 18.708 109.56 52.5 43.656 75.614-63.777 27.4-70.717-8.844-21.45 58.675 101.883 114.72 16 170.375 25.962-34.188 2.345-113.552-87.875-109.125 116.512 72.473 42.326 206.9-19.688 93.157 1.306 35.083 11.99 54.83 27.156 64.436-60.89-11.955-107.03-65.528-107.03-129.906 0-39.06 16.94-74.22 43.874-98.5 1.674 61.897 83.61 37.656 115.97 62.344-11.544-60.34-56.022-59.933-82.72-84.28 16.883-7.803 35.67-12.158 55.47-12.158zM234.72 309a44.022 44.022 0 0 0-4.064.25c26.032 6.737 74.684 83.827 33.875 61.75 3.41 14.6 43.038 41.75 57.5 21.156 18.816-26.79-44.374-83.634-87.31-83.156z',   // 觉醒之力 - 燃烧流星
+                        觉醒二: 'M320.063 19.72c-72.258 14.575-19.248 71.693-74.344 108.81 4.846-.49 9.746-.702 14.655-.624 16.288.26 32.785 3.72 48.594 10.72a126.431 126.431 0 0 1 14.25 7.405c12.107-47.476-37.103-96.38-3.158-126.31zM136.75 44.47c-40.76 61.357 36.984 64.33 24.406 129.405 17.407-21.255 41.17-35.9 67.156-42.313-25.006-42.138-94.4-41.924-91.562-87.093zm297.313 75.405c-32.547.872-45.475 46.314-96.594 36.22 21.35 17.42 36.034 41.25 42.467 67.31 42.306-24.92 42.053-94.466 87.282-91.624-13.43-8.92-24.06-12.15-33.158-11.905zm-177.97 26.656c-23.656.46-46.53 8.82-64.906 23.626l18.657 36.156L170 193.156a107.628 107.628 0 0 0-9.406 16.938c-8.726 19.708-11.002 40.59-7.78 60.344l44.78 2.125-34 30.312c10.798 20.622 28.414 37.852 51.406 48.03a107.842 107.842 0 0 0 9.313 3.626l24.53-38.25 9.095 43.814c27.3.075 53.737-10.387 73.593-29.188l-19.186-37.125 38.406 12.658a108.49 108.49 0 0 0 5.03-9.938c9.746-22.01 11.457-45.498 6.44-67.22l-37.626-1.75 27.687-24.718c-10.83-20.194-28.236-37.07-50.874-47.093a107.405 107.405 0 0 0-4.125-1.72l-25.874 40.313-9.906-47.75c-.5-.016-1-.023-1.5-.032-1.3-.02-2.61-.024-3.906 0zM133.407 186.5c-41.652.725-82.483 34.847-108.72 5.094 14.573 72.234 71.664 19.3 108.783 74.312-2.154-20.972.934-42.758 10.06-63.375a126.36 126.36 0 0 1 7.345-14.093c-5.822-1.47-11.642-2.038-17.47-1.937zm249.5 53.97a124.649 124.649 0 0 1-10.03 63.624l-.188.375a126.38 126.38 0 0 1-7.22 13.78c47.524 12.244 96.507-37.137 126.47-3.156-14.603-72.388-71.92-19.04-109.032-74.625zM136.53 283.405c-42.123 25.014-41.928 94.37-87.093 91.53 61.422 40.803 64.322-37.123 129.594-24.342-21.344-17.385-36.03-41.167-42.5-67.188zm219.064 48.906c-17.406 21.46-41.236 36.24-67.344 42.72 24.944 42.263 94.497 42.004 91.656 87.218 40.867-61.52-37.402-64.358-24.312-129.938zM193.406 360.72c-12.047 47.456 37.087 96.33 3.156 126.25 72.305-14.587 19.195-71.79 74.47-108.908-21.04 2.204-42.898-.9-63.594-10.062a126.43 126.43 0 0 1-14.032-7.28z',   // 核心爆发 - 太阳
+                        觉醒三: 'M393.5 19.53a57.415 57.415 0 0 0-8.656.626c-31.08 4.62-52.53 33.582-47.906 64.688 4.623 31.106 33.576 52.588 64.656 47.97a58.336 58.336 0 0 0 6.03-1.25c9.68 23.89 14.992 46.253 16.657 66.967-12.318 4.327-20.24 16.91-18.25 30.314 1.366 9.18 7.072 16.623 14.72 20.594-3.375 14.428-8.705 27.7-15.594 39.75-9.627 16.838-22.426 31.345-37.375 43.187 13.33-22.265 19.333-49.11 15.22-76.78-4.372-29.416-19.408-54.588-40.594-72.22-33.633-35.776-80.33-58.405-130.312-58.22-45.336.17-92.873 19.486-134.625 63.376a39.68 39.68 0 0 0-24.75-4.343c-21.767 3.236-36.77 23.528-33.532 45.313 3.238 21.785 23.483 36.83 45.25 33.594 21.766-3.236 36.8-23.528 33.562-45.313a39.775 39.775 0 0 0-6.656-16.843c38.472-40.475 80.822-56.944 120.844-57.093 21.038-.08 41.558 4.455 60.562 12.687-1.344-.05-2.678-.087-4.03-.093a117.003 117.003 0 0 0-17.69 1.282c-16.537 2.457-31.73 8.308-45 16.718-38.298 20.656-69.638 53.2-86.686 93.312-14.32 33.692-18.302 72.74-8 113.813-16.41 6.933-28.73 22.277-30.906 41.25-3.215 28.02 16.88 53.32 44.874 56.53 27.996 3.213 53.317-16.886 56.532-44.906 3.215-28.017-16.88-53.35-44.875-56.562-2.508-.288-4.99-.357-7.44-.28-9.626-37.47-5.866-72.288 7-102.564 5.206-12.245 11.944-23.753 19.94-34.342-4.43 15.467-5.71 32.107-3.19 49.062a119.7 119.7 0 0 0 1.282 7.03c7.884 58.165 40.39 112.06 91.97 141.658 45.803 26.28 106.342 32.7 175.75 6.75 8.357 11.38 22.54 17.875 37.468 15.656 21.484-3.194 36.32-23.216 33.125-44.72-3.196-21.5-23.203-36.35-44.688-33.155-21.484 3.192-36.32 23.215-33.125 44.717.015.096.048.187.063.282-64.737 24.18-118.595 17.612-159.313-5.75-23.945-13.74-43.422-33.523-57.625-56.783 23.992 18.134 54.95 26.988 87.032 22.22a116.553 116.553 0 0 0 23.686-6.126c46.562-11.748 88.206-40.568 112.5-83.06 8.058-14.095 14.142-29.657 17.844-46.5 14.273-3.006 23.925-16.652 21.75-31.282-1.56-10.494-8.8-18.77-18.125-22.125-1.686-23.377-7.498-48.395-18.156-74.657 17.774-11.842 28.13-33.24 24.78-55.78-4.19-28.19-28.373-48.48-56-48.595zM268.437 185.47l12.063 54 46.625-29.564-29.375 46.313 53.594 12.03-53.875 12.063 29.686 46.75-46.687-29.625-12.033 53.75-12-53.594-46.468 29.5 29.655-46.78-54-12.064 53.72-12.03-29.376-46.314 46.436 29.438 12.03-53.875zm-.156 71.28c-6.89 0-12.25 5.39-12.25 12.28 0 6.894 5.36 12.283 12.25 12.283 6.892 0 12.283-5.39 12.283-12.282 0-6.89-5.39-12.28-12.282-12.28z'    // 宇宙毁灭 - 黑洞
+                    },
+
+                    // ========== 召唤技能 (Summon) ==========
+                    // 召唤技能图标风格：生物、魔法阵、召唤物
+                    召唤: {
+                        Tier1: 'M255.875 19.47c-33.142 0-59.844 26.822-59.844 60.186 0 33.364 26.703 60.156 59.845 60.156 33.142 0 59.875-26.792 59.875-60.156S289.017 19.47 255.875 19.47zm-50.688 120.343c-2.908 1.23-5.658 2.53-8.187 3.937-14.467 8.046-21.47 17.86-21.47 27.094 0 9.234 7.003 19.08 21.47 27.125 14.467 8.044 35.51 13.436 58.875 13.436 23.365 0 44.408-5.392 58.875-13.437 14.467-8.047 21.47-17.892 21.47-27.126 0-9.234-7.003-19.048-21.47-27.094-2.53-1.406-5.28-2.708-8.188-3.938-13.696 11.647-31.392 18.688-50.687 18.688-19.3 0-36.996-7.034-50.688-18.688zm78.875 87.906c-8.948 1.54-18.394 2.374-28.187 2.374A166.87 166.87 0 0 1 229 227.937a74.718 74.718 0 0 1 4.906 21.656c2.456 33.554-17.04 69.573-58.47 93.594l-.155.093-.155.095c-20.062 10.653-30.28 24.056-30.28 36.97 0 12.9 10.28 26.46 30.343 37.217 20.062 10.76 48.86 17.844 80.75 17.844s60.687-7.085 80.75-17.844c20.062-10.758 30.343-24.318 30.343-37.218 0-13.127-10.773-26.656-31.655-37.406l-.22-.125-.186-.094c-40.344-23.394-58.705-59.676-55.908-93.22a78.538 78.538 0 0 1 5-21.78zM128.845 395.655c-5.592 3.72-10.256 7.61-13.875 11.53-6.9 7.48-9.94 14.64-9.94 21.845 0 7.206 3.04 14.397 9.94 21.876 6.898 7.48 17.6 14.852 31.28 21.125 27.36 12.547 66.42 20.69 109.625 20.69 43.206 0 82.295-8.143 109.656-20.69 13.682-6.27 24.352-13.644 31.25-21.124 6.9-7.48 9.97-14.67 9.97-21.875 0-7.204-3.07-14.363-9.97-21.842-3.597-3.902-8.238-7.767-13.78-11.47-5.638 15.6-19.584 28.706-37.5 38.313-23.533 12.62-54.947 20.095-89.563 20.095-34.615 0-66.06-7.474-89.593-20.094-17.94-9.62-31.887-22.747-37.5-38.374z',   // 小型生物 - 棋子
+                        Tier2: 'M179.3 38.94C154.7 77.7 142.7 139.7 168.4 185.9l-16.3 9.2c-6.7-11.9-11.2-24.4-13.9-37.2-34.5-6.3-69.42-7.5-104.98-2.1 34.07 10.1 52.77 23.7 76.68 46.7-26.82 9.7-60.25 30.2-92.93 70.2 35.47-8.8 64.83-11.5 89.43-6.3-36.94 22.5-64.06 56.1-88.34 114.1 35.9-17.2 64.89-18.8 102.94-18.8-23.07 32.7-35.27 77.2-36.31 112.8 24.51-26 57.61-60.2 87.21-79 3 29.9 15 58.3 35.9 85.3-.2-43.9 10.3-88.3 31.6-133.4-18.8 9-32.4 18.1-49.9 29.3 6.2-27.9 12.4-55.8 18.7-83.7-23.3 2.4-39 10-60.5 18.5 16.3-33.1 32.7-66.1 49.1-99.2l16.8 8.3-28.4 57.4c18.4-4.4 28.7-4.1 45.7-1.3-4.5 20.4-9 40.7-13.6 61 65.3-36.2 148.3-45.9 226.7-50 7.6-12.9 13.8-24.2 18.8-34.8l-6.3-24.4-24.4 30.8-7.8-27.5-22.5 29.2-7.5-26.1-23.9 31.5-7.7-28.2-23.8 31.4 1.2-41.1 22.6-42.7 7.6 28.3 23.9-31.5 7.6 28.2 23.5-30 6.5 26.9 24.5-30.8 7.8 27.5 24.6-32c2.3-10.8 4.6-22.4 7.4-35.7-55.5-3.7-106.3 4.8-154 9.8-38-20.8-80.8-26.8-121.9-18.5-13.6-29.69-27.2-59.38-40.9-89.06zM325.5 158.3c-4.5 14.2-13 18.3-24.7 20.6-16.1-4.4-28.3-15.5-34.4-30.2 20.4-3.8 42.4 3.4 59.1 9.6z',   // 猛兽 - 狼头
+                        Tier3: 'M142.026 16.89C94.242 38.888 62.71 74.257 62.71 113.927c0 26.11 13.42 50.288 36.22 70.04-11.664 25.398-18.99 53.91-20.81 84.212 17.194.562 33.53 4.205 48.192 11.7 41.566 21.25 61.083 66.944 57.787 121.093a286.662 286.662 0 0 0 23.122 4.58c.894-16.76.83-33.468-.496-50.122l18.63-1.485c1.438 18.035 1.466 36.014.458 53.938 8.022.76 16.14 1.21 24.322 1.382V353.03h18.687v56.13c7.83-.25 15.693-.755 23.565-1.514-.995-17.845-.96-35.745.47-53.7l18.63 1.485c-1.323 16.597-1.39 33.247-.504 49.95 7.307-1.07 14.6-2.355 21.863-3.843-3.467-54.395 16.04-100.333 57.748-121.656 14.66-7.497 30.998-11.142 48.19-11.702-1.843-30.716-9.343-59.594-21.284-85.252 22.08-19.56 35.044-43.346 35.044-69 0-39.67-31.532-75.04-79.316-97.035C386.283 33.46 394.32 53.31 394.32 74.27c0 42.688-31.51 79.614-77.026 97.146l-6.14-14.3c11.148-4.44 21.233-10.197 29.876-16.964 10.1-7.905 18.202-17.087 23.91-27.154-29.85-25.333-66.642-40.283-106.488-40.283-40.34 0-77.554 15.314-107.6 41.223 5.674 9.7 13.588 18.555 23.372 26.214 9.67 7.57 21.145 13.877 33.894 18.49l-6.125 14.264c-47.677-16.863-81.06-54.696-81.06-98.636 0-20.96 8.038-40.81 21.093-57.377zm10.286 183.128c.054-.004.1.004.127.037 18.414 23.35 51.93 39.697 91.086 43.162-5.892 19.698-26.99 34.53-52.67 34.53-30.21 0-55.148-20.584-55.148-45.517.002-12.465 6.205-23.997 16.11-32.173.083.094.33-.027.494-.04zm211.668.002c.053-.003.1.006.138.04 9.907 8.175 16.112 19.707 16.112 32.173 0 24.93-24.937 45.515-55.15 45.515-25.68 0-46.776-14.83-52.67-34.53 39.156-3.466 72.673-19.813 91.087-43.16.112.085.322-.03.483-.038zM258.4 244.174c5.625 27.42 13.928 54.84 32.91 82.26-20.274 5.432-44.818 5.627-65.82 0 17.968-27.42 26.834-54.84 32.91-82.26zm-76.31 175.54c-2.34 15.4-6.413 31.3-12.25 47.372a168.84 168.84 0 0 0 27.663 14.637c3.627-19.225 6.537-38.376 8.33-57.455a309.037 309.037 0 0 1-23.744-4.553zm152.802.48a409.42 409.42 0 0 1-22.526 3.888c1.777 18.972 4.655 38.015 8.248 57.13a169.154 169.154 0 0 0 26.452-14.126c-5.776-15.906-9.824-31.644-12.174-46.893zm-41.094 6.115c-8.335.8-16.668 1.323-24.975 1.58v65.694a157.874 157.874 0 0 0 33.973-6.01c-3.898-20.343-7.058-40.766-8.998-61.265zm-69.402.237c-1.953 20.54-5.13 41.002-9.043 61.385a157.903 157.903 0 0 0 34.783 5.773v-65.713a349.206 349.206 0 0 1-25.74-1.445z',   // 怪物 - 恶魔头骨
+                        Tier4: 'M345.594 20.28c-11.443.087-23.37 1.194-36.094 3.845 33.485 7.004 54.532 21.844 65.844 39.22-15.476-2.647-30.64-4.472-45.47-5.532L311 40.374l-19.28 16.438c-7.537.167-14.98.55-22.314 1.156L239.97 41.78l-14.907 22.814a308.27 308.27 0 0 0-23.844 6.22l-29.47-14.97-11.313 30.75c-8.783 4.197-17.31 8.868-25.593 13.937l-32.688-5.31-.47 29.03a293.382 293.382 0 0 0-18.374 16.656H48l3.563 36.656c-4.38 5.908-8.603 12.045-12.688 18.375L18.47 192.25v39.5c-.012.02-.022.042-.032.063V493.28h18.5c23.523-92.965 94.565-130.4 168.968-85.25 42.127 25.566 93.783 62.296 149.063 41.158a64.325 64.325 0 0 1-6.908 22.562l95.344 19.188c2.99-7.75 5.584-15.712 7.625-23.563-3.557 2.29-10.352 4.79-19.78 3.313-41.302-6.47-33.15-54.034-.53-58.407 10.915-1.456 21.15 3.22 27.56 11.25l18.283-38.874c-68.1 6.078-129.61-30.834-197.47-16.687 35.468 7.415 56.983 23.64 67.75 42.342a150.88 150.88 0 0 1-21.28.157l-10.813-10.25-13.625 6.436a127.746 127.746 0 0 1-17.313-5.75l-7.718-15.47-10.906 5.97c-7.152-4.38-13.924-9.414-20.344-15.062l-1.813-26.75-19.436 5.03c-7.508-7.63-15.15-13.68-22.875-18.343l-1.282-19.75-23.875 9.408c-11.712-2.7-23.455-2.622-35.063-.25 44.223-90.392 134.06-92.4 180.813-64.563-5.227 5.68-11.388 10.355-18.125 13.78l66.562 70.908c6.928-4.58 13.63-9.564 19.844-14.782-4.228-.204-14.15-5.01-17.47-8.06-34.53-31.74 7.1-63.854 32.876-48.626 9.484 5.603 15.366 14.898 15.938 25.156l34.75-23.875c-59.015-34.522-85.098-97.445-148.594-125.25 23.092 24.968 31.707 49.115 30.97 69.75-8.93-6.752-18.606-12.1-28.845-16.188l-13.845-21.25-18.188 12.75a163.521 163.521 0 0 0-15.78-1.5l-19.094-18.093-15.25 19.687a223.404 223.404 0 0 0-23.844 4.564l-15.75-13-9.75 20.812a268.108 268.108 0 0 0-20.782 8.594l-23.594-8.28-8.625 25.874c-12.263 7.768-23.966 16.49-34.876 26.062C124.307 122.443 296.518 88.99 384.938 108.562a64.378 64.378 0 0 1-6.47 19.344l95.344 19.188c2.99-7.75 5.585-15.71 7.625-23.563-3.558 2.29-7.502 5.33-11.968 4.72-46.308-6.31-43.81-54.725-8.345-59.813 10.903-1.57 21.15 3.193 27.563 11.22 1-10.184 1.808-35.654 2.187-45.907-55.332 4.938-95.695-13.84-145.28-13.47z',   // 巨型生物 - 九头蛇
+                        Tier5: 'M200.947 18.686c-6.98.087-14.64.774-22.85 1.9 27.57 20.468 51.098 45.25 67.594 70.527 1.66 0 3.312.012 4.958.047 18.066.39 35.487 2.906 53.217 7.2-15.695-28.457-29.935-50.19-47.45-63.22-13.817-10.278-30.063-16.168-52.52-16.454-.967-.013-1.95-.013-2.948 0zm-91.66 22.96c-.73-.002-1.46.006-2.195.022-14.045.31-29.36 3.92-46.86 11.13 56.18 18.807 106.985 50.468 133.907 83.585 18.377-5.13 29.44-14.72 36.454-28.817C195.84 78.18 168.118 56.19 140.65 46.96c-10.168-3.418-20.433-5.306-31.363-5.315zm-.203 52.786c-39.42 6.758-74.73 31.854-87.822 74.19v322.345h212.73C100.352 442.58 61.19 206.49 187.115 230.104c5.838-14.164 9.92-28.027 11.018-41.465l18.627 1.522c-1.684 20.592-8.828 40.49-18.033 59.943-.732 2.035-1.472 4.12-2.186 6.063 32.842 85.24 113.77 160.69 169.495 168.197.915.033 1.905-.002 2.953-.09 17.016 1.035 35.86-4.222 52.21-22.304l7.984-8.83-10.473-5.658c-6.507-3.515-14.29-7.094-18.167-10.925-1.938-1.916-2.793-3.47-3.074-5.194-.282-1.725-.13-4.227 2.23-8.578l10.673-19.656-21.484 6.222c-6.304 1.825-17.305-3.032-23.224-10.71-2.96-3.84-4.408-7.907-4.387-10.843.02-2.938.72-5.125 4.747-8.05l19.453-14.125-23.884-2.72c-9.974-1.137-16.37-6.658-19.17-12.294-2.802-5.634-2.312-10.084 1.375-13.31l12.204-10.677-15.358-5.205c-6.717-2.276-10.296-7.555-10.357-10.633-.028-1.373.238-2.666 1.843-4.476 10.93-2.39 21.258-.45 28.088 6.374 6.154 6.146 8.35 15.128 6.977 24.832 8.55-2.254 16.985-1.616 24.112 2.494 9.34 5.387 14.647 15.692 15.67 27.965 15.212-10.132 32.152-12.725 45.262-5.164 15.467 8.92 21.36 29.513 16.805 51.75 23.992-33.355 34.588-75.717 5.617-120.43-46.726-4.442-81.693-30.676-93.293-67.64-5.026-16.016-21.284-28.67-42-37.904l-.08.217c-29.74-10.823-55.575-17.35-82.604-18.733l.08.155c-2.294-.093-4.56-.16-6.762-.172-9.537 22.874-28.662 39.9-57.436 46.054l-5.906 1.262-3.576-4.864c-14.216-19.33-41.23-40.452-74.002-58.074zm156.215 65.26c27.927-.073 44.874 11.617 42.09 44.45-35.844 3.39-51.933-16.683-63.074-42.632 7.507-1.155 14.538-1.8 20.983-1.817zm48.407 66.363c3.708.07 7.14.994 10.014 2.812a35.171 35.171 0 0 0-4.16 3.543c-5.246 5.24-8.087 12.122-7.956 18.742.183 9.322 5.27 17.184 12.68 22.56-3.14 8.103-2.452 17.455 1.407 25.22 3.813 7.668 10.54 14.273 19.302 18.398-1.445 3.366-2.375 6.862-2.4 10.33-.062 8.407 3.38 16.042 8.273 22.39 6.792 8.81 16.862 15.936 28.026 17.91-.183 2.18-.204 4.333.133 6.407 1.05 6.444 4.515 11.66 8.38 15.48 3.41 3.37 7.19 5.892 10.798 7.993-6.345 4.792-12.414 7.056-18.618 7.79-6.515-7.937-9.71-19.084-9.41-31.454-11.767 6.177-24.21 7.156-34.12 1.44-14.668-8.46-19.393-29.036-13.187-50.33-11.336 2.77-22.13.92-29.187-6.132-8.875-8.865-9.535-23.626-3.094-37.95-3.676-.615-6.963-2.166-9.525-4.725-8.808-8.798-5.773-26.09 6.776-38.626 7.843-7.835 17.546-11.957 25.87-11.8z',   // 龙类 - 龙头
+                        觉醒一: 'm88.418 17.17-66.12 475.242h18.866l66.12-475.242H88.42zm315.7 0 66.023 475.242h18.87L422.988 17.17h-18.87zm-56.26.24-132.422.37c-59.343 41.506-78.325 97.982-61.596 168.03-22.324-31.34-32.747-63.248-33.59-98.234l-26.684 191.78c1.05-3.64 2.25-7.31 3.653-11.012l-3.843 12.385-4.934 35.454c.41 37.954 18.614 69.416 40.91 87.406-18.52-6.774-35.355-15.287-49.25-27.445l-9.207 66.152c43.032 20.635 88.614 24.346 120.56 17.78-33.542 18.813-71.344 29.428-125.382 16.886l-2.13 15.3h217.568c73.664-14.515 117.318-55.617 129.045-89.216 3.54 30.568-2.754 60.093-37.473 89.215h73.242l-41.553-299.11c-15.226-35.307-51.106-59.122-74.695-59.718 10.876-3.615 21.615-5.918 32.305-5.78 11.61.15 23.16 3.2 34.76 10.56l-4.207-30.278c-21.365-18.958-46.472-31.023-68.92-35.954 6.54-.477 13.043-.73 19.513-.685 15.23.104 30.273 1.868 45.18 6.21l-4.224-30.398C331.8 45.105 287.813 60.384 263.44 79.407c13.68-23.55 44.533-47.68 84.417-61.998zm-81.323 33.065c-68.785 37.085-71.87 82.26-36.1 122.146-7.626-69.52 80.94-110.016 118.96-59.032-40.867-20.17-77.79 7.84-76.21 47.723 23.234-23.997 98.678-13.267 79.795 36.19-11.3-33.297-56.74-30.094-63.648-13.77-14.75 34.866 64.34 14.582 98.117 66.284-18.85-10.875-47.74.482-39.22 14.59 32.28 53.45 84.53 113.185 13.3 147.025 23.57-38.677 10.786-65.734-21.85-81.43 25.644 66.744-5.1 163.717-103.81 133.19 62.83-11.442 78.355-62.576 57.263-83.425-23.617 60.37-122.14 97.174-181.444 38.453 58.693 22.535 99.285 7.31 120.644-26.39-35.89 21.435-95.375 6.933-113.994-42.977 28.694 29.187 67.102 37.963 91.195 20.356 13.217-9.658 8.303-25.06-8.55-29.402-24.53-6.32-61.988-12.852-76.563-36.588 21.722 6.003 43.444 10.698 65.166-3.375-33.985-22.07-81.546-50.75-50.348-100.278 1.008 35.15 17.23 56.557 53.197 48.254 9.285-2.142 16.8-15.472 8.55-23.373-61.138-58.54-47.58-160.406 65.548-174.168z',   // 召唤法阵 - 魔法传送门
+                        觉醒二: 'M324.97 17.54c.03.034.057.07.087.106l-34.924 32.428 36.904-3.752-15.396 30.12 38.048-16.075c26.147 69.965.623 154.277-52.555 166.262-6.554-25.37-34.13-37.945-36.055-57.382.303.093.604.187.912.27a27.113 27.113 0 0 0 14.274-.07l25.138 22.89 20.653-16.377c-7.363 2.836-28.588-1.402-33.25-13.923a27.114 27.114 0 0 0 6.793-11.922c.485-1.813.757-3.635.86-5.445l11.524 22.777 5.22-16.94c7.625 5.575 12.474 13.605 11.49 21.136l16.673-29.4-72.14-29.56-58.057-48.03 17.1 31.25-48.206-19.753 35.14 31.237c-40.602 28.158-22.085 85.04-1.796 119.29-57.5-9.685-103.128-77.435-95.763-145.03l49.21-21.366-31.08-5.14 29.207-33.417-32.015 11.54c.037-.067.07-.135.107-.202-168.36 66.33-116.413 367-63.728 417.99-.19-1.317-.364-2.58-.54-3.855-14.922-56.244-20.375-125.624-17.5-190.53 3.02-68.237 14.834-131.16 36.794-169.522l16.22 9.283c-18.894 33.008-31.4 94.563-34.345 161.064-1.942 43.86.106 90.022 6.275 132.082 6.124 1.892 15.046 9.615 27.295 23.24-4.818-13.35-6.78-26.5-6.482-38.28 20.286 41.665 67.34 69.234 104.633 62.308 22.444-4.17 41.803-12.73 57.81-24.475l7.31 15.418c-20.068 5.036-22.807 32.635-14.737 55.112 1.748-19.882 11.36-29.794 21.73-32.303-6.598 15.867-4.698 30.623-3.117 44.158 10.15-12.147 21.47-23.793 23.628-39.354 8.738 7.332 12.317 21.49 1.194 39.057 26.32-15.473 31.565-41.994 7.978-57.685l-32.07-34.297c5.918-5.55 11.24-11.6 15.947-18.066l39.28 15.776c-3.942 13.69 5.833 31.512 19.77 43.31-8.055-17.288-4.826-30.08 2.562-37.103 1.63 17.39 10.64 29.193 18.733 40.064 2.73-15.665 6.79-31.493-.213-45.987 11.016 1.56 21.2 11.568 20.338 31.877 14.362-25.313 6.11-49.702-20.742-51.52l-71.135-9.892c12.757-22.982 18.676-49.823 17.015-77.475 14.188-34.708 50.058-11.816 54.523 49.16C394.924 262.27 434.58 304 426.324 367.13c11.808-23.38 21.835-35.013 29.862-36.247-10.772-91.925-40.458-191.57-77.637-250.748l15.823-9.942c50.328 80.106 85.112 220.65 84.88 331.547 42.403-115.912-2.347-356.61-154.282-384.2zm-29.458 476.913-.026.016-.015.05c.015-.02.027-.044.042-.067zm26.543-318.492h.01v-.007l-.01.008zm-53.348-41.716a9.127 9.127 0 0 1 2.652.313c4.774 1.28 7.467 5.945 6.187 10.72-1.28 4.776-5.943 7.47-10.72 6.19-4.775-1.28-7.468-5.943-6.188-10.72.96-3.584 3.823-5.993 7.21-6.435a8.66 8.66 0 0 1 .857-.068zM204.904 297.13c11.878-.2 22.637 6.756 26.172 22.487-.008 35.88-9.557 68.823-42.137 77.412-27.624 7.283-69.725-11.398-84.12-53.663 12.28-21.078 37.362-21.986 62.838 22.592-12.583-41.596 14.386-68.444 37.246-68.83z',   // 飞龙 - 翼龙
+                        觉醒三: 'M254.885 21.08c-31.185 0-58.496 32.517-58.496 75.092 0 42.575 27.31 75.09 58.495 75.09 31.186 0 58.498-32.515 58.498-75.09S286.07 21.08 254.885 21.08zm-32.262 52.078h18.69v45.723h-18.69V73.16zm43.803 0h18.69v45.723h-18.69V73.16zm43.943 88.28c-13.86 17.468-33.346 28.51-55.485 28.51-21.33 0-40.192-10.257-53.938-26.626-11.126 4.16-20.024 11.688-27.67 22.285-9.668 13.403-16.88 31.75-21.923 52.71-4.735 19.677-7.546 41.513-9.202 63.61 7.876 4.015 14.466 9.84 19.61 16.782 6.746 9.102 11.316 19.966 14.56 31.75 3.395-11.403 7.95-21.896 14.324-30.75 5.08-7.054 11.502-13.04 19.155-17.183-4.61-9.605-7.21-20.688-7.21-32.29 0-34.46 22.86-64.393 53.572-64.393 30.713 0 53.572 29.934 53.572 64.392 0 10.913-2.3 21.368-6.408 30.565 8.922 4.012 16.312 10.29 21.96 17.91 6.942 9.368 11.577 20.603 14.837 32.784 3.426-11.803 8.064-22.662 14.633-31.785 4.46-6.194 9.956-11.564 16.41-15.587-1.083-23.328-3.275-46.454-7.752-67.144-4.568-21.113-11.505-39.48-21.326-52.777-8.29-11.223-18.313-18.974-31.72-22.764zM89.95 224.532c-16.32 0-31.497 15.67-34.386 37.99H79.81v18.687H56.083c3.874 20.57 18.353 34.73 33.867 34.73 15.513 0 29.992-14.16 33.866-34.73H98.5V262.52h25.834c-2.888-22.32-18.066-37.99-34.385-37.99zm166.212 0c-16.32 0-31.496 15.67-34.385 37.99h24.16v18.687h-23.642c2.92 15.51 11.873 27.37 22.75 32.27-6.347.482-12.23 1.242-17.117 2.2l-.028.007-.027.005c-9.335 1.772-16.13 6.7-22.06 14.937-5.93 8.236-10.528 19.833-13.745 33.25-5.746 23.972-7.066 53.275-7.297 79.29h23.503V392.12h18.69v103.025h61.906V392.12h18.687v51.048h21.91c-.044-26.343-.5-56.035-5.776-80.164-2.947-13.486-7.4-25.042-13.42-33.166-6.02-8.124-13.142-13.033-23.68-14.682l-.194-.03-.19-.038c-5.24-1.045-11.492-1.713-18.09-2.01 10.496-5.12 19.068-16.76 21.913-31.87h-25.403V262.52h25.92c-2.888-22.32-18.066-37.99-34.385-37.99zm165.992 0c-16.32 0-31.496 15.67-34.384 37.99h24.296v18.687h-23.78c3.875 20.57 18.354 34.73 33.868 34.73 15.514 0 29.993-14.16 33.867-34.73h-25.266V262.52h25.785c-2.89-22.32-18.066-37.99-34.386-37.99zm-294.564 91.6c-9.507 11.333-22.63 18.493-37.64 18.493-13.795 0-25.996-6.05-35.263-15.824-4.983 2.6-9.165 6.523-12.984 11.827-5.93 8.236-10.528 19.833-13.744 33.25-5.747 23.972-7.067 53.275-7.298 79.29h23.252V392.12h18.688v103.025h61.906V392.12h18.69v51.048h22.745c-.043-26.342-.5-56.035-5.775-80.164-2.948-13.486-7.4-25.042-13.422-33.166-5.115-6.902-11.032-11.474-19.156-13.707zm331.344 1.013c-9.432 10.746-22.22 17.48-36.78 17.48-14.395 0-27.065-6.574-36.465-17.11-6.246 2.505-11.26 6.852-15.768 13.114-5.93 8.236-10.528 19.833-13.744 33.25-5.747 23.972-7.066 53.275-7.297 79.29h22.927V392.12h18.69v103.025H452.4V392.12h18.688v51.048h22.498c-.018-26.37-.353-56.076-5.504-80.21-2.88-13.486-7.266-25.037-13.23-33.147-4.393-5.972-9.388-10.195-15.92-12.667z'    // 亡灵君主 - 仆从
+                    },
+
+                    // ========== 特殊技能 (Special) ==========
+                    // 特殊技能图标风格：被动、Buff、辅助、知识
+                    特殊: {
+                        Tier1: 'm102.53 26.063 90 345.75 289.22 23.25-90.03-345.72-289.19-23.28zm-18.968 1.406c-30.44 11.894-55.62 53.07-49.687 75.28l3.25 11.813c.654-1.722 1.345-3.44 2.063-5.157C49.102 85.688 65.734 62.636 89.56 50.5l-6-23.03zM94.44 69.187c-16.66 10.016-29.916 28.1-38 47.437-5.2 12.44-8 25.417-8.75 36.25v.03L112.56 388.5c.305-.572.593-1.148.907-1.72 10.585-19.223 27.804-37.623 51.06-48.405L94.438 69.187zM154 107.968l239.78 16.188-1.28 18.625-239.75-16.155L154 107.97zm46.03 34.407 5.657 8.875 14.188 22.313 39.03-15.25 7.595-2.938 3.97 7.094 16.28 29.124 4.313 7.72-7.438 4.717c-10.267 6.524-17.392 12.284-21.75 16.782-3.03 3.13-4.247 5.232-4.906 6.594 1.38.303 3.433.577 6.624.28 18.268-1.69 56.285-19.964 79-61.592l5.47-10.03 8.748 7.374 46 38.812 11.532 9.72-13.844 6-33.28 14.374c5.447 4.925 11.436 5.916 18.436 5.406 9.95-.724 21.427-6.07 29.125-11.063l10.158 15.657c-9.41 6.1-22.867 12.934-37.938 14.03-15.07 1.098-32.27-5.296-42.594-23.155l-5.25-9.095 9.625-4.156 30.44-13.157-26.033-22c-25.716 40.294-62.68 59.168-87.843 61.5-6.78.628-12.945.26-18.594-2.688-5.65-2.95-9.984-10.6-9-17.406.984-6.806 4.838-12.4 10.688-18.44 4.385-4.526 10.612-9.367 17.875-14.436l-8.188-14.656L219.5 193.75l-7.156 2.78-4.125-6.468L196 170.875c-6.308 7.158-9.485 14.528-9 21.406.654 9.28 7.854 21.054 30.594 33.69l-9.094 16.343c-25.688-14.273-38.877-31.016-40.125-48.72-1.248-17.703 9.393-33.013 23.5-44.562l8.156-6.655zm-5.968 118.188 239.782 16.156-1.25 18.655-239.78-16.188 1.25-18.625zm-24.75 96.25c-17.637 9.072-31.065 23.708-39.468 38.968-4.49 8.153-7.307 16.452-8.72 23.876l11.626 42.156 1.688.157c-3.824-27.514 11.358-60.383 41.187-80.97l-6.313-24.188zm26.22 34c-32.403 17.28-46.273 52.303-41.657 72.78l289.78 24.532c-5.298-7.743-8.625-17.827-8.592-28.313l-22.47-9.03 46.626-7.313-13.69-13.064c5.552-6.838 13.54-12.915 24.47-17.53l-274.47-22.063z',   // 基础知识 - 书本
+                        Tier2: 'm251.828 15.982-29.2 136.08-56.74-75.652 7.78 90.4-49.154-24.68 22.19 49.643-67.16-13.433 57.817 70.668-55.48-10.514 35.634 26.608c29.894.77 62.017-2.565 90.597 4.35 18.697 4.522 36.167 14.302 48.255 32.74.414.632.82 1.274 1.22 1.923.402-.65.806-1.29 1.22-1.922 12.088-18.44 29.558-28.22 48.254-32.742 27.64-6.685 58.596-3.782 87.643-4.28l35.25-26.676-42.05 8.178 41.468-80.596-59.507 19.852 19.092-77.352-57.234 59.867 6.055-109.607-46.232 97.31-39.715-140.164zM92.236 281.787 50.27 311.02l207.343 72.68 207.337-73.03-40.99-28.88c-42.595 7.18-92.04-5.54-126.02 10.345l-.116.05-.013.008c-5.226 2.37-9.962 5.418-14.255 9.382-7.564 6.774-13.817 16.048-18.36 28.694l-7.777 13.763-7.158-12.67c-5.434-15.833-13.453-26.5-23.324-33.637-.157-.114-.316-.22-.473-.332a57.992 57.992 0 0 0-1.912-1.302c-33.565-21.772-86.63-6.6-132.314-14.3zm-64.26 41.3L21.81 340.73l190.67 66.674v17.817h91.55v-18.687h-.055L492.15 340.73l-6.168-17.642-205.658 71.918 4.03 11.527h-54.75l4.03-11.527-205.657-71.918z',   // 进阶秘籍 - 启蒙
+                        Tier3: 'M320.938 13.28c-16.646 34.584-38.466 60.157-63.094 60.157-24.522 0-47.035-25.275-63.656-59.593.366 39.358-9.71 90.884-30.938 105.125-21.228 14.24-49.64-12.002-78.844-32.126 17.455 34.04 42.095 67.5 29.78 92.28-12.21 24.576-59.172 35.96-92.874 35.626 29.338 19.29 78.842 45.803 78.844 74.188.002 28.384-49.504 53.71-78.844 73 33.702-.333 80.663 11.612 92.876 36.187 12.227 24.61-9.03 56.31-33.75 85.563 44.826-15.413 65.142-5.735 85.374 10.812h31.75c-42.74-35.413-72.062-107.828-72.062-191.563-.002-118.62 58.92-214.906 131.406-214.906 72.488 0 131.406 96.29 131.406 214.907 0 83.74-29.317 156.153-72.062 191.563h27.313c19.847-14.62 39.796-25.65 89.687-9.28-26.233-30.264-42.2-62.484-29.97-87.095 12.257-24.665 56.658-36.612 90.533-36.188-29.4-19.297-75.344-44.584-75.344-73 0-28.415 45.943-54.89 75.342-74.187-33.874.424-78.273-10.962-90.53-35.625-12.315-24.78 9.982-58.24 27.437-92.28-29.202 20.12-57.583 46.385-78.845 32.124-21.262-14.263-31.382-66.13-30.938-105.69zm-68.97 93.75c-19.56 2.543-37.343 25.564-37.343 55.407 0 16.447 5.67 30.986 14 41.032l10.156 12.218-15.593 2.937c-10.815 2.035-18.743 7.737-25.53 17.063-6.79 9.325-11.984 22.344-15.626 37.343-6.585 27.128-8.078 60.24-8.31 89.47h36.093l.656 8.656 9.124 122.563h76.187l8.095-122.5.563-8.72h34.375c-.026-29.592-.44-63.166-6.407-90.5-3.295-15.095-8.287-28.096-15.156-37.313-6.87-9.216-15.133-14.897-27.28-16.78l-15.94-2.47 10.064-12.593c7.97-9.996 13.375-24.36 13.375-40.406-.002-31.817-19.884-55.313-41.44-55.313-2.54 0-3.96-.103-4.03-.094h-.03z',   // 领域光环 - 光环
+                        Tier4: 'M163.5 17.75c-125.028 2.135-223.03 231.994-9.188 461.625-197.34-240.608 9.41-548.496 174.157-289.03C287.353 66.332 222.42 16.744 163.5 17.75zm201.78 4.656c197.34 240.608-9.41 548.528-174.155 289.063C319.482 698.622 679.9 360.254 365.28 22.405zm-98.31 155.75c-42.422 0-76.814 34.392-76.814 76.813 0 42.42 34.392 76.81 76.813 76.81 42.42 0 76.81-34.39 76.81-76.81 0-42.422-34.39-76.814-76.81-76.814z',   // 预言/魔法 - 专注宝珠
+                        Tier5: 'M57.78 23.135c-1.517 29.085-2.193 55.608-2.266 80.316 6.56-2.716 13.703-4.333 21.228-4.333 31.245 0 56.883 25.64 56.883 56.887 0 31.246-25.777 56.3-56.883 56.3-6.068 0-11.95-1.003-17.488-2.77C71.906 332.82 108.064 376.35 147.668 401.9c20.677 13.34 42.986 21.7 64.268 33.245 17.444 9.463 34.177 21.525 47.42 40.127 13.23-18.597 29.925-30.658 47.324-40.122 21.226-11.545 43.46-19.904 64.064-33.242 39.46-25.543 75.488-69.07 88.135-192.324-5.32 1.708-10.974 2.723-16.907 2.723-31.107 0-56.88-25.058-56.88-56.3 0-31.244 25.634-56.888 56.88-56.888 7.63 0 14.745 1.697 21.23 4.508-.07-24.757-.745-51.334-2.265-80.49-59.488 13-130.78 19.266-201.5 19.888h-.163c-70.718-.62-142.008-6.888-201.496-19.888zm304.124 39.32-27.117 93.18-17.945-5.22 11.504-39.532-85.116 63.646-11.19-14.97 129.864-97.105zm-205.394 1.01 81.732 59.512-11 15.107-34.338-25.004 34.79 103.514-17.714 5.955-53.47-159.085zm140.486 99.652 129.383 97.95-98.25-.48.09-18.69 42.15.208-84.653-64.087 11.28-14.9zm-122.357 37.71 10.83 15.228-36.206 25.754 104.898-.17.03 18.69-163.577.262 84.024-59.766zm117.79 21 17.806 5.675-49.39 155.008-31.248-96.46 17.777-5.76 13.324 41.124 31.73-99.586z',   // 核心力量 - 魔法盾
+                        觉醒一: 'm173.625 15.72 16.156 53.81-94.374-48.905L158.47 98.25 45.187 117.406l113.28 19.625-59.718 75.19 65.03-33.407-1.78 58.843 19.844-37.344v-64.218l.75-1.75 31.906-74.75-40.875-43.875zm146.25 0L282.97 55.343l33.342 79.03.75 1.75v69.723l15.5 29.187-1.625-54.436 65.532 34.062-63.064-77.625 113.28-19.624-113.28-19.156 63.063-77.625-92.44 47.906 15.845-52.81zm-70.595 7.84-49.186 114.5v153.5l34.936 34.94c2.916-65.435 7.976-128.936 15.25-187.72 7.606 61.433 12.744 128.775 15.532 198l32.625-32.624V138.062l-49.156-114.5zM33.126 206.845l37.344 94.062 193.905 193.938h30.813c-66.34-68.503-128.483-139.002-180.625-205.875 74.705 58.246 155.104 130.333 231.312 205.874h31.063L126.813 244.688l-93.688-37.844zm444.844 0-93.626 37.812L268.75 360.25l18.156 18.125c36.278-32.102 72.315-62.265 107.125-89.406-27.302 35.015-57.36 71.02-89.31 107.217L325.06 416.5l115.532-115.53 37.375-94.126zM186.06 442.938l-51.906 51.906h28.594a3170.977 3170.977 0 0 1 38.094-37.125l-14.78-14.783zm39.375 39.406c-3.995 4.173-8.003 8.34-12.03 12.5h24.53l-12.5-12.5z',   // 觉醒洞察 - 全力一击
+                        觉醒二: 'M420.402 19.873c37.886 49.484 19.76 88.205-39.797 90.787 15.374-23.54 18.565-50.758-1.503-72.215 15.56 37.318-14.397 62.848-50.137 67.096-4.39-.934-8.887-1.99-13.508-3.19-60.132-15.624-114.527 22.936-137.37 78.923-.43-34.33 9.72-68.377 29.83-102.152-50.37 35.038-75.926 89.323-72.616 166.003l-59.41-65.365L89.55 374.43l164.6 119.595L392.703 389.54l52.584-196.853-93.224 72.415c-23.56-25.652-13.02-55.2 33.736-50.293-38.077-22.19-64.97-2.473-75.952 24.356-5.608-27.825 18.206-63.122 50.218-58.686 76.728 10.638 151.882-107.834 60.336-160.607zM119.838 272.05l94.777 73.214-103.095-21.22 29.263-3.05-20.945-48.943zm255.48 12.237-10.623 25.262 27.8-.28-12.095 23.437-96.25 14.438 91.168-62.858zM204.305 360.13l42.256 62.552 11.247-44.094 17.84 32.598 56.574-48.54-7.23 24.368 51.71-21.274-54.485 61.82 9.654-29.966-76.21 71.62-47.574-55.136 3.176 27.483-74.627-77.593 61.166 29.998 6.505-33.834z',   // 深渊凝视 - 火花精灵
+                        觉醒三: 'M115.063 21.97v9.343c0 101.953 38.158 189.648 96.343 222.093v6.094c-58.186 32.445-96.344 120.14-96.344 222.094v9.344H401.81v-9.344c0-102.552-38.804-190.274-97.53-222.188V253.5c58.722-31.917 97.53-119.64 97.53-222.188V21.97H115.06zM134 40.655h248.875c-2.477 96.445-42.742 175.523-91.938 198.906l-5.343 2.532v28.751l5.344 2.53c49.193 23.383 89.456 102.438 91.937 198.876H134c2.456-95.898 42.125-175.078 90.875-198.938l5.25-2.562v-28.594l-5.25-2.562c-48.748-23.86-88.42-103.04-90.875-198.938zm213.656 86.125c-57.607 27.81-124.526 27.84-177.562 4.095C184.748 181.78 213.91 218.012 248.22 224a12.178 12.178 0 0 0-2.47 7.344c0 6.76 5.488 12.25 12.25 12.25s12.25-5.49 12.25-12.25c0-2.72-.907-5.218-2.406-7.25 35.426-5.88 65.488-44.07 79.812-97.313zM258 258.626c-6.762 0-12.25 5.488-12.25 12.25s5.488 12.25 12.25 12.25 12.25-5.488 12.25-12.25-5.488-12.25-12.25-12.25zm0 39.28c-6.762 0-12.25 5.49-12.25 12.25 0 6.763 5.488 12.25 12.25 12.25s12.25-5.487 12.25-12.25c0-6.76-5.488-12.25-12.25-12.25zm0 39.533c-6.762 0-12.25 5.488-12.25 12.25 0 6.76 5.488 12.25 12.25 12.25s12.25-5.49 12.25-12.25c0-6.762-5.488-12.25-12.25-12.25zm.125 39.906c-23.21.28-46.19 25.77-75.813 75.656h153c-30.523-51.003-53.977-75.936-77.187-75.656z'    // 终焉 - 时间之沙
+                    },
+
+                    // ========== 职业特殊 ==========
+                    职业特殊: 'M259.738 20.38c-40.36-.244-81.305 9.895-118.744 31.51C28.566 116.8-10.03 260.837 54.88 373.265c64.91 112.427 208.947 151.024 321.376 86.113 77.686-44.852 120.106-127.485 117.498-211.363-3.575 65.865-35.942 128.62-91.082 169.41a217.975 217.975 0 0 1-35.762 25.767C263.228 503.053 130.926 467.6 71.066 363.92 11.206 260.238 46.66 127.936 150.34 68.076 185.98 47.5 225 38.183 263.3 39.03c73.12 1.62 143.6 40.28 182.883 108.32.648 1.122 1.277 2.25 1.9 3.38a20.217 20.217 0 0 1 1.258 6.997c0 11.29-9.152 20.44-20.442 20.44-6.85 0-12.894-3.38-16.6-8.556a172.05 172.05 0 0 0-2.355-4.276c-.014-.035-.03-.068-.045-.104l-.01.004c-.15-.263-.293-.53-.445-.793-31.91-55.27-89.762-86.377-149.363-86.835-1.923-.014-3.848.002-5.773.05-28.007.718-56.228 8.227-82.162 23.2-82.99 47.914-111.498 154.31-63.584 237.3 2.93 5.072 6.08 9.936 9.426 14.597L95.65 365.648l9.344 16.184 24.848-14.348c53.686 59.734 143.727 75.99 216.017 34.254 51.455-29.707 81.957-81.898 86.294-137.05-12.315 44.767-41.423 85.652-83.564 113.128a157.831 157.831 0 0 1-12.076 7.737C273.02 422.21 194.6 408.96 146.41 357.92l45.278-26.143 19.99 34.625 16.185-9.343-16.707-28.937c24.072-21.104 54.165-23.015 62.973-5.96 93.825-32.597 231.378-110.21 190.755-180.57l-.4.173a200.266 200.266 0 0 0-2.118-3.764c-42.597-73.78-119.27-115.764-198.724-117.565-1.3-.03-2.603-.048-3.905-.056zm.283 75.823c53.167.368 104.69 28.135 133.238 77.582.19.33.37.66.556.99-48.784 49.337-134.526 98.727-200.175 123.002l-15.1-26.148-16.183 9.343 19.987 34.62-48.08 27.76a157.102 157.102 0 0 1-9.518-14.544c-42.864-74.244-17.5-168.905 56.744-211.77 23.2-13.394 48.396-20.127 73.38-20.786 1.72-.045 3.436-.063 5.15-.05z'   // 旋转之剑
+                };
+
+                // 默认占位图标
+                const DEFAULT_SVG_PATH = 'M64 64h384v384H64z';
+
+                // 获取技能SVG图标
+                function getSkillIcon(type, tierKey) {
+                    let mainType = '主动';
+                    if (type === '召唤') mainType = '召唤';
+                    else if (type === '特殊' || type === '被动' || type === '辅助') mainType = '特殊';
+                    else if (type === '职业特殊') mainType = '职业特殊';
+
+                    let pathData = '';
+                    if (mainType === '职业特殊') {
+                        pathData = SKILL_SVG_PATHS['职业特殊'] || '';
+                    } else {
+                        // 从tierKey提取阶位，如 "Tier1" 或 "觉醒一"
+                        let tier = 'Tier1';
+                        if (tierKey) {
+                            if (tierKey.includes('觉醒')) {
+                                // 觉醒一/觉醒二/觉醒三
+                                tier = tierKey;
+                            } else if (tierKey.includes('Tier')) {
+                                tier = tierKey.match(/Tier\d/)?.[0] || 'Tier1';
+                            }
+                        }
+                        pathData = SKILL_SVG_PATHS[mainType]?.[tier] || '';
+                    }
+
+                    const finalPath = pathData || DEFAULT_SVG_PATH;
+                    const opacity = pathData ? '1' : '0.5';
+
+                    return `<svg class="skill-icon-svg" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="opacity:${opacity}"><path fill="currentColor" d="${finalPath}"/></svg>`;
+                }
+    // SKILL_SVG_SYNC_END
+
+    // ===== 解析技能树为展示格式 =====
+    function parseSkillTree(rawTree) {
+        if (!rawTree) {
+            return [];
+        }
+        const tiers = [];
+        const tierNames = {
+            'Tier1': 'Tier 1 — 基础',
+            'Tier2': 'Tier 2 — 进阶',
+            'Tier3': 'Tier 3 — 精通',
+            'Tier4': 'Tier 4 — 超越',
+            'Tier5': 'Tier 5 — 终焉',
+            '觉醒': '觉醒技能'
+        };
+        for (const [key, skills] of Object.entries(rawTree)) {
+            tiers.push({
+                name: tierNames[key] || key,
+                skills: skills.map(s => {
+                    const typeClass = s.类型 === '主动' ? 'active' : (s.类型 === '特殊' || s.类型 === '职业特殊') ? 'special' : s.类型 === '召唤' ? 'summon' : 'awakening';
+                    let levels = [];
+                    let singleEffect = null;
+                    if (s.特殊效果) {
+                        const entries = Object.entries(s.特殊效果);
+                        if (entries.length === 1) {
+                            singleEffect = entries[0][1];
+                        } else {
+                            levels = entries.map(([k, v]) => ({ level: k, text: v }));
+                        }
+                    }
+                    return {
+                        name: s.名称,
+                        type: s.阶位 ? s.阶位 + ' · ' + s.类型 : s.类型,
+                        rawType: s.类型,
+                        tierKey: s.阶位 || key,
+                        typeClass,
+                        iconSvg: getSkillIcon(s.类型, s.阶位 || key),
+                        desc: s.描述,
+                        levels,
+                        singleEffect
+                    };
+                })
+            });
+        }
+        return tiers;
+    }
+
+    const NEGATIVE_TRAIT_NAMES = new Set([
+        '乌鸦嘴', '恐高症', '幽闭恐惧', '见血晕厥', '嗜赌成性', '酒鬼', '烟枪', '甜食控',
+        '路痴', '嗜睡症', '守财奴', '话痨', '脸盲', '社恐', '洁癖', '偏执狂', '暴脾气',
+        '心软', '收藏癖', '不祥之人', '绝对音感', '诅咒之血', '老兵的噩梦', '欠债体质',
+        '雪人套', '强化PTSD', '罐子头'
+    ]);
+
+    function getDisplayRaceName(raceName, customRaceData) {
+        const raw = String(raceName || '').trim();
+        if (!raw) return '未知种族';
+        const isCustomRace = raw === '__custom__' || raw.toLowerCase() === 'custom';
+        if (!isCustomRace) return raw;
+        const customName = String(customRaceData?.name || '').trim();
+        return customName || '自定义种族';
+    }
+
+    function getDisplayClassName(className, customClassName) {
+        const raw = String(className || '').trim();
+        if (!raw) return '未命名职业';
+        const isCustomClass = raw === '__custom__' || raw.toLowerCase() === 'custom';
+        if (!isCustomClass) return raw;
+        const customName = String(customClassName || '').trim();
+        return customName || '自定义职业';
+    }
+
+    function deriveBuildAppearance(presetData) {
+        const className = getDisplayClassName(presetData.class, presetData.customClassName);
+        const race = getDisplayRaceName(presetData.race, presetData.customRace);
+        const isKnight = className.includes('骑士');
+        const isGod = className.includes('神');
+        const badgeColor = isKnight ? '#e17055' : isGod ? '#6c5ce7' : '#2d6a4f';
+        const coverGradient = isKnight
+            ? 'linear-gradient(135deg, #2d3436 0%, #636e72 40%, #c0392b 100%)'
+            : isGod
+                ? 'linear-gradient(135deg, #2d3436 0%, #6c5ce7 50%, #e74c3c 100%)'
+                : 'linear-gradient(135deg, #2d3436 0%, #52796f 50%, #84a98c 100%)';
+        return { className, race, badgeColor, coverGradient };
+    }
+
+    function addTrait(target, trait, isNegative = false) {
+        const name = String(trait?.name || '').trim();
+        if (!name) {
+            return;
+        }
+        const bucket = isNegative ? target.negative : target.positive;
+        if (bucket.some((item) => item.name === name)) {
+            return;
+        }
+        bucket.push({
+            name,
+            icon: trait.icon || (isNegative ? 'ri-error-warning-line' : 'ri-star-line'),
+            desc: trait.desc || (isNegative ? '负面特质' : '正面特质'),
+            effect: trait.effect || '当前预设 JSON 未导出这一项的详细效果。',
+            flavor: trait.flavor || ''
+        });
+    }
+
+    function normalizeTraitArray(rawTraits) {
+        if (Array.isArray(rawTraits)) {
+            return rawTraits;
+        }
+        return rawTraits ? [rawTraits] : [];
+    }
+
+    function parsePresetTraits(presetData) {
+        const traits = {
+            positive: [],
+            negative: []
+        };
+
+        normalizeTraitArray(presetData?.selectedTraits).forEach((item) => {
+            const name = typeof item === 'string' ? item.trim() : String(item?.name || '').trim();
+            if (!name) {
+                return;
+            }
+            const isNegative = item?.negative === true || NEGATIVE_TRAIT_NAMES.has(name);
+            addTrait(traits, {
+                name,
+                desc: '开局内置特质',
+                effect: '该预设 JSON 仅导出了特质名称；如果需要完整描述，请在“开局.html”中加载原预设查看。'
+            }, isNegative);
+        });
+
+        normalizeTraitArray(presetData?.customTraits).forEach((item) => {
+            const name = String(item?.name || '').trim();
+            if (!name) {
+                return;
+            }
+            addTrait(traits, {
+                name,
+                icon: 'ri-quill-pen-line',
+                desc: item?.desc || '自定义特质',
+                effect: item?.effect || item?.detail || '当前 JSON 未提供自定义特质效果。'
+            }, item?.negative === true);
+        });
+
+        const exportedTraits = presetData?.['固有特质'];
+        if (exportedTraits && typeof exportedTraits === 'object' && !Array.isArray(exportedTraits)) {
+            Object.entries(exportedTraits).forEach(([name, rawValue]) => {
+                const value = rawValue && typeof rawValue === 'object' ? rawValue : { effect: String(rawValue || '') };
+                const isNegative = value.negative === true || NEGATIVE_TRAIT_NAMES.has(name);
+                addTrait(traits, {
+                    name,
+                    desc: value.desc || value.描述 || '导出特质',
+                    effect: value.effect || value.效果 || value.detail || value.描述 || '当前 JSON 未提供详细效果。',
+                    flavor: value.flavor || ''
+                }, isNegative);
+            });
+        }
+
+        const customRace = presetData?.customRace;
+        if (customRace?.enabled) {
+            [customRace.trait1, customRace.trait2].forEach((traitItem) => {
+                const name = String(traitItem?.name || '').trim();
+                if (!name) {
+                    return;
+                }
+                addTrait(traits, {
+                    name,
+                    icon: traitItem?.negative ? 'ri-error-warning-line' : 'ri-shield-star-line',
+                    desc: '自定义种族特性',
+                    effect: traitItem?.detail || '当前 JSON 未提供种族特性详情。',
+                    flavor: customRace?.name ? `种族：${customRace.name}` : ''
+                }, traitItem?.negative === true);
+            });
+        }
+
+        return traits;
+    }
+
+    function parsePresetCompanion(presetData) {
+        const customTeammate = presetData?.customTeammate;
+        if (!customTeammate?.enabled) {
+            return null;
+        }
+
+        const skillSummary = normalizeTraitArray(customTeammate.skills)
+            .map((skill) => {
+                const name = String(skill?.name || '').trim();
+                const effect = String(skill?.effect || skill?.detail || '').trim();
+                if (!name) {
+                    return '';
+                }
+                return effect ? `${name}：${effect}` : name;
+            })
+            .filter(Boolean)
+            .slice(0, 2)
+            .join('；');
+
+        return {
+            name: String(customTeammate.name || '').trim() || '自定义队友',
+            race: String(customTeammate.race || '').trim() || '未知种族',
+            class: '自定义同行',
+            desc: customTeammate.background || customTeammate.appearance || customTeammate.outfit || '该预设包含一个自定义同行。',
+            skill: skillSummary || '当前 JSON 未提供同行技能详情。',
+            powerLimit: customTeammate.combo?.name ? `连携奥义：${customTeammate.combo.name}` : (customTeammate.oath ? '已设定同行誓约' : ''),
+            icon: 'ri-team-fill',
+            iconColor: '#6c5ce7'
+        };
+    }
+
+    function createBuildFromPresetData(presetData, overrides = {}) {
+        const appearance = deriveBuildAppearance(presetData);
+        const rawSkillTree = presetData.skillTree || {};
+        const levelTag = presetData.selectedCustomLevel ? `Lv.${presetData.selectedCustomLevel}` : null;
+        const autoTags = [appearance.race, appearance.className, levelTag]
+            .filter(Boolean)
+            .map((text, index) => ({
+                icon: index === 0 ? 'ri-ghost-smile-line' : index === 1 ? 'ri-sword-line' : 'ri-bar-chart-line',
+                text,
+            }));
+
+        return {
+            id: overrides.id || presetData.name || `preset-${Date.now()}`,
+            name: overrides.name || presetData.name || '未命名预设',
+            author: overrides.author || "Anonymous",
+            race: appearance.race,
+            className: appearance.className,
+            coverUrl: overrides.coverUrl || presetData.avatar || '',
+            badgeColor: appearance.badgeColor,
+            authorAvatar: overrides.authorAvatar || "",
+            coverGradient: appearance.coverGradient,
+            intro: overrides.intro || presetData.customClassStyle || presetData.backstory || '当前 JSON 未提供简介。',
+            tags: overrides.tags || autoTags,
+            downloads: overrides.downloads || 0,
+            likes: overrides.likes || 0,
+            rawSkillTree,
+            skillTree: parseSkillTree(rawSkillTree),
+            traits: parsePresetTraits(presetData),
+            companion: parsePresetCompanion(presetData),
+            presetData
+        };
+    }
+
+    function normalizePresetExport(rawData) {
+        if (rawData?.preset?.data) {
+            return rawData;
+        }
+        if (rawData?.data && rawData?.name) {
+            return {
+                exportedAt: new Date().toISOString(),
+                version: '1.0',
+                preset: rawData,
+            };
+        }
+        return null;
+    }
+
+    function createBuildFromPresetExport(rawItem) {
+        const item = normalizePresetExport(rawItem);
+        const presetData = item?.preset?.data;
+        if (!presetData) {
+            return null;
+        }
+        return createBuildFromPresetData(presetData, {
+            id: item?.preset?.id || presetData.name,
+            name: presetData.name || '未命名预设',
+            author: '未署名'
+        });
+    }
+
+    const DISCORD_AUTH_CONFIG = {
+        clientId: '1482377621445808149',
+        scope: 'identify',
+        responseType: 'token',
+        apiBase: 'https://discord.com/api/v10',
+        authorizeUrl: 'https://discord.com/oauth2/authorize'
+    };
+    const DISCORD_AUTH_STORAGE_KEY = 'creative_workshop_discord_auth';
+    const DISCORD_OAUTH_STATE_KEY = 'creative_workshop_discord_state';
+    const PUBLISHED_BUILDS_STORAGE_KEY = 'creative_workshop_published_builds';
+
+    function getDiscordRedirectUri() {
+        return `${window.location.origin}${window.location.pathname}`;
+    }
+
+    function buildDiscordAuthorizeUrl(state) {
+        const params = new URLSearchParams({
+            client_id: DISCORD_AUTH_CONFIG.clientId,
+            response_type: DISCORD_AUTH_CONFIG.responseType,
+            redirect_uri: getDiscordRedirectUri(),
+            scope: DISCORD_AUTH_CONFIG.scope,
+            state,
+            prompt: 'consent'
+        });
+        return `${DISCORD_AUTH_CONFIG.authorizeUrl}?${params.toString()}`;
+    }
+
+    function parseDiscordCallbackHash() {
+        const hash = window.location.hash.replace(/^#/, '');
+        if (!hash) {
+            return null;
+        }
+        const params = new URLSearchParams(hash);
+        if (!params.has('access_token') && !params.has('error')) {
+            return null;
+        }
+        return {
+            accessToken: params.get('access_token') || '',
+            expiresIn: Number(params.get('expires_in') || 0),
+            state: params.get('state') || '',
+            error: params.get('error') || '',
+            errorDescription: params.get('error_description') || ''
+        };
+    }
+
+    function getDiscordAvatarUrl(user) {
+        if (!user?.avatar) {
+            return '';
+        }
+        const ext = String(user.avatar).startsWith('a_') ? 'gif' : 'png';
+        return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+    }
+
+    function loadStoredDiscordAuth() {
+        try {
+            const raw = localStorage.getItem(DISCORD_AUTH_STORAGE_KEY);
+            if (!raw) {
+                return null;
+            }
+            const parsed = JSON.parse(raw);
+            if (!parsed?.accessToken || !parsed?.user || !parsed?.expiresAt || parsed.expiresAt <= Date.now()) {
+                localStorage.removeItem(DISCORD_AUTH_STORAGE_KEY);
+                return null;
+            }
+            return parsed;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function saveStoredDiscordAuth(authData) {
+        try {
+            localStorage.setItem(DISCORD_AUTH_STORAGE_KEY, JSON.stringify(authData));
+        } catch (error) {
+        }
+    }
+
+    function clearStoredDiscordAuth() {
+        try {
+            localStorage.removeItem(DISCORD_AUTH_STORAGE_KEY);
+            localStorage.removeItem(DISCORD_OAUTH_STATE_KEY);
+        } catch (error) {
+        }
+    }
+
+
+    function createStoredBuildEntry(rawItem) {
+        if (!rawItem?.presetData) {
+            return null;
+        }
+        const tags = Array.isArray(rawItem.tags)
+            ? rawItem.tags.map((item) => ({
+                icon: 'ri-price-tag-3-line',
+                text: typeof item === 'string' ? item : item?.text,
+            })).filter((item) => item.text)
+            : undefined;
+        const build = createBuildFromPresetData(rawItem.presetData, {
+            id: rawItem.id,
+            name: rawItem.name,
+            author: rawItem.author,
+            authorAvatar: rawItem.authorAvatar || '',
+            coverUrl: rawItem.coverUrl || '',
+            intro: rawItem.intro || '',
+            tags,
+            downloads: rawItem.downloads || 0,
+            likes: rawItem.likes || 0,
+        });
+        build.ownerId = rawItem.ownerId || '';
+        build.ownerName = rawItem.ownerName || '';
+        build.createdAt = rawItem.createdAt || '';
+        build.updatedAt = rawItem.updatedAt || '';
+        build.source = 'local-published';
+        return build;
+    }
+
+    function loadStoredPublishedBuilds() {
+        try {
+            const raw = localStorage.getItem(PUBLISHED_BUILDS_STORAGE_KEY);
+            if (!raw) {
+                return [];
+            }
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
+            return parsed.map(createStoredBuildEntry).filter(Boolean);
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function saveStoredPublishedBuilds(builds) {
+        try {
+            const payload = builds
+                .filter((build) => build?.source === 'local-published' && build?.presetData)
+                .map((build) => ({
+                    id: build.id,
+                    name: build.name,
+                    author: build.author,
+                    authorAvatar: build.authorAvatar || '',
+                    coverUrl: build.coverUrl || '',
+                    intro: build.intro || '',
+                    tags: (build.tags || []).map((item) => item?.text || item).filter(Boolean),
+                    downloads: build.downloads || 0,
+                    likes: build.likes || 0,
+                    ownerId: build.ownerId || '',
+                    ownerName: build.ownerName || '',
+                    createdAt: build.createdAt || '',
+                    updatedAt: build.updatedAt || '',
+                    presetData: build.presetData,
+                }));
+            localStorage.setItem(PUBLISHED_BUILDS_STORAGE_KEY, JSON.stringify(payload));
+        } catch (error) {
+        }
+    }
+
+    async function fetchDiscordIdentity(accessToken) {
+        const response = await fetch(`${DISCORD_AUTH_CONFIG.apiBase}/users/@me`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Discord API ${response.status}`);
+        }
+        const user = await response.json();
+        return {
+            id: user.id,
+            username: user.global_name || user.username || 'Discord 用户',
+            avatarUrl: getDiscordAvatarUrl(user)
+        };
+    }
+    createApp({
+        setup() {
+            const activeTab = ref('build');
+            const buildView = ref('list');
+            const searchQuery = ref('');
+            const selectedBuild = ref(null);
+            const skillDetail = ref(null);
+            const traitDetail = ref(null);
+            const companionDetail = ref(null);
+            const buildDataStatus = ref('暂无预设，请在“上传预设”里手动选择 JSON 文件导入');
+            const presetTagOptions = ['爆发', '续航', '清怪', '对单', '控制', '召唤', '生存', '整活'];
+            const discordAuth = ref(loadStoredDiscordAuth());
+            const discordUser = computed(() => discordAuth.value?.user || null);
+            const discordLoading = ref(false);
+            const buildScope = ref('all');
+            const editingBuildId = ref('');
+            const createInitialPublishForm = () => ({
+                name: '',
+                intro: '',
+                author: discordUser.value?.username || '',
+                coverUrl: '',
+                tags: [],
+                importedFileName: '',
+                importedPresetData: null,
+            });
+            const publishForm = ref(createInitialPublishForm());
+            const builds = ref(loadStoredPublishedBuilds());
+            const ownedBuildCount = computed(() => {
+                const currentUserId = discordUser.value?.id;
+                if (!currentUserId) {
+                    return 0;
+                }
+                return builds.value.filter((build) => build.ownerId === currentUserId).length;
+            });
+
+            const filteredBuilds = computed(() => {
+                const q = searchQuery.value.trim().toLowerCase();
+                const currentUserId = discordUser.value?.id;
+                return builds.value.filter((build) => {
+                    if (buildScope.value === 'mine' && (!currentUserId || build.ownerId !== currentUserId)) {
+                        return false;
+                    }
+                    if (!q) {
+                        return true;
+                    }
+                    return build.name.toLowerCase().includes(q)
+                        || build.className.toLowerCase().includes(q)
+                        || build.author.toLowerCase().includes(q)
+                        || build.race.toLowerCase().includes(q);
+                });
+            });
+
+            function applyPresetExports(presetExports, sourceLabel) {
+                const importedBuilds = presetExports
+                    .map(createBuildFromPresetExport)
+                    .filter(Boolean);
+
+                if (!importedBuilds.length) {
+                    buildDataStatus.value = `${sourceLabel}读取成功，但没有可展示的预设`;
+                    return;
+                }
+
+                const buildMap = new Map(builds.value.map((build) => [build.name, build]));
+                importedBuilds.forEach((build) => {
+                    buildMap.set(build.name, build);
+                });
+                builds.value = Array.from(buildMap.values());
+
+                buildDataStatus.value = `${sourceLabel}已导入 ${importedBuilds.length} 个预设，当前共 ${builds.value.length} 个`;
+
+                if (selectedBuild.value) {
+                    selectedBuild.value = null;
+                }
+            }
+
+            function openDetail(build) { selectedBuild.value = build; }
+
+            function openSkillDetail(skill) { skillDetail.value = skill; }
+
+            function openTraitDetail(trait, type) {
+                traitDetail.value = {
+                    ...trait,
+                    typeLabel: type === 'positive' ? '正面特质' : '负面特质',
+                    typeColor: type === 'positive' ? '#2d6a4f' : '#c0392b'
+                };
+            }
+            function openCompanionDetail(comp) {
+                companionDetail.value = comp;
+            }
+
+
+            function syncPublishAuthorFromDiscord() {
+                if (discordUser.value) {
+                    publishForm.value.author = discordUser.value.username;
+                }
+            }
+
+            async function completeDiscordLoginFromCallback() {
+                const callback = parseDiscordCallbackHash();
+                if (!callback) {
+                    return;
+                }
+
+                history.replaceState(null, document.title, `${window.location.pathname}${window.location.search}`);
+
+                if (callback.error) {
+                    buildDataStatus.value = `Discord 授权失败：${callback.errorDescription || callback.error}`;
+                    clearStoredDiscordAuth();
+                    return;
+                }
+
+                const expectedState = localStorage.getItem(DISCORD_OAUTH_STATE_KEY) || "";
+                if (expectedState && callback.state !== expectedState) {
+                    buildDataStatus.value = "Discord 授权状态校验失败，请重试";
+                    clearStoredDiscordAuth();
+                    return;
+                }
+
+                discordLoading.value = true;
+                try {
+                    const user = await fetchDiscordIdentity(callback.accessToken);
+                    const authData = {
+                        accessToken: callback.accessToken,
+                        expiresAt: Date.now() + Math.max(callback.expiresIn - 60, 60) * 1000,
+                        user,
+                    };
+                    discordAuth.value = authData;
+                    saveStoredDiscordAuth(authData);
+                    buildDataStatus.value = "Discord 登录成功";
+                    syncPublishAuthorFromDiscord();
+                } catch (error) {
+                    console.warn("Discord identity fetch failed:", error);
+                    buildDataStatus.value = "Discord 登录成功，但读取用户信息失败";
+                    clearStoredDiscordAuth();
+                } finally {
+                    discordLoading.value = false;
+                }
+            }
+
+            function startDiscordLogin() {
+                if (!DISCORD_AUTH_CONFIG.clientId) {
+                    buildDataStatus.value = "请先在代码中填写 Discord Client ID";
+                    return;
+                }
+                if (!/^https?:$/.test(window.location.protocol)) {
+                    buildDataStatus.value = "Discord 登录需要在 http(s) 环境下运行";
+                    return;
+                }
+                const state = `discord_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+                try {
+                    localStorage.setItem(DISCORD_OAUTH_STATE_KEY, state);
+                } catch (error) {}
+                window.location.href = buildDiscordAuthorizeUrl(state);
+            }
+
+            function logoutDiscord() {
+                const currentName = discordUser.value?.username || "";
+                discordAuth.value = null;
+                clearStoredDiscordAuth();
+                if (publishForm.value.author === currentName) {
+                    publishForm.value.author = "";
+                }
+                buildDataStatus.value = "已退出 Discord 登录";
+            }
+
+            function openPublishPage() {
+                editingBuildId.value = '';
+                publishForm.value = createInitialPublishForm();
+                buildView.value = "publish";
+                syncPublishAuthorFromDiscord();
+            }
+
+            function closePublishPage() {
+                buildView.value = "list";
+            }
+
+            function resetPublishForm() {
+                editingBuildId.value = '';
+                publishForm.value = createInitialPublishForm();
+                syncPublishAuthorFromDiscord();
+            }
+
+            function getImportedClassName() {
+                return getDisplayClassName(
+                    publishForm.value.importedPresetData?.class,
+                    publishForm.value.importedPresetData?.customClassName
+                );
+            }
+
+            function getImportedRaceName() {
+                return getDisplayRaceName(
+                    publishForm.value.importedPresetData?.race,
+                    publishForm.value.importedPresetData?.customRace
+                );
+            }
+
+            function triggerPresetJsonImport() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json,application/json';
+                input.multiple = false;
+                input.onchange = (event) => {
+                    handlePresetJsonImport(event);
+                };
+                input.click();
+            }
+
+            async function handlePresetJsonImport(event) {
+                const files = Array.from(event?.target?.files || []);
+                if (!files.length) {
+                    return;
+                }
+
+                try {
+                    const file = files[0];
+                    const parsed = JSON.parse(await file.text());
+                    const normalized = normalizePresetExport(parsed);
+                    if (!normalized) {
+                        throw new Error(`无效的预设文件格式: ${file.name}`);
+                    }
+                    publishForm.value.importedFileName = file.name;
+                    publishForm.value.importedPresetData = normalized.preset.data;
+                    buildDataStatus.value = `已解析预设 JSON：${file.name}`;
+                } catch (error) {
+                    console.warn("Local preset JSON parse failed:", error);
+                    buildDataStatus.value = "手动导入失败，请确认选择的是“开局”导出的预设 JSON 或完整预设对象 JSON";
+                }
+            }
+
+
+            function persistPublishedBuilds() {
+                saveStoredPublishedBuilds(builds.value);
+            }
+
+            function isBuildOwnedByCurrentUser(build) {
+                return !!build && !!discordUser.value?.id && build.ownerId === discordUser.value.id;
+            }
+
+            function editOwnedBuild(build) {
+                if (!isBuildOwnedByCurrentUser(build)) {
+                    return;
+                }
+                editingBuildId.value = build.id;
+                publishForm.value = {
+                    name: build.name || '',
+                    intro: build.intro || '',
+                    author: discordUser.value?.username || build.author || '',
+                    coverUrl: build.coverUrl || '',
+                    tags: (build.tags || []).map((item) => item?.text || item).filter(Boolean),
+                    importedFileName: `${build.name || 'preset'}.json`,
+                    importedPresetData: build.presetData || null,
+                };
+                selectedBuild.value = null;
+                buildView.value = 'publish';
+                buildDataStatus.value = `正在编辑：${build.name}`;
+                syncPublishAuthorFromDiscord();
+            }
+
+            function deleteOwnedBuild(build) {
+                if (!isBuildOwnedByCurrentUser(build)) {
+                    return;
+                }
+                if (!window.confirm(`确定删除「${build.name}」吗？`)) {
+                    return;
+                }
+                builds.value = builds.value.filter((item) => item.id !== build.id);
+                persistPublishedBuilds();
+                if (selectedBuild.value?.id === build.id) {
+                    selectedBuild.value = null;
+                }
+                if (editingBuildId.value === build.id) {
+                    resetPublishForm();
+                }
+                buildDataStatus.value = `已删除预设：${build.name}`;
+            }
+
+            function publishPresetBuild() {
+                if (!publishForm.value.importedPresetData) {
+                    buildDataStatus.value = "请先选择并解析一个预设 JSON 文件";
+                    return;
+                }
+
+                const presetData = publishForm.value.importedPresetData;
+                const name = publishForm.value.name.trim() || presetData.name || "未命名预设";
+                const existingBuild = editingBuildId.value
+                    ? builds.value.find((item) => item.id === editingBuildId.value)
+                    : null;
+                const now = new Date().toISOString();
+                const build = createBuildFromPresetData(presetData, {
+                    id: editingBuildId.value || `${Date.now()}-${name}`,
+                    name,
+                    author: discordUser.value?.username || publishForm.value.author.trim() || "匿名作者",
+                    authorAvatar: discordUser.value?.avatarUrl || existingBuild?.authorAvatar || "",
+                    coverUrl: publishForm.value.coverUrl.trim() || presetData.avatar || "",
+                    intro: publishForm.value.intro.trim() || presetData.customClassStyle || presetData.backstory || "暂无简介",
+                    tags: publishForm.value.tags.map((text) => ({
+                        icon: "ri-price-tag-3-line",
+                        text,
+                    })),
+                    downloads: existingBuild?.downloads || 0,
+                    likes: existingBuild?.likes || 0,
+                });
+                build.ownerId = discordUser.value?.id || existingBuild?.ownerId || '';
+                build.ownerName = discordUser.value?.username || existingBuild?.ownerName || build.author;
+                build.createdAt = existingBuild?.createdAt || now;
+                build.updatedAt = now;
+                build.source = 'local-published';
+
+                const existingIndex = builds.value.findIndex((item) => item.id === build.id);
+                if (existingIndex >= 0) {
+                    builds.value.splice(existingIndex, 1, build);
+                } else {
+                    builds.value.unshift(build);
+                }
+
+                persistPublishedBuilds();
+                buildDataStatus.value = editingBuildId.value
+                    ? `已更新预设：${build.name}`
+                    : `已发布预设：${build.name}`;
+                resetPublishForm();
+                buildView.value = "list";
+            }
+
+            function togglePublishTag(tag) {
+                const selectedTags = publishForm.value.tags;
+                if (selectedTags.includes(tag)) {
+                    publishForm.value.tags = selectedTags.filter((item) => item !== tag);
+                    return;
+                }
+                if (selectedTags.length >= 3) {
+                    return;
+                }
+                publishForm.value.tags = [...selectedTags, tag];
+            }
+
+            function getSkillTypeColor(type) {
+                if (type.includes('觉醒')) return '#c0392b';
+                if (type === '主动') return '#2d6a4f';
+                if (type === '召唤') return '#6c5ce7';
+                if (type.includes('特殊')) return '#b8860b';
+                return '#636e72';
+            }
+
+            function downloadBuild(build) {
+                const data = {
+                    name: build.name,
+                    author: build.author,
+                    authorAvatar: build.authorAvatar || '',
+                    race: build.race,
+                    class: build.className,
+                    intro: build.intro,
+                    avatar: build.coverUrl,
+                    tags: (build.tags || []).map(t => t.text),
+                    skillTree: build.rawSkillTree || null,
+                    traits: {
+                        positive: build.traits.positive.map(t => ({ name: t.name, desc: t.desc, effect: t.effect })),
+                        negative: build.traits.negative.map(t => ({ name: t.name, desc: t.desc, effect: t.effect }))
+                    },
+                    companion: build.companion ? { name: build.companion.name, race: build.companion.race, class: build.companion.class } : null,
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = build.name + '.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            onMounted(() => {
+                completeDiscordLoginFromCallback();
+                if (discordUser.value) {
+                    syncPublishAuthorFromDiscord();
+                }
+                if (builds.value.length) {
+                    buildDataStatus.value = `已加载 ${builds.value.length} 个已发布预设`;
+                }
+            });
+
+            return {
+                activeTab, buildView, buildScope, searchQuery, builds, filteredBuilds, ownedBuildCount,
+                discordUser, startDiscordLogin, logoutDiscord,
+                selectedBuild, skillDetail, traitDetail, companionDetail,
+                publishForm, presetTagOptions, buildDataStatus,
+                openDetail, openSkillDetail, openTraitDetail, openCompanionDetail,
+                openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, togglePublishTag,
+                getImportedClassName, getImportedRaceName, publishPresetBuild,
+                getSkillTypeColor,
+                isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
+                downloadBuild,
+            };
+        }
+    }).mount('#app');
+    </script>
+</body>
+
+</html>
