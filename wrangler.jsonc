@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "creative-workshop-site",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-03-15",
+
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  }
+
+  // 接入 D1 后取消下面注释，并替换成你自己的数据库信息。
+  // "d1_databases": [
+  //   {
+  //     "binding": "DB",
+  //     "database_name": "creative-workshop-db",
+  //     "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  //   }
+  // ]
+}
