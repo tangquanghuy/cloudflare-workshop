@@ -1805,6 +1805,7 @@
     const DISCORD_AUTH_STORAGE_KEY = 'creative_workshop_discord_auth';
     const DISCORD_OAUTH_STATE_KEY = 'creative_workshop_discord_state';
     const PUBLISHED_BUILDS_STORAGE_KEY = 'creative_workshop_published_builds';
+    const API_BASE = '/api';
 
     function getDiscordRedirectUri() {
         return `${window.location.origin}${window.location.pathname}`;
@@ -1951,6 +1952,59 @@
         }
     }
 
+
+    function getApiPath(path) {
+        return `${API_BASE}${path}`;
+    }
+
+    async function apiRequest(path, options = {}) {
+        const response = await fetch(getApiPath(path), {
+            method: options.method || 'GET',
+            headers: {
+                ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+                ...(options.headers || {}),
+            },
+            body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+        });
+
+        let payload = {};
+        try {
+            payload = await response.json();
+        } catch (error) {
+        }
+
+        if (!response.ok || payload?.ok === false) {
+            throw new Error(payload?.error || `Request failed (${response.status})`);
+        }
+
+        return payload;
+    }
+
+    async function fetchPublishedBuildsFromApi() {
+        const payload = await apiRequest('/presets');
+        return Array.isArray(payload.presets)
+            ? payload.presets.map(createStoredBuildEntry).filter(Boolean)
+            : [];
+    }
+
+    async function syncDiscordUserToApi(user) {
+        if (!user?.id || !user?.username) {
+            return;
+        }
+        try {
+            await apiRequest('/users/sync', {
+                method: 'POST',
+                body: {
+                    discord_id: user.id,
+                    username: user.username,
+                    avatar_url: user.avatarUrl || '',
+                },
+            });
+        } catch (error) {
+            console.warn('Cloud user sync failed:', error);
+        }
+    }
+
     async function fetchDiscordIdentity(accessToken) {
         const response = await fetch(`${DISCORD_AUTH_CONFIG.apiBase}/users/@me`, {
             headers: {
@@ -1994,6 +2048,7 @@
             });
             const publishForm = ref(createInitialPublishForm());
             const builds = ref(loadStoredPublishedBuilds());
+            const buildsLoading = ref(false);
             const ownedBuildCount = computed(() => {
                 const currentUserId = discordUser.value?.id;
                 if (!currentUserId) {
@@ -2042,7 +2097,26 @@
                 }
             }
 
-            function openDetail(build) { selectedBuild.value = build; }
+            async function loadPublishedBuilds() {
+                buildsLoading.value = true;
+                try {
+                    const remoteBuilds = await fetchPublishedBuildsFromApi();
+                    builds.value = remoteBuilds;
+                    persistPublishedBuilds();
+                    buildDataStatus.value = remoteBuilds.length
+                        ? `Loaded ${remoteBuilds.length} published presets from D1`
+                        : 'No published presets in D1 yet';
+                } catch (error) {
+                    console.warn('Load presets from API failed:', error);
+                    buildDataStatus.value = builds.value.length
+                        ? `Cloud load failed, using local cache (${builds.value.length} presets)`
+                        : 'Cloud load failed, please check Worker and D1 config';
+                } finally {
+                    buildsLoading.value = false;
+                }
+            }
+
+            function openDetail(build) { selectedBuild.value = build; }            function openDetail(build) { selectedBuild.value = build; }
 
             function openSkillDetail(skill) { skillDetail.value = skill; }
 
@@ -2062,6 +2136,13 @@
                 if (discordUser.value) {
                     publishForm.value.author = discordUser.value.username;
                 }
+            }
+
+            async function ensureDiscordUserSynced() {
+                if (!discordUser.value) {
+                    return;
+                }
+                await syncDiscordUserToApi(discordUser.value);
             }
 
             async function completeDiscordLoginFromCallback() {
@@ -2095,6 +2176,7 @@
                     };
                     discordAuth.value = authData;
                     saveStoredDiscordAuth(authData);
+                    await syncDiscordUserToApi(user);
                     buildDataStatus.value = "Discord 登录成功";
                     syncPublishAuthorFromDiscord();
                 } catch (error) {
@@ -2225,69 +2307,99 @@
                 syncPublishAuthorFromDiscord();
             }
 
-            function deleteOwnedBuild(build) {
+            async function deleteOwnedBuild(build) {
                 if (!isBuildOwnedByCurrentUser(build)) {
                     return;
                 }
-                if (!window.confirm(`确定删除「${build.name}」吗？`)) {
+                if (!window.confirm(`Delete preset "${build.name}"?`)) {
                     return;
                 }
-                builds.value = builds.value.filter((item) => item.id !== build.id);
-                persistPublishedBuilds();
-                if (selectedBuild.value?.id === build.id) {
-                    selectedBuild.value = null;
+                try {
+                    await apiRequest(`/presets/${encodeURIComponent(build.id)}`, {
+                        method: 'DELETE',
+                        body: {
+                            owner_discord_id: discordUser.value.id,
+                        },
+                    });
+                    builds.value = builds.value.filter((item) => item.id !== build.id);
+                    persistPublishedBuilds();
+                    if (selectedBuild.value?.id === build.id) {
+                        selectedBuild.value = null;
+                    }
+                    if (editingBuildId.value === build.id) {
+                        resetPublishForm();
+                    }
+                    buildDataStatus.value = `Deleted preset: ${build.name}`;
+                } catch (error) {
+                    console.warn('Delete preset failed:', error);
+                    buildDataStatus.value = `Delete failed: ${error instanceof Error ? error.message : String(error)}`;
                 }
-                if (editingBuildId.value === build.id) {
-                    resetPublishForm();
-                }
-                buildDataStatus.value = `已删除预设：${build.name}`;
             }
 
-            function publishPresetBuild() {
+            async function publishPresetBuild() {
                 if (!publishForm.value.importedPresetData) {
-                    buildDataStatus.value = "请先选择并解析一个预设 JSON 文件";
+                    buildDataStatus.value = 'Please select and parse a preset JSON file first';
+                    return;
+                }
+                if (!discordUser.value?.id) {
+                    buildDataStatus.value = 'Please log in with Discord before publishing';
                     return;
                 }
 
                 const presetData = publishForm.value.importedPresetData;
-                const name = publishForm.value.name.trim() || presetData.name || "未命名预设";
+                const name = publishForm.value.name.trim() || presetData.name || 'Untitled preset';
                 const existingBuild = editingBuildId.value
                     ? builds.value.find((item) => item.id === editingBuildId.value)
                     : null;
-                const now = new Date().toISOString();
-                const build = createBuildFromPresetData(presetData, {
-                    id: editingBuildId.value || `${Date.now()}-${name}`,
-                    name,
-                    author: discordUser.value?.username || publishForm.value.author.trim() || "匿名作者",
-                    authorAvatar: discordUser.value?.avatarUrl || existingBuild?.authorAvatar || "",
-                    coverUrl: publishForm.value.coverUrl.trim() || presetData.avatar || "",
-                    intro: publishForm.value.intro.trim() || presetData.customClassStyle || presetData.backstory || "暂无简介",
-                    tags: publishForm.value.tags.map((text) => ({
-                        icon: "ri-price-tag-3-line",
-                        text,
-                    })),
-                    downloads: existingBuild?.downloads || 0,
-                    likes: existingBuild?.likes || 0,
-                });
-                build.ownerId = discordUser.value?.id || existingBuild?.ownerId || '';
-                build.ownerName = discordUser.value?.username || existingBuild?.ownerName || build.author;
-                build.createdAt = existingBuild?.createdAt || now;
-                build.updatedAt = now;
-                build.source = 'local-published';
 
-                const existingIndex = builds.value.findIndex((item) => item.id === build.id);
-                if (existingIndex >= 0) {
-                    builds.value.splice(existingIndex, 1, build);
-                } else {
-                    builds.value.unshift(build);
+                try {
+                    const payload = {
+                        id: editingBuildId.value || undefined,
+                        owner_discord_id: discordUser.value.id,
+                        owner_name: discordUser.value.username,
+                        username: discordUser.value.username,
+                        avatar_url: discordUser.value.avatarUrl || '',
+                        title: name,
+                        intro: publishForm.value.intro.trim() || presetData.customClassStyle || presetData.backstory || 'No intro yet',
+                        cover_url: publishForm.value.coverUrl.trim() || presetData.avatar || '',
+                        class_name: getImportedClassName(),
+                        race: getImportedRaceName(),
+                        tags: publishForm.value.tags,
+                        preset_json: presetData,
+                    };
+
+                    const response = await apiRequest(
+                        editingBuildId.value
+                            ? `/presets/${encodeURIComponent(editingBuildId.value)}`
+                            : '/presets',
+                        {
+                            method: editingBuildId.value ? 'PUT' : 'POST',
+                            body: payload,
+                        }
+                    );
+
+                    const savedBuild = createStoredBuildEntry(response.preset);
+                    if (!savedBuild) {
+                        throw new Error('Save succeeded but returned preset data is invalid');
+                    }
+
+                    const existingIndex = builds.value.findIndex((item) => item.id === savedBuild.id);
+                    if (existingIndex >= 0) {
+                        builds.value.splice(existingIndex, 1, savedBuild);
+                    } else {
+                        builds.value.unshift(savedBuild);
+                    }
+
+                    persistPublishedBuilds();
+                    buildDataStatus.value = existingBuild
+                        ? `Updated preset: ${savedBuild.name}`
+                        : `Published preset: ${savedBuild.name}`;
+                    resetPublishForm();
+                    buildView.value = 'list';
+                } catch (error) {
+                    console.warn('Publish preset failed:', error);
+                    buildDataStatus.value = `Publish failed: ${error instanceof Error ? error.message : String(error)}`;
                 }
-
-                persistPublishedBuilds();
-                buildDataStatus.value = editingBuildId.value
-                    ? `已更新预设：${build.name}`
-                    : `已发布预设：${build.name}`;
-                resetPublishForm();
-                buildView.value = "list";
             }
 
             function togglePublishTag(tag) {
@@ -2310,7 +2422,7 @@
                 return '#636e72';
             }
 
-            function downloadBuild(build) {
+            async function downloadBuild(build) {
                 const data = {
                     name: build.name,
                     author: build.author,
@@ -2334,16 +2446,37 @@
                 a.download = build.name + '.json';
                 a.click();
                 URL.revokeObjectURL(url);
+
+                try {
+                    const response = await apiRequest(`/presets/${encodeURIComponent(build.id)}/download`, {
+                        method: 'POST',
+                        body: {
+                            user_discord_id: discordUser.value?.id || '',
+                        },
+                    });
+                    const updatedBuild = createStoredBuildEntry(response.preset);
+                    if (updatedBuild) {
+                        const existingIndex = builds.value.findIndex((item) => item.id === updatedBuild.id);
+                        if (existingIndex >= 0) {
+                            builds.value.splice(existingIndex, 1, updatedBuild);
+                        }
+                        if (selectedBuild.value?.id === updatedBuild.id) {
+                            selectedBuild.value = updatedBuild;
+                        }
+                        persistPublishedBuilds();
+                    }
+                } catch (error) {
+                    console.warn('Record preset download failed:', error);
+                }
             }
 
-            onMounted(() => {
-                completeDiscordLoginFromCallback();
+            onMounted(async () => {
+                await completeDiscordLoginFromCallback();
                 if (discordUser.value) {
                     syncPublishAuthorFromDiscord();
+                    await ensureDiscordUserSynced();
                 }
-                if (builds.value.length) {
-                    buildDataStatus.value = `已加载 ${builds.value.length} 个已发布预设`;
-                }
+                await loadPublishedBuilds();
             });
 
             return {
