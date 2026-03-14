@@ -1,20 +1,18 @@
-{
+﻿{
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "creative-workshop-site",
+  "name": "cloudflare-workshop",
   "main": "src/worker.js",
-  "compatibility_date": "2026-03-15",
-
+  "compatibility_date": "2026-03-14",
   "assets": {
     "directory": "./public",
     "binding": "ASSETS"
-  }
-
-  // 接入 D1 后取消下面注释，并替换成你自己的数据库信息。
-  // "d1_databases": [
-  //   {
-  //     "binding": "DB",
-  //     "database_name": "creative-workshop-db",
-  //     "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  //   }
-  // ]
+  },
+  "d1_databases": [
+    {
+      "binding": "ngnl_build",
+      "database_name": "ngnl_build",
+      "database_id": "467981d6-b11c-4092-b739-7a554c0dbc56"
+    }
+  ]
 }
+
