@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS presets (
   title TEXT NOT NULL,
   intro TEXT,
   cover_url TEXT,
+  cover_object_key TEXT,
+  object_key TEXT NOT NULL,
   class_name TEXT,
   race TEXT,
   tags_json TEXT NOT NULL DEFAULT '[]',

@@ -13,6 +13,11 @@
       "database_name": "ngnl_build",
       "database_id": "467981d6-b11c-4092-b739-7a554c0dbc56"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ngnl",
+      "bucket_name": "ngnl"
+    }
   ]
 }
-

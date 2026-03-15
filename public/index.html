@@ -308,6 +308,80 @@
             border-color: var(--accent);
             box-shadow: 0 8px 18px rgba(45,106,79,0.18);
         }
+        .tag-custom-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .tag-custom-input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid rgba(0,0,0,0.08);
+            background: #fff;
+            color: var(--primary);
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .tag-custom-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(45,106,79,0.08);
+        }
+        .tag-custom-add {
+            border: 1px solid rgba(45,106,79,0.18);
+            background: rgba(45,106,79,0.06);
+            color: var(--accent);
+            padding: 10px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tag-custom-add:hover {
+            background: var(--accent);
+            color: white;
+        }
+        .selected-tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .selected-tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: rgba(45,106,79,0.08);
+            color: var(--accent);
+            border: 1px solid rgba(45,106,79,0.14);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .selected-tag-remove {
+            width: 18px;
+            height: 18px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(45,106,79,0.12);
+            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        .selected-tag-remove:hover {
+            background: var(--accent);
+            color: white;
+        }
         .publish-preview {
             background: linear-gradient(180deg, rgba(45,106,79,0.05), rgba(45,52,54,0.02));
             border: 1px solid rgba(0,0,0,0.05);
@@ -504,6 +578,7 @@
         .build-tag.race { background: rgba(225,112,85,0.1); color: #e17055; }
         .build-tag.class-tag { background: rgba(45,106,79,0.08); color: var(--accent); }
         .build-tag.companion { background: rgba(108,92,231,0.08); color: #6c5ce7; }
+        .build-tag.like-tag { background: rgba(192,57,43,0.1); color: var(--danger); }
 
         /* Card Footer */
         .build-footer {
@@ -537,6 +612,14 @@
         .download-btn:hover {
             background: var(--accent); color: white;
             transform: scale(1.05);
+        }
+        .download-btn.like-btn.liked {
+            background: rgba(192,57,43,0.12);
+            color: var(--danger);
+        }
+        .download-btn.like-btn.liked:hover {
+            background: var(--danger);
+            color: white;
         }
         .download-btn.edit {
             background: rgba(108,92,231,0.1);
@@ -646,6 +729,10 @@
             display: flex; gap: 20px; align-items: flex-start;
             box-shadow: 0 2px 12px rgba(0,0,0,0.04);
         }
+        .race-meta {
+            flex: 1;
+            min-width: 0;
+        }
         .race-icon-lg {
             width: 64px; height: 64px;
             border-radius: 16px;
@@ -673,6 +760,87 @@
         }
         .race-meta p {
             font-size: 0.85rem; color: var(--secondary); line-height: 1.6;
+        }
+        .detail-tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0 14px;
+        }
+        .detail-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(45,106,79,0.08);
+            color: var(--accent);
+            border: 1px solid rgba(45,106,79,0.14);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .detail-intro {
+            margin: 0;
+            font-size: 0.92rem;
+            color: var(--secondary);
+            line-height: 1.85;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .attribute-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .attribute-card {
+            background: #f8f9fa;
+            border: 1px solid rgba(0,0,0,0.03);
+            border-radius: 14px;
+            padding: 14px 16px;
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .attribute-card-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+        .attribute-card-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.98rem;
+            font-family: var(--font-main);
+            min-width: 0;
+        }
+        .attribute-card-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #eef1f5;
+            color: var(--secondary);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .attribute-card-value {
+            min-width: 28px;
+            text-align: center;
+            font-family: var(--font-num);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            flex-shrink: 0;
         }
 
         /* Skill Tree */
@@ -766,6 +934,41 @@
             background: rgba(192,57,43,0.08);
             color: var(--danger);
             border: 1px solid rgba(192,57,43,0.15);
+        }
+        .trait-tag.inert {
+            cursor: default;
+        }
+        .trait-tag.inert:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        @media (max-width: 900px) {
+            .attribute-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+        }
+        @media (max-width: 640px) {
+            .attribute-grid {
+                grid-template-columns: 1fr;
+            }
+            .attribute-card {
+                min-height: 62px;
+                padding: 12px 14px;
+                border-radius: 12px;
+            }
+            .attribute-card-label {
+                font-size: 0.92rem;
+            }
+            .attribute-card-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 0.95rem;
+            }
+            .attribute-card-value {
+                font-size: 1.5rem;
+            }
         }
 
         /* Companion */
@@ -1041,7 +1244,6 @@
                             <i class="ri-search-line"></i>
                             <input type="text" placeholder="搜索 Build 名称、职业、作者…" v-model="searchQuery">
                         </div>
-                        <span class="field-hint" style="flex: 1; text-align: right; min-width: 220px;">{{ buildDataStatus }}</span>
                         <button class="btn btn-outline" @click="openPublishPage" style="white-space:nowrap;">
                             <i class="ri-upload-2-line"></i> 上传预设
                         </button>
@@ -1069,13 +1271,16 @@
                                     <span v-else class="author-avatar placeholder"><i class="ri-user-3-line"></i></span>
                                     <div class="author-info">
                                         <div class="author-name">作者:{{ build.author }}</div>
-                                        <div class="author-meta">{{ build.className }} 路 {{ build.race }}</div>
+                                        <div class="author-meta">{{ build.className }} · {{ build.race }}</div>
                                     </div>
                                 </div>
                                 <div class="build-desc">{{ build.intro }}</div>
                                 <div class="build-tags">
                                     <span class="build-tag class-tag" v-if="isBuildOwnedByCurrentUser(build)">
                                         <i class="ri-user-settings-line" style="margin-right:2px;"></i> 我的
+                                    </span>
+                                    <span class="build-tag like-tag" v-if="build.liked">
+                                        <i class="ri-heart-fill" style="margin-right:2px;"></i> 已赞
                                     </span>
                                     <span class="build-tag race" v-for="t in build.tags" :key="t.text">
                                         <i :class="t.icon" style="margin-right:2px;"></i> {{ t.text }}
@@ -1092,6 +1297,9 @@
                                         </button>
                                         <button v-if="isBuildOwnedByCurrentUser(build)" class="download-btn danger" @click.stop="deleteOwnedBuild(build)" title="删除预设">
                                             <i class="ri-delete-bin-line"></i>
+                                        </button>
+                                        <button class="download-btn like-btn" :class="{ liked: build.liked }" @click.stop="toggleBuildLike(build)" :title="build.liked ? '已点赞' : '点赞预设'">
+                                            <i :class="build.liked ? 'ri-heart-fill' : 'ri-heart-line'"></i>
                                         </button>
                                         <button class="download-btn" @click.stop="downloadBuild(build)" title="下载 JSON">
                                             <i class="ri-download-2-line"></i>
@@ -1172,7 +1380,25 @@
                                             {{ tag }}
                                         </button>
                                     </div>
-                                    <span class="field-hint">最多 3 个，已选 {{ publishForm.tags.length }}/3</span>
+                                    <div class="tag-custom-row">
+                                        <input
+                                            class="tag-custom-input"
+                                            type="text"
+                                            v-model="publishForm.customTagInput"
+                                            maxlength="12"
+                                            placeholder="自定义标签，最多12字"
+                                            @keydown.enter.prevent="addCustomPublishTag">
+                                        <button type="button" class="tag-custom-add" @click="addCustomPublishTag">添加标签</button>
+                                    </div>
+                                    <div class="selected-tag-list" v-if="publishForm.tags.length">
+                                        <span class="selected-tag-chip" v-for="tag in publishForm.tags" :key="tag">
+                                            {{ tag }}
+                                            <button type="button" class="selected-tag-remove" @click="removePublishTag(tag)">
+                                                <i class="ri-close-line"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                    <span class="field-hint">最多 5 个，可自定义输入；单个标签最多 12 个字符，已选 {{ publishForm.tags.length }}/5</span>
                                 </div>
                             </div>
                             <aside class="publish-preview">
@@ -1202,11 +1428,11 @@
                         <div class="publish-actions">
                             <span class="field-hint">先导入 JSON，再发布。</span>
                             <div class="btn-row">
-                                <button class="btn btn-outline" @click="triggerPresetJsonImport">
+                                <button type="button" class="btn btn-outline" @click="triggerPresetJsonImport">
                                     <i class="ri-file-upload-line"></i> 导入 JSON
                                 </button>
-                                <button class="btn btn-ghost" @click="resetPublishForm">重置</button>
-                                <button class="btn btn-primary" @click="publishPresetBuild">
+                                <button type="button" class="btn btn-ghost" @click="resetPublishForm">重置</button>
+                                <button type="button" class="btn btn-primary" @click="publishPresetBuild">
                                     <i class="ri-check-line"></i> 发布预设
                                 </button>
                             </div>
@@ -1260,8 +1486,57 @@
                             <div class="race-meta">
                                 <h3>{{ selectedBuild.name }}</h3>
                                 <div class="race-class">{{ selectedBuild.className }} · {{ selectedBuild.race }}</div>
-                                <p>{{ selectedBuild.intro }}</p>
+                                <div class="detail-tag-row" v-if="selectedBuild.tags && selectedBuild.tags.length">
+                                    <span class="detail-tag" v-for="tag in selectedBuild.tags" :key="tag.text || tag">
+                                        <i :class="tag.icon || 'ri-price-tag-3-line'"></i>
+                                        {{ tag.text || tag }}
+                                    </span>
+                                </div>
+                                <p class="detail-intro">{{ selectedBuild.intro }}</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="section-heading">
+                            <i class="ri-bar-chart-box-line"></i> 六维属性
+                        </div>
+                        <div class="attribute-grid" v-if="selectedBuild.attributes.length">
+                            <div class="attribute-card" v-for="attr in selectedBuild.attributes" :key="attr.key">
+                                <div class="attribute-card-main">
+                                    <span class="attribute-card-icon">
+                                        <i :class="getAttributeIcon(attr.key)"></i>
+                                    </span>
+                                    <div class="attribute-card-label">
+                                        <span>{{ attr.label }}</span>
+                                    </div>
+                                </div>
+                                <div class="attribute-card-value">{{ attr.value }}</div>
+                            </div>
+                        </div>
+                        <div class="placeholder-section" v-else style="padding: 28px 12px;">
+                            <i class="ri-bar-chart-grouped-line"></i>
+                            <h3>当前 JSON 未包含六维属性</h3>
+                            <p>如果导出文件里有 attributes 字段，这里会自动展示。</p>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="section-heading">
+                            <i class="ri-shield-star-line"></i> 种族特性
+                        </div>
+                        <div class="trait-grid" v-if="selectedBuild.raceTraits.length">
+                            <div class="trait-tag" :class="trait.negative ? 'negative' : 'positive'" v-for="trait in selectedBuild.raceTraits" :key="trait.name"
+                                 @click.stop="openTraitDetail(trait, 'race')">
+                                <i :class="trait.negative ? 'ri-error-warning-line' : 'ri-shield-star-line'"></i>
+                                {{ trait.name }}
+                                <i class="ri-arrow-right-s-line" style="opacity:0.3; margin-left:4px; font-size:0.85rem;"></i>
+                            </div>
+                        </div>
+                        <div class="placeholder-section" v-else style="padding: 28px 12px;">
+                            <i class="ri-shield-line"></i>
+                            <h3>当前 JSON 未包含种族特性</h3>
+                            <p>如果预设导出了 customRace / raceTraits，这里会自动展示。</p>
                         </div>
                     </div>
 
@@ -1296,17 +1571,17 @@
                             <i class="ri-sparkling-line"></i> 固有特质
                         </div>
                         <div class="trait-grid" v-if="selectedBuild.traits.positive.length || selectedBuild.traits.negative.length">
-                            <div class="trait-tag positive" v-for="t in selectedBuild.traits.positive" :key="t.name"
+                            <div class="trait-tag positive" :class="{ inert: !canOpenTraitDetail(t) }" v-for="t in selectedBuild.traits.positive" :key="t.name"
                                  @click.stop="openTraitDetail(t, 'positive')">
                                 <i :class="t.icon"></i>
                                 {{ t.name }}
-                                <i class="ri-arrow-right-s-line" style="opacity:0.3; margin-left:4px; font-size:0.85rem;"></i>
+                                <i v-if="canOpenTraitDetail(t)" class="ri-arrow-right-s-line" style="opacity:0.3; margin-left:4px; font-size:0.85rem;"></i>
                             </div>
-                            <div class="trait-tag negative" v-for="t in selectedBuild.traits.negative" :key="t.name"
+                            <div class="trait-tag negative" :class="{ inert: !canOpenTraitDetail(t) }" v-for="t in selectedBuild.traits.negative" :key="t.name"
                                  @click.stop="openTraitDetail(t, 'negative')">
                                 <i :class="t.icon"></i>
                                 {{ t.name }}
-                                <i class="ri-arrow-right-s-line" style="opacity:0.3; margin-left:4px; font-size:0.85rem;"></i>
+                                <i v-if="canOpenTraitDetail(t)" class="ri-arrow-right-s-line" style="opacity:0.3; margin-left:4px; font-size:0.85rem;"></i>
                             </div>
                         </div>
                         <div class="placeholder-section" v-else style="padding: 28px 12px;">
@@ -1406,8 +1681,8 @@
                     </button>
                 </div>
                 <div class="sub-detail-body">
-                    <div class="desc-block">{{ traitDetail.desc }}</div>
-                    <div class="effect-block">
+                    <div class="desc-block" v-if="traitDetail.desc">{{ traitDetail.desc }}</div>
+                    <div class="effect-block" v-if="traitDetail.effect">
                         <div class="effect-label">效果</div>
                         <div class="effect-text">{{ traitDetail.effect }}</div>
                     </div>
@@ -1540,7 +1815,15 @@
             'Tier3': 'Tier 3 — 精通',
             'Tier4': 'Tier 4 — 超越',
             'Tier5': 'Tier 5 — 终焉',
-            '觉醒': '觉醒技能'
+            '觉醒': '觉醒技能',
+            '基础': '基础',
+            '转职': '转职',
+            '进阶': '进阶',
+            '必杀': '必杀',
+            '奥义': '奥义',
+            '觉醒一': '觉醒一',
+            '觉醒二': '觉醒二',
+            '觉醒三': '觉醒三'
         };
         for (const [key, skills] of Object.entries(rawTree)) {
             tiers.push({
@@ -1599,6 +1882,18 @@
         return customName || '自定义职业';
     }
 
+    function getAttributeIcon(key) {
+        const map = {
+            strength: 'ri-ancient-gate-fill',
+            dexterity: 'ri-run-line',
+            constitution: 'ri-heart-line',
+            intelligence: 'ri-brain-line',
+            wisdom: 'ri-eye-2-line',
+            charisma: 'ri-star-smile-line'
+        };
+        return map[key] || 'ri-circle-line';
+    }
+
     function deriveBuildAppearance(presetData) {
         const className = getDisplayClassName(presetData.class, presetData.customClassName);
         const race = getDisplayRaceName(presetData.race, presetData.customRace);
@@ -1625,8 +1920,8 @@
         bucket.push({
             name,
             icon: trait.icon || (isNegative ? 'ri-error-warning-line' : 'ri-star-line'),
-            desc: trait.desc || (isNegative ? '负面特质' : '正面特质'),
-            effect: trait.effect || '当前预设 JSON 未导出这一项的详细效果。',
+            desc: trait.desc || '',
+            effect: trait.effect || '',
             flavor: trait.flavor || ''
         });
     }
@@ -1649,11 +1944,17 @@
             if (!name) {
                 return;
             }
+            const effect = typeof item === 'object'
+                ? String(item?.effect || item?.detail || item?.描述 || '').trim()
+                : '';
+            const desc = typeof item === 'object'
+                ? String(item?.desc || item?.说明 || '').trim()
+                : '';
             const isNegative = item?.negative === true || NEGATIVE_TRAIT_NAMES.has(name);
             addTrait(traits, {
                 name,
-                desc: '开局内置特质',
-                effect: '该预设 JSON 仅导出了特质名称；如果需要完整描述，请在“开局.html”中加载原预设查看。'
+                desc,
+                effect,
             }, isNegative);
         });
 
@@ -1662,11 +1963,13 @@
             if (!name) {
                 return;
             }
+            const effect = String(item?.effect || item?.detail || '').trim();
+            const desc = String(item?.desc || '').trim();
             addTrait(traits, {
                 name,
                 icon: 'ri-quill-pen-line',
-                desc: item?.desc || '自定义特质',
-                effect: item?.effect || item?.detail || '当前 JSON 未提供自定义特质效果。'
+                desc,
+                effect,
             }, item?.negative === true);
         });
 
@@ -1674,30 +1977,15 @@
         if (exportedTraits && typeof exportedTraits === 'object' && !Array.isArray(exportedTraits)) {
             Object.entries(exportedTraits).forEach(([name, rawValue]) => {
                 const value = rawValue && typeof rawValue === 'object' ? rawValue : { effect: String(rawValue || '') };
+                const effect = String(value.effect || value.效果 || value.detail || value.描述 || '').trim();
+                const desc = String(value.desc || value.说明 || '').trim();
                 const isNegative = value.negative === true || NEGATIVE_TRAIT_NAMES.has(name);
                 addTrait(traits, {
                     name,
-                    desc: value.desc || value.描述 || '导出特质',
-                    effect: value.effect || value.效果 || value.detail || value.描述 || '当前 JSON 未提供详细效果。',
+                    desc,
+                    effect,
                     flavor: value.flavor || ''
                 }, isNegative);
-            });
-        }
-
-        const customRace = presetData?.customRace;
-        if (customRace?.enabled) {
-            [customRace.trait1, customRace.trait2].forEach((traitItem) => {
-                const name = String(traitItem?.name || '').trim();
-                if (!name) {
-                    return;
-                }
-                addTrait(traits, {
-                    name,
-                    icon: traitItem?.negative ? 'ri-error-warning-line' : 'ri-shield-star-line',
-                    desc: '自定义种族特性',
-                    effect: traitItem?.detail || '当前 JSON 未提供种族特性详情。',
-                    flavor: customRace?.name ? `种族：${customRace.name}` : ''
-                }, traitItem?.negative === true);
             });
         }
 
@@ -1706,14 +1994,41 @@
 
     function parsePresetCompanion(presetData) {
         const customTeammate = presetData?.customTeammate;
-        if (!customTeammate?.enabled) {
+        if (customTeammate?.enabled) {
+            const skillSummary = normalizeTraitArray(customTeammate.skills)
+                .map((skill) => {
+                    const name = String(skill?.name || '').trim();
+                    const effect = String(skill?.effect || skill?.detail || '').trim();
+                    if (!name) {
+                        return '';
+                    }
+                    return effect ? `${name}：${effect}` : name;
+                })
+                .filter(Boolean)
+                .slice(0, 2)
+                .join('；');
+
+            return {
+                name: String(customTeammate.name || '').trim() || '自定义队友',
+                race: String(customTeammate.race || '').trim() || '未知种族',
+                class: '自定义同行',
+                desc: customTeammate.background || customTeammate.appearance || customTeammate.outfit || '该预设包含一个自定义同行。',
+                skill: skillSummary || '当前 JSON 未提供同行技能详情。',
+                powerLimit: customTeammate.combo?.name ? `连携奥义：${customTeammate.combo.name}` : (customTeammate.oath ? '已设定同行誓约' : ''),
+                icon: 'ri-team-fill',
+                iconColor: '#6c5ce7'
+            };
+        }
+
+        const teammate = Array.isArray(presetData?.teammates) ? presetData.teammates.find(Boolean) : null;
+        if (!teammate) {
             return null;
         }
 
-        const skillSummary = normalizeTraitArray(customTeammate.skills)
+        const skillSummary = normalizeTraitArray(teammate.skills)
             .map((skill) => {
-                const name = String(skill?.name || '').trim();
-                const effect = String(skill?.effect || skill?.detail || '').trim();
+                const name = String(skill?.name || skill?.名称 || '').trim();
+                const effect = String(skill?.effect || skill?.detail || skill?.描述 || '').trim();
                 if (!name) {
                     return '';
                 }
@@ -1724,19 +2039,82 @@
             .join('；');
 
         return {
-            name: String(customTeammate.name || '').trim() || '自定义队友',
-            race: String(customTeammate.race || '').trim() || '未知种族',
-            class: '自定义同行',
-            desc: customTeammate.background || customTeammate.appearance || customTeammate.outfit || '该预设包含一个自定义同行。',
+            name: String(teammate.name || teammate.名称 || '').trim() || '初始队友',
+            race: String(teammate.race || teammate.种族 || '').trim() || '未知种族',
+            class: String(teammate.class || teammate.职业 || '').trim() || '同行',
+            desc: teammate.background || teammate.desc || teammate.描述 || teammate.appearance || '该预设包含一个初始同行。',
             skill: skillSummary || '当前 JSON 未提供同行技能详情。',
-            powerLimit: customTeammate.combo?.name ? `连携奥义：${customTeammate.combo.name}` : (customTeammate.oath ? '已设定同行誓约' : ''),
+            powerLimit: String(teammate.powerLimit || teammate.limit || '').trim(),
             icon: 'ri-team-fill',
             iconColor: '#6c5ce7'
         };
     }
 
+    function parsePresetAttributes(presetData) {
+        const attributes = presetData?.attributes;
+        if (!attributes || typeof attributes !== 'object' || Array.isArray(attributes)) {
+            return [];
+        }
+        const defs = [
+            ['strength', '力量'],
+            ['dexterity', '敏捷'],
+            ['constitution', '体质'],
+            ['intelligence', '智力'],
+            ['wisdom', '感知'],
+            ['charisma', '魅力']
+        ];
+        return defs
+            .map(([key, label]) => ({ key, label, value: attributes[key] }))
+            .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
+    }
+
+    function parsePresetRaceTraits(presetData) {
+        const traits = [];
+        const customRace = presetData?.customRace;
+        if (customRace?.enabled) {
+            [customRace.trait1, customRace.trait2].forEach((traitItem) => {
+                const name = String(traitItem?.name || '').trim();
+                if (!name) {
+                    return;
+                }
+                traits.push({
+                    name,
+                    icon: traitItem?.negative ? 'ri-error-warning-line' : 'ri-shield-star-line',
+                    desc: '自定义种族特性',
+                    effect: traitItem?.detail || '当前 JSON 未提供种族特性详情。',
+                    flavor: customRace?.name ? `种族：${customRace.name}` : '',
+                    negative: traitItem?.negative === true,
+                });
+            });
+        }
+        const raceTraits = presetData?.raceTraits;
+        if (Array.isArray(raceTraits)) {
+            raceTraits.forEach((traitItem) => {
+                const name = String(traitItem?.name || traitItem?.名称 || '').trim();
+                if (!name || traits.some((item) => item.name === name)) {
+                    return;
+                }
+                traits.push({
+                    name,
+                    icon: traitItem?.negative ? 'ri-error-warning-line' : 'ri-shield-star-line',
+                    desc: traitItem?.desc || traitItem?.说明 || '种族特性',
+                    effect: traitItem?.effect || traitItem?.detail || traitItem?.描述 || '当前 JSON 未提供种族特性详情。',
+                    flavor: traitItem?.flavor || '',
+                    negative: traitItem?.negative === true,
+                });
+            });
+        }
+        return traits;
+    }
+
     function createBuildFromPresetData(presetData, overrides = {}) {
-        const appearance = deriveBuildAppearance(presetData);
+        const appearance = deriveBuildAppearance({
+            ...presetData,
+            class: overrides.className || presetData?.class,
+            customClassName: overrides.className || presetData?.customClassName,
+            race: overrides.race || presetData?.race,
+            customRace: overrides.race ? { name: overrides.race } : presetData?.customRace,
+        });
         const rawSkillTree = presetData.skillTree || {};
         const levelTag = presetData.selectedCustomLevel ? `Lv.${presetData.selectedCustomLevel}` : null;
         const autoTags = [appearance.race, appearance.className, levelTag]
@@ -1762,6 +2140,8 @@
             likes: overrides.likes || 0,
             rawSkillTree,
             skillTree: parseSkillTree(rawSkillTree),
+            attributes: parsePresetAttributes(presetData),
+            raceTraits: parsePresetRaceTraits(presetData),
             traits: parsePresetTraits(presetData),
             companion: parsePresetCompanion(presetData),
             presetData
@@ -1804,8 +2184,23 @@
     };
     const DISCORD_AUTH_STORAGE_KEY = 'creative_workshop_discord_auth';
     const DISCORD_OAUTH_STATE_KEY = 'creative_workshop_discord_state';
+    const BROWSER_VIEWER_ID_STORAGE_KEY = 'creative_workshop_browser_viewer_id';
     const PUBLISHED_BUILDS_STORAGE_KEY = 'creative_workshop_published_builds';
     const API_BASE = '/api';
+
+    function getOrCreateBrowserViewerId() {
+        try {
+            const existing = localStorage.getItem(BROWSER_VIEWER_ID_STORAGE_KEY);
+            if (existing) {
+                return existing;
+            }
+            const nextId = `anon:${crypto.randomUUID()}`;
+            localStorage.setItem(BROWSER_VIEWER_ID_STORAGE_KEY, nextId);
+            return nextId;
+        } catch (error) {
+            return `anon:fallback-browser`;
+        }
+    }
 
     function getDiscordRedirectUri() {
         return `${window.location.origin}${window.location.pathname}`;
@@ -1899,6 +2294,8 @@
             authorAvatar: rawItem.authorAvatar || '',
             coverUrl: rawItem.coverUrl || '',
             intro: rawItem.intro || '',
+            className: rawItem.className || '',
+            race: rawItem.race || '',
             tags,
             downloads: rawItem.downloads || 0,
             likes: rawItem.likes || 0,
@@ -1907,8 +2304,31 @@
         build.ownerName = rawItem.ownerName || '';
         build.createdAt = rawItem.createdAt || '';
         build.updatedAt = rawItem.updatedAt || '';
-        build.source = 'local-published';
+        build.downloadUrl = rawItem.downloadUrl || '';
+        build.liked = !!rawItem.liked;
+        build.status = rawItem.status || '';
+        build.source = rawItem.source || 'remote-published';
         return build;
+    }
+
+    function mergeBuildState(currentBuild, nextBuild) {
+        if (!currentBuild) {
+            return nextBuild;
+        }
+        if (!nextBuild) {
+            return currentBuild;
+        }
+        return {
+            ...currentBuild,
+            ...nextBuild,
+            presetData: currentBuild.presetData?.skillTree ? currentBuild.presetData : nextBuild.presetData,
+            rawSkillTree: currentBuild.rawSkillTree && Object.keys(currentBuild.rawSkillTree).length ? currentBuild.rawSkillTree : nextBuild.rawSkillTree,
+            skillTree: currentBuild.skillTree?.length ? currentBuild.skillTree : nextBuild.skillTree,
+            attributes: currentBuild.attributes?.length ? currentBuild.attributes : nextBuild.attributes,
+            raceTraits: currentBuild.raceTraits?.length ? currentBuild.raceTraits : nextBuild.raceTraits,
+            traits: (currentBuild.traits?.positive?.length || currentBuild.traits?.negative?.length) ? currentBuild.traits : nextBuild.traits,
+            companion: currentBuild.companion || nextBuild.companion,
+        };
     }
 
     function loadStoredPublishedBuilds() {
@@ -1941,6 +2361,7 @@
                     tags: (build.tags || []).map((item) => item?.text || item).filter(Boolean),
                     downloads: build.downloads || 0,
                     likes: build.likes || 0,
+                    liked: !!build.liked,
                     ownerId: build.ownerId || '',
                     ownerName: build.ownerName || '',
                     createdAt: build.createdAt || '',
@@ -1980,8 +2401,9 @@
         return payload;
     }
 
-    async function fetchPublishedBuildsFromApi() {
-        const payload = await apiRequest('/presets');
+    async function fetchPublishedBuildsFromApi(viewerDiscordId = '') {
+        const query = viewerDiscordId ? `?viewer_discord_id=${encodeURIComponent(viewerDiscordId)}` : '';
+        const payload = await apiRequest(`/presets${query}`);
         return Array.isArray(payload.presets)
             ? payload.presets.map(createStoredBuildEntry).filter(Boolean)
             : [];
@@ -2037,14 +2459,17 @@
             const discordLoading = ref(false);
             const buildScope = ref('all');
             const editingBuildId = ref('');
+            const viewerIdentityId = computed(() => discordUser.value?.id || getOrCreateBrowserViewerId());
             const createInitialPublishForm = () => ({
                 name: '',
                 intro: '',
                 author: discordUser.value?.username || '',
                 coverUrl: '',
                 tags: [],
+                customTagInput: '',
                 importedFileName: '',
                 importedPresetData: null,
+                importedPresetRawJson: '',
             });
             const publishForm = ref(createInitialPublishForm());
             const builds = ref(loadStoredPublishedBuilds());
@@ -2100,7 +2525,7 @@
             async function loadPublishedBuilds() {
                 buildsLoading.value = true;
                 try {
-                    const remoteBuilds = await fetchPublishedBuildsFromApi();
+                    const remoteBuilds = await fetchPublishedBuildsFromApi(viewerIdentityId.value || '');
                     builds.value = remoteBuilds;
                     persistPublishedBuilds();
                     buildDataStatus.value = remoteBuilds.length
@@ -2116,15 +2541,103 @@
                 }
             }
 
-            function openDetail(build) { selectedBuild.value = build; }
+            async function hydrateBuildFromRemote(build) {
+                if (!build?.downloadUrl) {
+                    return { build, rawText: "" };
+                }
+                try {
+                    const response = await fetch(build.downloadUrl);
+                    if (!response.ok) {
+                        throw new Error(`Load preset file failed (${response.status})`);
+                    }
+                    const text = await response.text();
+                    const parsed = JSON.parse(text);
+                    const normalized = normalizePresetExport(parsed);
+                    if (!normalized?.preset?.data) {
+                        throw new Error("Preset file payload is invalid");
+                    }
+                    const fullBuild = createBuildFromPresetData(normalized.preset.data, {
+                        id: build.id,
+                        name: build.name,
+                        author: build.author,
+                        authorAvatar: build.authorAvatar || "",
+                        coverUrl: build.coverUrl || "",
+                        intro: build.intro || "",
+                        tags: build.tags,
+                        downloads: build.downloads || 0,
+                        likes: build.likes || 0,
+                    });
+                    fullBuild.ownerId = build.ownerId || "";
+                    fullBuild.ownerName = build.ownerName || "";
+                    fullBuild.createdAt = build.createdAt || "";
+                    fullBuild.updatedAt = build.updatedAt || "";
+                    fullBuild.source = build.source || "remote-published";
+                    fullBuild.downloadUrl = build.downloadUrl || "";
+                    return { build: fullBuild, rawText: text };
+                } catch (error) {
+                    console.warn("Hydrate build failed:", error);
+                    return { build, rawText: "" };
+                }
+            }
+
+            async function openDetail(build) {
+                selectedBuild.value = build;
+                const hydrated = await hydrateBuildFromRemote(build);
+                selectedBuild.value = mergeBuildState(build, hydrated.build);
+            }
+
+            async function toggleBuildLike(build) {
+                try {
+                    const actingUserId = viewerIdentityId.value || getOrCreateBrowserViewerId();
+                    const response = await apiRequest(`/presets/${encodeURIComponent(build.id)}/like`, {
+                        method: 'POST',
+                        body: {
+                            user_discord_id: actingUserId,
+                            username: discordUser.value?.id ? discordUser.value.username : '',
+                            avatar_url: discordUser.value?.id ? (discordUser.value.avatarUrl || '') : '',
+                        },
+                    });
+                    const updatedBuild = createStoredBuildEntry(response.preset);
+                    if (!updatedBuild) {
+                        return;
+                    }
+                    updatedBuild.liked = !!response.liked;
+                    const existingIndex = builds.value.findIndex((item) => item.id === updatedBuild.id);
+                    if (existingIndex >= 0) {
+                        builds.value.splice(existingIndex, 1, mergeBuildState(builds.value[existingIndex], updatedBuild));
+                    }
+                    if (selectedBuild.value?.id === updatedBuild.id) {
+                        selectedBuild.value = mergeBuildState(selectedBuild.value, updatedBuild);
+                    }
+                    build.likes = updatedBuild.likes;
+                    build.liked = updatedBuild.liked;
+                    persistPublishedBuilds();
+                    buildDataStatus.value = response.liked ? `已点赞：${updatedBuild.name}` : `已取消点赞：${updatedBuild.name}`;
+                } catch (error) {
+                    console.warn('Toggle preset like failed:', error);
+                    buildDataStatus.value = `点赞失败: ${error instanceof Error ? error.message : String(error)}`;
+                }
+            }
 
             function openSkillDetail(skill) { skillDetail.value = skill; }
 
+            function canOpenTraitDetail(trait) {
+                return !!(String(trait?.desc || '').trim() || String(trait?.effect || '').trim() || String(trait?.flavor || '').trim());
+            }
+
             function openTraitDetail(trait, type) {
+                if (!canOpenTraitDetail(trait)) {
+                    return;
+                }
+                const isRaceTrait = type === 'race';
+                const isNegative = trait?.negative === true || type === 'negative';
                 traitDetail.value = {
                     ...trait,
-                    typeLabel: type === 'positive' ? '正面特质' : '负面特质',
-                    typeColor: type === 'positive' ? '#2d6a4f' : '#c0392b'
+                    icon: trait?.icon || (isNegative ? 'ri-error-warning-line' : 'ri-star-line'),
+                    typeLabel: isRaceTrait
+                        ? (isNegative ? '负面种族特性' : '种族特性')
+                        : (isNegative ? '负面特质' : '正面特质'),
+                    typeColor: isNegative ? '#c0392b' : '#2d6a4f'
                 };
             }
             function openCompanionDetail(comp) {
@@ -2264,15 +2777,17 @@
 
                 try {
                     const file = files[0];
-                    const parsed = JSON.parse(await file.text());
+                    const text = await file.text();
+                    const parsed = JSON.parse(text);
                     const normalized = normalizePresetExport(parsed);
                     if (!normalized) {
-                        throw new Error(`无效的预设文件格式: ${file.name}`);
+                        throw new Error(`?????????: ${file.name}`);
                     }
                     publishForm.value.importedFileName = file.name;
                     publishForm.value.importedPresetData = normalized.preset.data;
-                    buildDataStatus.value = `已解析预设 JSON：${file.name}`;
-                } catch (error) {
+                    publishForm.value.importedPresetRawJson = text;
+                    buildDataStatus.value = `????? JSON?${file.name}`;
+                                } catch (error) {
                     console.warn("Local preset JSON parse failed:", error);
                     buildDataStatus.value = "手动导入失败，请确认选择的是“开局”导出的预设 JSON 或完整预设对象 JSON";
                 }
@@ -2287,26 +2802,29 @@
                 return !!build && !!discordUser.value?.id && build.ownerId === discordUser.value.id;
             }
 
-            function editOwnedBuild(build) {
+            async function editOwnedBuild(build) {
                 if (!isBuildOwnedByCurrentUser(build)) {
                     return;
                 }
-                editingBuildId.value = build.id;
+                const hydrated = await hydrateBuildFromRemote(build);
+                const editableBuild = hydrated.build;
+                editingBuildId.value = editableBuild.id;
                 publishForm.value = {
-                    name: build.name || '',
-                    intro: build.intro || '',
-                    author: discordUser.value?.username || build.author || '',
-                    coverUrl: build.coverUrl || '',
-                    tags: (build.tags || []).map((item) => item?.text || item).filter(Boolean),
-                    importedFileName: `${build.name || 'preset'}.json`,
-                    importedPresetData: build.presetData || null,
+                    name: editableBuild.name || "",
+                    intro: editableBuild.intro || "",
+                    author: discordUser.value?.username || editableBuild.author || "",
+                    coverUrl: editableBuild.coverUrl || "",
+                    tags: (editableBuild.tags || []).map((item) => item?.text || item).filter(Boolean),
+                    customTagInput: "",
+                    importedFileName: `${editableBuild.name || "preset"}.json`,
+                    importedPresetData: editableBuild.presetData || null,
+                    importedPresetRawJson: hydrated.rawText || "",
                 };
                 selectedBuild.value = null;
-                buildView.value = 'publish';
-                buildDataStatus.value = `正在编辑：${build.name}`;
+                buildView.value = "publish";
+                buildDataStatus.value = `Editing preset: ${editableBuild.name}`;
                 syncPublishAuthorFromDiscord();
             }
-
             async function deleteOwnedBuild(build) {
                 if (!isBuildOwnedByCurrentUser(build)) {
                     return;
@@ -2337,6 +2855,8 @@
             }
 
             async function publishPresetBuild() {
+                buildDataStatus.value = "Publishing preset...";
+                console.log("publishPresetBuild clicked", { hasPreset: !!publishForm.value.importedPresetData, discordUserId: discordUser.value?.id || "" });
                 if (!publishForm.value.importedPresetData) {
                     buildDataStatus.value = 'Please select and parse a preset JSON file first';
                     return;
@@ -2366,6 +2886,7 @@
                         race: getImportedRaceName(),
                         tags: publishForm.value.tags,
                         preset_json: presetData,
+                        preset_raw_json: publishForm.value.importedPresetRawJson || '',
                     };
 
                     const response = await apiRequest(
@@ -2408,10 +2929,33 @@
                     publishForm.value.tags = selectedTags.filter((item) => item !== tag);
                     return;
                 }
-                if (selectedTags.length >= 3) {
+                if (selectedTags.length >= 5) {
                     return;
                 }
                 publishForm.value.tags = [...selectedTags, tag];
+            }
+
+            function addCustomPublishTag() {
+                const input = String(publishForm.value.customTagInput || '').trim();
+                if (!input) {
+                    return;
+                }
+                const normalizedTag = input.slice(0, 12);
+                const selectedTags = publishForm.value.tags;
+                if (selectedTags.includes(normalizedTag)) {
+                    publishForm.value.customTagInput = '';
+                    return;
+                }
+                if (selectedTags.length >= 5) {
+                    buildDataStatus.value = '风格标签最多 5 个';
+                    return;
+                }
+                publishForm.value.tags = [...selectedTags, normalizedTag];
+                publishForm.value.customTagInput = '';
+            }
+
+            function removePublishTag(tag) {
+                publishForm.value.tags = publishForm.value.tags.filter((item) => item !== tag);
             }
 
             function getSkillTypeColor(type) {
@@ -2423,29 +2967,11 @@
             }
 
             async function downloadBuild(build) {
-                const data = {
-                    name: build.name,
-                    author: build.author,
-                    authorAvatar: build.authorAvatar || '',
-                    race: build.race,
-                    class: build.className,
-                    intro: build.intro,
-                    avatar: build.coverUrl,
-                    tags: (build.tags || []).map(t => t.text),
-                    skillTree: build.rawSkillTree || null,
-                    traits: {
-                        positive: build.traits.positive.map(t => ({ name: t.name, desc: t.desc, effect: t.effect })),
-                        negative: build.traits.negative.map(t => ({ name: t.name, desc: t.desc, effect: t.effect }))
-                    },
-                    companion: build.companion ? { name: build.companion.name, race: build.companion.race, class: build.companion.class } : null,
-                };
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
+                const downloadUrl = build.downloadUrl || `/api/presets/${encodeURIComponent(build.id)}/file`;
                 const a = document.createElement('a');
-                a.href = url;
+                a.href = downloadUrl;
                 a.download = build.name + '.json';
                 a.click();
-                URL.revokeObjectURL(url);
 
                 try {
                     const response = await apiRequest(`/presets/${encodeURIComponent(build.id)}/download`, {
@@ -2458,10 +2984,10 @@
                     if (updatedBuild) {
                         const existingIndex = builds.value.findIndex((item) => item.id === updatedBuild.id);
                         if (existingIndex >= 0) {
-                            builds.value.splice(existingIndex, 1, updatedBuild);
+                            builds.value.splice(existingIndex, 1, mergeBuildState(builds.value[existingIndex], updatedBuild));
                         }
                         if (selectedBuild.value?.id === updatedBuild.id) {
-                            selectedBuild.value = updatedBuild;
+                            selectedBuild.value = mergeBuildState(selectedBuild.value, updatedBuild);
                         }
                         persistPublishedBuilds();
                     }
@@ -2485,11 +3011,13 @@
                 selectedBuild, skillDetail, traitDetail, companionDetail,
                 publishForm, presetTagOptions, buildDataStatus,
                 openDetail, openSkillDetail, openTraitDetail, openCompanionDetail,
+                canOpenTraitDetail,
                 openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, togglePublishTag,
+                addCustomPublishTag, removePublishTag,
                 getImportedClassName, getImportedRaceName, publishPresetBuild,
-                getSkillTypeColor,
+                getSkillTypeColor, getAttributeIcon,
                 isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
-                downloadBuild,
+                toggleBuildLike, downloadBuild,
             };
         }
     }).mount('#app');
