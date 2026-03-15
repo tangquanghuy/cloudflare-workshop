@@ -391,6 +391,40 @@
             background: var(--accent);
             color: white;
         }
+        .trigger-word-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .trigger-word-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .trigger-word-row input {
+            flex: 1;
+            min-width: 0;
+        }
+        .trigger-word-remove {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 12px;
+            background: #fff;
+            color: #a94442;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .trigger-word-remove:hover {
+            background: rgba(169,68,66,0.08);
+            border-color: rgba(169,68,66,0.2);
+        }
+        .trigger-word-actions {
+            margin-top: 10px;
+        }
         .publish-preview {
             background: linear-gradient(180deg, rgba(45,106,79,0.05), rgba(45,52,54,0.02));
             border: 1px solid rgba(0,0,0,0.05);
@@ -491,6 +525,9 @@
             outline: none;
             border-color: rgba(45,106,79,0.32);
             box-shadow: 0 0 0 3px rgba(45,106,79,0.08);
+        }
+        .publish-form.single-column {
+            grid-template-columns: minmax(0, 1fr);
         }
         .content-preview-excerpt,
         .content-detail-text {
@@ -751,6 +788,55 @@
             overflow-y: auto;
             box-shadow: var(--shadow-float);
             animation: modalSlide 0.3s ease;
+        }
+        .login-prompt-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 24, 40, 0.46);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1400;
+            animation: fadeIn 0.2s ease;
+        }
+        .login-prompt-card {
+            width: min(92vw, 460px);
+            background: linear-gradient(180deg, #fff, #fafaf7);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 24px;
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+            padding: 26px;
+            animation: modalSlide 0.24s ease;
+        }
+        .login-prompt-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(88,101,242,0.12), rgba(71,82,196,0.18));
+            color: #5865f2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            margin-bottom: 16px;
+        }
+        .login-prompt-title {
+            font-family: var(--font-main);
+            font-size: 1.35rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .login-prompt-text {
+            color: var(--secondary);
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+        .login-prompt-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 22px;
         }
         @keyframes modalSlide {
             from { opacity: 0; transform: translateY(30px) scale(0.97); }
@@ -1259,8 +1345,37 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .workshop-header { padding: 16px 20px; }
+            .workshop-header {
+                padding: 16px 20px;
+                flex-wrap: nowrap;
+                gap: 12px;
+                align-items: center;
+            }
+            .workshop-brand {
+                flex: 1;
+                min-width: 0;
+            }
             .workshop-brand h1 { font-size: 1.2rem; }
+            .header-actions {
+                display: flex;
+                justify-content: flex-end;
+                width: auto;
+                flex-shrink: 0;
+                min-width: 0;
+            }
+            .discord-login {
+                width: auto;
+                justify-content: center;
+                padding: 10px 14px;
+                font-size: 0.9rem;
+                white-space: nowrap;
+            }
+            .discord-user {
+                width: auto;
+                max-width: min(58vw, 320px);
+                border-radius: 999px;
+                justify-content: flex-start;
+            }
             .tab-bar { padding: 0 16px; overflow-x: auto; }
             .tab-item { padding: 12px 20px; font-size: 0.85rem; white-space: nowrap; }
             .workshop-main { padding: 20px 16px; }
@@ -1280,7 +1395,38 @@
             .sub-detail-panel { width: 95%; }
         }
         @media (max-width: 480px) {
-            .header-actions { display: none; }
+            .workshop-header {
+                padding: 14px 14px;
+            }
+            .workshop-brand {
+                width: auto;
+            }
+            .header-actions {
+                display: flex;
+                width: auto;
+            }
+            .discord-login {
+                padding: 9px 12px;
+                font-size: 0.84rem;
+            }
+            .discord-user {
+                max-width: min(56vw, 220px);
+                padding: 8px 10px;
+                align-items: center;
+            }
+            .discord-meta {
+                flex: 1;
+                min-width: 0;
+            }
+            .discord-name {
+                font-size: 0.84rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .discord-subtitle {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -1393,8 +1539,8 @@
                                         <button v-if="isBuildOwnedByCurrentUser(build)" class="download-btn edit" @click.stop="editOwnedBuild(build)" title="编辑预设">
                                             <i class="ri-edit-line"></i>
                                         </button>
-                                        <button v-if="isBuildOwnedByCurrentUser(build)" class="download-btn danger" @click.stop="deleteOwnedBuild(build)" title="删除预设">
-                                            <i class="ri-delete-bin-line"></i>
+                                        <button v-if="isBuildOwnedByCurrentUser(build)" class="download-btn danger" :disabled="isBuildDeleting(build)" @click.stop="deleteOwnedBuild(build)" :title="isBuildDeleting(build) ? '删除中…' : '删除预设'">
+                                            <i :class="isBuildDeleting(build) ? 'ri-loader-4-line spin-icon' : 'ri-delete-bin-line'"></i>
                                         </button>
                                         <button class="download-btn like-btn" :class="{ liked: build.liked }" @click.stop="toggleBuildLike(build)" :title="build.liked ? '已点赞' : '点赞预设'">
                                             <i :class="build.liked ? 'ri-heart-fill' : 'ri-heart-line'"></i>
@@ -1520,6 +1666,21 @@
                                     </div>
                                     <span class="field-hint">最多 5 个，可自定义输入；单个标签最多 12 个字符，已选 {{ publishForm.tags.length }}/5</span>
                                 </div>
+                                <div class="form-field">
+                                    <label>触发词</label>
+                                    <div class="trigger-word-list">
+                                        <div class="trigger-word-row" v-for="(word, index) in publishForm.triggerWords" :key="`build-trigger-${index}`">
+                                            <input type="text" v-model="publishForm.triggerWords[index]" :placeholder="`触发词 ${index + 1}`">
+                                            <button v-if="publishForm.triggerWords.length > 1" type="button" class="trigger-word-remove" @click="removePublishTriggerWord(index)">
+                                                <i class="ri-close-line"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="trigger-word-actions">
+                                        <button type="button" class="tag-custom-add" @click="addPublishTriggerWord">添加触发词</button>
+                                    </div>
+                                    <span class="field-hint">预设至少填写 1 个触发词，保存时会按英文逗号拼接。</span>
+                                </div>
                             </div>
                             <aside class="publish-preview">
                                 <div class="preview-cover">
@@ -1623,8 +1784,8 @@
                                         <button v-if="isContentOwnedByCurrentUser(item)" class="download-btn edit" @click.stop="editOwnedContent(item)" :title="`编辑${activeContentConfig.title}`">
                                             <i class="ri-edit-line"></i>
                                         </button>
-                                        <button v-if="isContentOwnedByCurrentUser(item)" class="download-btn danger" @click.stop="deleteOwnedContent(item)" :title="`删除${activeContentConfig.title}`">
-                                            <i class="ri-delete-bin-line"></i>
+                                        <button v-if="isContentOwnedByCurrentUser(item)" class="download-btn danger" :disabled="isContentDeleting(item)" @click.stop="deleteOwnedContent(item)" :title="isContentDeleting(item) ? '删除中…' : `删除${activeContentConfig.title}`">
+                                            <i :class="isContentDeleting(item) ? 'ri-loader-4-line spin-icon' : 'ri-delete-bin-line'"></i>
                                         </button>
                                         <button class="download-btn like-btn" :class="{ liked: item.liked }" @click.stop="toggleContentLike(item)" :title="item.liked ? '已点赞' : `点赞${activeContentConfig.title}`">
                                             <i :class="item.liked ? 'ri-heart-fill' : 'ri-heart-line'"></i>
@@ -1665,10 +1826,9 @@
                             </button>
                         </div>
 
-                        <div class="publish-layout">
-                            <div class="publish-form">
-                                <div class="form-grid">
-                                    <div class="form-field full-width" v-if="discordUser">
+                        <div class="publish-form single-column">
+                            <div class="publish-section">
+                                    <div class="form-field" v-if="discordUser">
                                         <label>发布账号</label>
                                         <div class="form-account">
                                             <img v-if="discordUser.avatarUrl" class="discord-avatar" :src="discordUser.avatarUrl" :alt="discordUser.username">
@@ -1687,11 +1847,20 @@
                                         <label>作者</label>
                                         <input type="text" v-model="activeContentSection.form.author" :readonly="!!discordUser" :placeholder="discordUser ? '已同步 Discord 昵称' : '填写作者署名'">
                                     </div>
-                                    <div class="form-field full-width">
+                                    <div class="form-field">
                                         <label>简介</label>
                                         <textarea rows="4" v-model="activeContentSection.form.intro" :placeholder="activeContentConfig.introPlaceholder"></textarea>
                                     </div>
-                                    <div class="form-field full-width">
+                                    <div class="form-field">
+                                        <label>总览区</label>
+                                        <textarea
+                                            rows="5"
+                                            maxlength="500"
+                                            v-model="activeContentSection.form.overviewText"
+                                            :placeholder="activeContentConfig.overviewPlaceholder"></textarea>
+                                        <span class="field-hint">{{ activeContentConfig.overviewHint }} 已填写 {{ (activeContentSection.form.overviewText || '').length }}/500</span>
+                                    </div>
+                                    <div class="form-field">
                                         <label>封面图片</label>
                                         <div class="build-tags" style="margin-bottom:10px;">
                                             <span class="build-tag class-tag" v-if="activeContentSection.form.coverFileName">
@@ -1709,11 +1878,11 @@
                                         <input type="url" v-model="activeContentSection.form.coverUrl" @input="activeContentSection.form.coverFileName = ''" placeholder="也可填写图片地址，例如 https://example.com/cover.jpg">
                                         <span class="field-hint">支持直接上传到 R2，或填写图片地址；图片大小不能超过 5MB。</span>
                                     </div>
-                                    <div class="form-field full-width">
-                                        <label>风格标签</label>
+                                    <div class="form-field">
+                                        <label>标签</label>
                                         <div class="tag-picker">
                                             <button
-                                                v-for="tag in presetTagOptions"
+                                                v-for="tag in activeContentConfig.tagOptions"
                                                 :key="tag"
                                                 type="button"
                                                 class="tag-option"
@@ -1742,33 +1911,26 @@
                                         </div>
                                         <span class="field-hint">最多 5 个，可自定义输入；单个标签最多 12 个字符，已选 {{ activeContentSection.form.tags.length }}/5</span>
                                     </div>
-                                    <div class="form-field full-width">
+                                    <div class="form-field" v-if="activeContentConfig.requiresTriggerWords">
+                                        <label>触发词</label>
+                                        <div class="trigger-word-list">
+                                            <div class="trigger-word-row" v-for="(word, index) in activeContentSection.form.triggerWords" :key="`${activeContentSection.type}-trigger-${index}`">
+                                                <input type="text" v-model="activeContentSection.form.triggerWords[index]" :placeholder="`触发词 ${index + 1}`">
+                                                <button v-if="activeContentSection.form.triggerWords.length > 1" type="button" class="trigger-word-remove" @click="activeContentSection.removeTriggerWord(index)">
+                                                    <i class="ri-close-line"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="trigger-word-actions">
+                                            <button type="button" class="tag-custom-add" @click="activeContentSection.addTriggerWord">添加触发词</button>
+                                        </div>
+                                        <span class="field-hint">拓展至少填写 1 个触发词，保存时会按英文逗号拼接。</span>
+                                    </div>
+                                    <div class="form-field">
                                         <label>{{ activeContentConfig.contentLabel }}</label>
                                         <textarea class="content-textarea" v-model="activeContentSection.form.contentText" :placeholder="activeContentConfig.contentPlaceholder"></textarea>
                                     </div>
-                                </div>
                             </div>
-
-                            <aside class="publish-preview">
-                                <div class="preview-cover">
-                                    <img v-if="activeContentSection.form.coverUrl" :src="activeContentSection.form.coverUrl" :alt="activeContentSection.form.name + ' 封面预览'">
-                                    <div v-else class="preview-cover-empty">封面预览</div>
-                                </div>
-                                <div class="preview-meta">
-                                    <h3>{{ activeContentSection.form.name || `未命名${activeContentConfig.title}` }}</h3>
-                                    <p>{{ activeContentSection.form.intro || '这里会显示简介预览。' }}</p>
-                                </div>
-                                <div class="build-tags">
-                                    <span class="build-tag class-tag" v-if="activeContentSection.form.author">
-                                        <i class="ri-user-3-line" style="margin-right:2px;"></i> {{ activeContentSection.form.author }}
-                                    </span>
-                                    <span class="build-tag race">
-                                        <i :class="activeContentConfig.icon" style="margin-right:2px;"></i> {{ activeContentConfig.title }}
-                                    </span>
-                                    <span class="build-tag style-tag" v-for="tag in activeContentSection.form.tags" :key="tag">{{ tag }}</span>
-                                </div>
-                                <div class="content-preview-excerpt">{{ activeContentSection.form.contentText || activeContentConfig.previewPlaceholder }}</div>
-                            </aside>
                         </div>
 
                         <div class="publish-actions">
@@ -1825,6 +1987,13 @@
                         </div>
                     </div>
 
+                    <div class="detail-section" v-if="selectedContent.overviewText">
+                        <div class="section-heading">
+                            <i class="ri-lightbulb-flash-line"></i> 总览区
+                        </div>
+                        <div class="content-detail-text">{{ selectedContent.overviewText }}</div>
+                    </div>
+
                     <div class="detail-section">
                         <div class="section-heading">
                             <i class="ri-file-text-line"></i> 正文内容
@@ -1841,8 +2010,8 @@
                         <button v-if="isContentOwnedByCurrentUser(selectedContent)" class="btn btn-outline" @click="editOwnedContent(selectedContent)">
                             <i class="ri-edit-line"></i> 编辑{{ getContentTypeLabel(selectedContent.type) }}
                         </button>
-                        <button v-if="isContentOwnedByCurrentUser(selectedContent)" class="btn btn-ghost" @click="deleteOwnedContent(selectedContent)">
-                            <i class="ri-delete-bin-line"></i> 删除{{ getContentTypeLabel(selectedContent.type) }}
+                        <button v-if="isContentOwnedByCurrentUser(selectedContent)" class="btn btn-ghost" :disabled="isContentDeleting(selectedContent)" @click="deleteOwnedContent(selectedContent)">
+                            <i :class="isContentDeleting(selectedContent) ? 'ri-loader-4-line spin-icon' : 'ri-delete-bin-line'"></i> {{ isContentDeleting(selectedContent) ? '删除中…' : `删除${getContentTypeLabel(selectedContent.type)}` }}
                         </button>
                         <button class="btn btn-primary" @click="toggleContentLike(selectedContent)">
                             <i :class="selectedContent.liked ? 'ri-heart-fill' : 'ri-heart-line'"></i> {{ selectedContent.liked ? `已点赞 ${selectedContent.likes}` : `点赞 ${selectedContent.likes}` }}
@@ -2014,8 +2183,8 @@
                         <button v-if="isBuildOwnedByCurrentUser(selectedBuild)" class="btn btn-outline" @click="editOwnedBuild(selectedBuild)">
                             <i class="ri-edit-line"></i> 编辑预设
                         </button>
-                        <button v-if="isBuildOwnedByCurrentUser(selectedBuild)" class="btn btn-ghost" @click="deleteOwnedBuild(selectedBuild)">
-                            <i class="ri-delete-bin-line"></i> 删除预设
+                        <button v-if="isBuildOwnedByCurrentUser(selectedBuild)" class="btn btn-ghost" :disabled="isBuildDeleting(selectedBuild)" @click="deleteOwnedBuild(selectedBuild)">
+                            <i :class="isBuildDeleting(selectedBuild) ? 'ri-loader-4-line spin-icon' : 'ri-delete-bin-line'"></i> {{ isBuildDeleting(selectedBuild) ? '删除中…' : '删除预设' }}
                         </button>
                         <button class="btn btn-primary" @click="downloadBuild(selectedBuild)">
                             <i class="ri-download-2-line"></i> 下载 JSON
@@ -2109,8 +2278,25 @@
             </div>
         </div>
 
+        <div class="login-prompt-overlay" v-if="loginPrompt.visible" @click.self="closeLoginPrompt()">
+            <div class="login-prompt-card">
+                <div class="login-prompt-icon">
+                    <i class="ri-discord-fill"></i>
+                </div>
+                <div class="login-prompt-title">请先登录 Discord</div>
+                <div class="login-prompt-text">{{ loginPrompt.message }}</div>
+                <div class="login-prompt-actions">
+                    <button type="button" class="btn btn-ghost" @click="closeLoginPrompt()">稍后再说</button>
+                    <button type="button" class="btn discord-login" @click="confirmLoginPrompt()">
+                        <i class="ri-discord-fill"></i> 立即登录
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    <script src="./preset-reference.js"></script>
     <script>
     const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
 
@@ -2255,6 +2441,8 @@
         '心软', '收藏癖', '不祥之人', '绝对音感', '诅咒之血', '老兵的噩梦', '欠债体质',
         '雪人套', '强化PTSD', '罐子头'
     ]);
+    const PRESET_RACE_REFERENCE = window.PRESET_RACE_REFERENCE || {};
+    const PRESET_TRAIT_REFERENCE = window.PRESET_TRAIT_REFERENCE || {};
 
     function getDisplayRaceName(raceName, customRaceData) {
         const raw = String(raceName || '').trim();
@@ -2336,17 +2524,20 @@
             if (!name) {
                 return;
             }
+            const fixedTrait = PRESET_TRAIT_REFERENCE[name] || {};
             const effect = typeof item === 'object'
-                ? String(item?.effect || item?.detail || item?.描述 || '').trim()
-                : '';
+                ? String(item?.effect || item?.detail || item?.描述 || fixedTrait.effect || '').trim()
+                : String(fixedTrait.effect || '').trim();
             const desc = typeof item === 'object'
-                ? String(item?.desc || item?.说明 || '').trim()
-                : '';
-            const isNegative = item?.negative === true || NEGATIVE_TRAIT_NAMES.has(name);
+                ? String(item?.desc || item?.说明 || fixedTrait.desc || '').trim()
+                : String(fixedTrait.desc || '').trim();
+            const isNegative = item?.negative === true || fixedTrait.negative === true || NEGATIVE_TRAIT_NAMES.has(name);
             addTrait(traits, {
                 name,
+                icon: fixedTrait.icon || undefined,
                 desc,
                 effect,
+                flavor: String(fixedTrait.flavor || '').trim(),
             }, isNegative);
         });
 
@@ -2368,15 +2559,17 @@
         const exportedTraits = presetData?.['固有特质'];
         if (exportedTraits && typeof exportedTraits === 'object' && !Array.isArray(exportedTraits)) {
             Object.entries(exportedTraits).forEach(([name, rawValue]) => {
+                const fixedTrait = PRESET_TRAIT_REFERENCE[name] || {};
                 const value = rawValue && typeof rawValue === 'object' ? rawValue : { effect: String(rawValue || '') };
-                const effect = String(value.effect || value.效果 || value.detail || value.描述 || '').trim();
-                const desc = String(value.desc || value.说明 || '').trim();
-                const isNegative = value.negative === true || NEGATIVE_TRAIT_NAMES.has(name);
+                const effect = String(value.effect || value.效果 || value.detail || value.描述 || fixedTrait.effect || '').trim();
+                const desc = String(value.desc || value.说明 || fixedTrait.desc || '').trim();
+                const isNegative = value.negative === true || fixedTrait.negative === true || NEGATIVE_TRAIT_NAMES.has(name);
                 addTrait(traits, {
                     name,
+                    icon: fixedTrait.icon || undefined,
                     desc,
                     effect,
-                    flavor: value.flavor || ''
+                    flavor: value.flavor || fixedTrait.flavor || ''
                 }, isNegative);
             });
         }
@@ -2486,13 +2679,33 @@
                 if (!name || traits.some((item) => item.name === name)) {
                     return;
                 }
+                const raceName = getDisplayRaceName(presetData?.race, presetData?.customRace);
+                const fixedRace = PRESET_RACE_REFERENCE[raceName] || {};
+                const fixedTrait = (fixedRace.buffs || []).find((item) => item.name === name) || {};
                 traits.push({
                     name,
                     icon: traitItem?.negative ? 'ri-error-warning-line' : 'ri-shield-star-line',
-                    desc: traitItem?.desc || traitItem?.说明 || '种族特性',
-                    effect: traitItem?.effect || traitItem?.detail || traitItem?.描述 || '当前 JSON 未提供种族特性详情。',
-                    flavor: traitItem?.flavor || '',
-                    negative: traitItem?.negative === true,
+                    desc: traitItem?.desc || traitItem?.说明 || fixedTrait.desc || '种族特性',
+                    effect: traitItem?.effect || traitItem?.detail || traitItem?.描述 || fixedTrait.effect || '当前 JSON 未提供种族特性详情。',
+                    flavor: traitItem?.flavor || fixedRace.lore || (raceName ? `种族：${raceName}` : ''),
+                    negative: traitItem?.negative === true || fixedTrait.negative === true,
+                });
+            });
+        }
+        const raceName = getDisplayRaceName(presetData?.race, presetData?.customRace);
+        const fixedRace = PRESET_RACE_REFERENCE[raceName];
+        if (fixedRace?.buffs?.length) {
+            fixedRace.buffs.forEach((traitItem) => {
+                if (!traitItem?.name || traits.some((item) => item.name === traitItem.name)) {
+                    return;
+                }
+                traits.push({
+                    name: traitItem.name,
+                    icon: traitItem.negative ? 'ri-error-warning-line' : 'ri-shield-star-line',
+                    desc: traitItem.desc || fixedRace.desc || '种族特性',
+                    effect: traitItem.effect || '当前 JSON 未提供种族特性详情。',
+                    flavor: fixedRace.lore || `种族：${raceName}`,
+                    negative: traitItem.negative === true,
                 });
             });
         }
@@ -2669,6 +2882,31 @@
     }
 
 
+    function normalizeTriggerWords(values, ensureOne = false) {
+        const source = Array.isArray(values)
+            ? values
+            : String(values || '').split(/[，,]/);
+        const output = [];
+        const seen = new Set();
+        source.forEach((item) => {
+            const text = String(item || '').trim();
+            if (!text || seen.has(text)) {
+                return;
+            }
+            seen.add(text);
+            output.push(text);
+        });
+        if (ensureOne && !output.length) {
+            return [''];
+        }
+        return output;
+    }
+
+    function buildTriggerWordsText(values) {
+        return normalizeTriggerWords(values).join(',');
+    }
+
+
     function createStoredBuildEntry(rawItem) {
         if (!rawItem?.presetData) {
             return null;
@@ -2697,6 +2935,7 @@
         build.createdAt = rawItem.createdAt || '';
         build.updatedAt = rawItem.updatedAt || '';
         build.downloadUrl = rawItem.downloadUrl || '';
+        build.triggerWords = normalizeTriggerWords(rawItem.triggerWords || [], true);
         build.liked = !!rawItem.liked;
         build.status = rawItem.status || '';
         build.source = rawItem.source || 'remote-published';
@@ -2751,6 +2990,7 @@
                     coverUrl: build.coverUrl || '',
                     intro: build.intro || '',
                     tags: (build.tags || []).map((item) => item?.text || item).filter(Boolean),
+                    triggerWords: normalizeTriggerWords(build.triggerWords || []),
                     downloads: build.downloads || 0,
                     likes: build.likes || 0,
                     liked: !!build.liked,
@@ -2818,8 +3058,10 @@
             name: rawItem.name || rawItem.title || '',
             title: rawItem.title || rawItem.name || '',
             intro: rawItem.intro || '',
+            overviewText: rawItem.overviewText || '',
             coverUrl: rawItem.coverUrl || '',
             tags,
+            triggerWords: normalizeTriggerWords(rawItem.triggerWords || [], false),
             likes: Number(rawItem.likes || 0),
             liked: !!rawItem.liked,
             contentText: rawItem.contentText || '',
@@ -2908,6 +3150,8 @@
             const companionDetail = ref(null);
             const buildDataStatus = ref('暂无预设，请在“上传预设”里手动选择 JSON 文件导入');
             const presetTagOptions = ['爆发', '续航', '清怪', '对单', '控制', '召唤', '生存', '整活'];
+            const characterTagOptions = ['原创', '同人', '恋爱', '病娇', '温柔', '冷淡', '反派', '治愈'];
+            const extensionTagOptions = ['剧情', '日常', '冒险', '战斗', '规则', '模组', '世界观', '黑暗'];
             const contentSectionConfig = {
                 character: {
                     title: '人设',
@@ -2918,9 +3162,12 @@
                     searchPlaceholder: '搜索人设名称、标签、作者…',
                     namePlaceholder: '填写人设名称',
                     introPlaceholder: '用几句话概括这个角色的人设亮点。',
+                    overviewPlaceholder: '简洁说明这段常驻蓝灯文本：AI 在什么情况下应该激活哪些触发词，以及触发时应输出哪些词。',
+                    overviewHint: '这段文本会作为蓝灯永远激活，请保持简洁，并明确告诉 AI 何时输出哪些触发词。',
                     contentLabel: '人设正文',
                     contentPlaceholder: '填写完整的人设正文，例如背景、经历、口癖、关系、设定细节等。',
-                    previewPlaceholder: '这里会显示正文预览。',
+                    tagOptions: characterTagOptions,
+                    requiresTriggerWords: false,
                 },
                 extension: {
                     title: '拓展',
@@ -2931,9 +3178,12 @@
                     searchPlaceholder: '搜索拓展名称、标签、作者…',
                     namePlaceholder: '填写拓展名称',
                     introPlaceholder: '概括这个拓展包适合什么玩法、包含什么内容。',
+                    overviewPlaceholder: '简洁说明这段常驻蓝灯文本：AI 在什么情况下应该激活哪些触发词，以及触发时应输出哪些词。',
+                    overviewHint: '这段文本会作为蓝灯永远激活，请保持简洁，并明确告诉 AI 何时输出哪些触发词。',
                     contentLabel: '拓展正文',
                     contentPlaceholder: '填写完整拓展内容，例如规则改动、世界观补充、剧情说明、使用方式等。',
-                    previewPlaceholder: '这里会显示正文预览。',
+                    tagOptions: extensionTagOptions,
+                    requiresTriggerWords: true,
                 },
             };
             const discordAuth = ref(loadStoredDiscordAuth());
@@ -2942,6 +3192,11 @@
             const buildScope = ref('all');
             const editingBuildId = ref('');
             const publishSubmitting = ref(false);
+            const deletingBuildIds = ref([]);
+            const loginPrompt = reactive({
+                visible: false,
+                message: '上传内容前需要先登录 Discord，登录后会自动绑定作者昵称与头像。',
+            });
             const publishButtonLabel = computed(() => {
                 if (publishSubmitting.value) {
                     return editingBuildId.value ? '正在保存…' : '正在发布…';
@@ -2956,6 +3211,7 @@
                 coverUrl: '',
                 coverFileName: '',
                 tags: [],
+                triggerWords: [''],
                 customTagInput: '',
                 importedFileName: '',
                 importedPresetData: null,
@@ -2996,13 +3252,15 @@
                 return filteredBuilds.value.slice(start, start + BUILD_PAGE_SIZE);
             });
 
-            const createInitialContentForm = () => ({
+            const createInitialContentForm = (type = 'character') => ({
                 name: '',
                 intro: '',
+                overviewText: '',
                 author: discordUser.value?.username || '',
                 coverUrl: '',
                 coverFileName: '',
                 tags: [],
+                triggerWords: contentSectionConfig[type]?.requiresTriggerWords ? [''] : [],
                 customTagInput: '',
                 contentText: '',
             });
@@ -3019,7 +3277,8 @@
                     currentPage: 1,
                     editingId: '',
                     submitting: false,
-                    form: createInitialContentForm(),
+                    deletingIds: [],
+                    form: createInitialContentForm(type),
                     filteredItems: [],
                     paginatedItems: [],
                     totalPages: 1,
@@ -3091,8 +3350,13 @@
                     }
                 };
                 section.openPublishPage = () => {
+                    if (!discordUser.value?.id) {
+                        section.status = `请先登录 Discord 再${contentSectionConfig[type].uploadLabel}`;
+                        showLoginPrompt(`发布${contentSectionConfig[type].title}前需要先登录 Discord，登录后会自动带上你的作者昵称和头像。`);
+                        return;
+                    }
                     section.editingId = '';
-                    section.form = createInitialContentForm();
+                    section.form = createInitialContentForm(type);
                     section.view = 'publish';
                     if (discordUser.value) {
                         section.form.author = discordUser.value.username;
@@ -3103,7 +3367,7 @@
                 };
                 section.resetForm = () => {
                     section.editingId = '';
-                    section.form = createInitialContentForm();
+                    section.form = createInitialContentForm(type);
                     if (discordUser.value) {
                         section.form.author = discordUser.value.username;
                     }
@@ -3176,6 +3440,14 @@
                 section.removeTag = (tag) => {
                     section.form.tags = section.form.tags.filter((item) => item !== tag);
                 };
+                section.addTriggerWord = () => {
+                    const currentWords = Array.isArray(section.form.triggerWords) ? [...section.form.triggerWords] : [];
+                    section.form.triggerWords = [...currentWords, ''];
+                };
+                section.removeTriggerWord = (index) => {
+                    const nextWords = (section.form.triggerWords || []).filter((_, currentIndex) => currentIndex !== index);
+                    section.form.triggerWords = nextWords.length ? nextWords : [''];
+                };
                 section.findDuplicateByName = (name) => {
                     const normalized = String(name || '').trim().toLowerCase();
                     if (!normalized || !discordUser.value?.id) {
@@ -3208,10 +3480,12 @@
                         section.form = {
                             name: editable.name || '',
                             intro: editable.intro || '',
+                            overviewText: editable.overviewText || '',
                             author: discordUser.value?.username || editable.author || '',
                             coverUrl: editable.coverUrl || '',
                             coverFileName: '',
                             tags: [...(editable.tags || [])],
+                            triggerWords: normalizeTriggerWords(editable.triggerWords || [], contentSectionConfig[type].requiresTriggerWords),
                             customTagInput: '',
                             contentText: editable.contentText || '',
                         };
@@ -3227,10 +3501,15 @@
                     if (!isContentOwnedByCurrentUser(item)) {
                         return;
                     }
+                    if (section.deletingIds.includes(item.id)) {
+                        return;
+                    }
                     if (!window.confirm(`确认删除“${item.name}”吗？`)) {
                         return;
                     }
                     try {
+                        section.deletingIds = [...section.deletingIds, item.id];
+                        section.status = `正在删除${contentSectionConfig[type].title}：${item.name}，请稍候…`;
                         await apiRequest(`/content/${encodeURIComponent(item.id)}`, {
                             method: 'DELETE',
                             body: {
@@ -3248,6 +3527,8 @@
                     } catch (error) {
                         console.warn(`Delete ${type} failed:`, error);
                         section.status = `删除${contentSectionConfig[type].title}失败：${error instanceof Error ? error.message : String(error)}`;
+                    } finally {
+                        section.deletingIds = section.deletingIds.filter((entryId) => entryId !== item.id);
                     }
                 };
                 section.publish = async () => {
@@ -3265,6 +3546,15 @@
                     }
                     if (!String(section.form.contentText || '').trim()) {
                         section.status = `请填写${contentSectionConfig[type].title}正文`;
+                        return;
+                    }
+                    if (String(section.form.overviewText || '').trim().length > 500) {
+                        section.status = '总览区不能超过 500 字';
+                        return;
+                    }
+                    const triggerWordsText = buildTriggerWordsText(section.form.triggerWords || []);
+                    if (contentSectionConfig[type].requiresTriggerWords && !triggerWordsText) {
+                        section.status = `请至少填写 1 个${contentSectionConfig[type].title}触发词`;
                         return;
                     }
                     const duplicateItem = section.findDuplicateByName(name);
@@ -3293,8 +3583,10 @@
                                     avatar_url: discordUser.value.avatarUrl || '',
                                     title: name,
                                     intro: String(section.form.intro || '').trim(),
+                                    overview_text: String(section.form.overviewText || '').trim(),
                                     cover_url: String(section.form.coverUrl || '').trim(),
                                     tags: section.form.tags,
+                                    trigger_words: triggerWordsText,
                                     content_text: String(section.form.contentText || '').trim(),
                                 },
                             }
@@ -3446,6 +3738,7 @@
                     fullBuild.updatedAt = build.updatedAt || "";
                     fullBuild.source = build.source || "remote-published";
                     fullBuild.downloadUrl = build.downloadUrl || "";
+                    fullBuild.triggerWords = normalizeTriggerWords(build.triggerWords || [], true);
                     return { build: fullBuild, rawText: text };
                 } catch (error) {
                     console.warn("Hydrate build failed:", error);
@@ -3593,6 +3886,20 @@
                 return type === 'extension' ? extensionSection : characterSection;
             }
 
+            function showLoginPrompt(message) {
+                loginPrompt.message = String(message || '上传内容前需要先登录 Discord。');
+                loginPrompt.visible = true;
+            }
+
+            function closeLoginPrompt() {
+                loginPrompt.visible = false;
+            }
+
+            function confirmLoginPrompt() {
+                loginPrompt.visible = false;
+                startDiscordLogin();
+            }
+
             async function editOwnedContent(item) {
                 if (!item?.type) {
                     return;
@@ -3690,6 +3997,11 @@
             }
 
             function openPublishPage() {
+                if (!discordUser.value?.id) {
+                    buildDataStatus.value = '请先登录 Discord 再上传预设';
+                    showLoginPrompt('发布预设前需要先登录 Discord，登录后会自动绑定作者昵称、头像，并允许你管理自己的预设。');
+                    return;
+                }
                 editingBuildId.value = '';
                 publishForm.value = createInitialPublishForm();
                 buildView.value = "publish";
@@ -3774,6 +4086,16 @@
                 publishForm.value.coverFileName = '';
             }
 
+            function addPublishTriggerWord() {
+                const currentWords = Array.isArray(publishForm.value.triggerWords) ? [...publishForm.value.triggerWords] : [];
+                publishForm.value.triggerWords = [...currentWords, ''];
+            }
+
+            function removePublishTriggerWord(index) {
+                const nextWords = (publishForm.value.triggerWords || []).filter((_, currentIndex) => currentIndex !== index);
+                publishForm.value.triggerWords = nextWords.length ? nextWords : [''];
+            }
+
             function readFileAsDataUrl(file) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -3830,6 +4152,7 @@
                     coverUrl: editableBuild.coverUrl || "",
                     coverFileName: "",
                     tags: (editableBuild.tags || []).map((item) => item?.text || item).filter(Boolean),
+                    triggerWords: normalizeTriggerWords(editableBuild.triggerWords || [], true),
                     customTagInput: "",
                     importedFileName: `${editableBuild.name || "preset"}.json`,
                     importedPresetData: editableBuild.presetData || null,
@@ -3837,17 +4160,22 @@
                 };
                 selectedBuild.value = null;
                 buildView.value = "publish";
-                buildDataStatus.value = `Editing preset: ${editableBuild.name}`;
+                buildDataStatus.value = `正在编辑预设：${editableBuild.name}`;
                 syncPublishAuthorFromDiscord();
             }
             async function deleteOwnedBuild(build) {
                 if (!isBuildOwnedByCurrentUser(build)) {
                     return;
                 }
-                if (!window.confirm(`Delete preset "${build.name}"?`)) {
+                if (deletingBuildIds.value.includes(build.id)) {
+                    return;
+                }
+                if (!window.confirm(`确认删除预设“${build.name}”吗？`)) {
                     return;
                 }
                 try {
+                    deletingBuildIds.value = [...deletingBuildIds.value, build.id];
+                    buildDataStatus.value = `正在删除预设：${build.name}，请稍候…`;
                     await apiRequest(`/presets/${encodeURIComponent(build.id)}`, {
                         method: 'DELETE',
                         body: {
@@ -3862,11 +4190,24 @@
                     if (editingBuildId.value === build.id) {
                         resetPublishForm();
                     }
-                    buildDataStatus.value = `Deleted preset: ${build.name}`;
+                    buildDataStatus.value = `已删除预设：${build.name}`;
                 } catch (error) {
                     console.warn('Delete preset failed:', error);
-                    buildDataStatus.value = `Delete failed: ${error instanceof Error ? error.message : String(error)}`;
+                    buildDataStatus.value = `删除失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    deletingBuildIds.value = deletingBuildIds.value.filter((itemId) => itemId !== build.id);
                 }
+            }
+
+            function isBuildDeleting(build) {
+                return !!build?.id && deletingBuildIds.value.includes(build.id);
+            }
+
+            function isContentDeleting(item) {
+                if (!item?.id || !item?.type) {
+                    return false;
+                }
+                return getContentSectionByType(item.type).deletingIds.includes(item.id);
             }
 
             function normalizeBuildTitle(value) {
@@ -3901,6 +4242,11 @@
 
                 const presetData = publishForm.value.importedPresetData;
                 const name = publishForm.value.name.trim() || presetData.name || '未命名预设';
+                const triggerWordsText = buildTriggerWordsText(publishForm.value.triggerWords || []);
+                if (!triggerWordsText) {
+                    buildDataStatus.value = '请至少填写 1 个预设触发词';
+                    return;
+                }
                 const existingBuild = editingBuildId.value
                     ? builds.value.find((item) => item.id === editingBuildId.value)
                     : null;
@@ -3928,6 +4274,7 @@
                         class_name: getImportedClassName(),
                         race: getImportedRaceName(),
                         tags: publishForm.value.tags,
+                        trigger_words: triggerWordsText,
                         preset_json: presetData,
                         preset_raw_json: publishForm.value.importedPresetRawJson || '',
                     };
@@ -4058,17 +4405,18 @@
                 activeTab, buildView, buildScope, searchQuery, builds, filteredBuilds, paginatedBuilds, ownedBuildCount,
                 currentBuildPage, buildTotalPages, goToPrevPage, goToNextPage,
                 discordUser, startDiscordLogin, logoutDiscord,
+                loginPrompt, closeLoginPrompt, confirmLoginPrompt,
                 selectedBuild, selectedContent, skillDetail, traitDetail, companionDetail,
                 publishForm, presetTagOptions, buildDataStatus, publishSubmitting, publishButtonLabel,
                 characterSection, extensionSection, activeContentSection, activeContentConfig,
                 openDetail, openSkillDetail, openTraitDetail, openCompanionDetail,
                 canOpenTraitDetail,
                 openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, triggerCoverImageImport, handleCoverImageImport, clearCoverImage, togglePublishTag,
-                addCustomPublishTag, removePublishTag,
+                addCustomPublishTag, removePublishTag, addPublishTriggerWord, removePublishTriggerWord,
                 getImportedClassName, getImportedRaceName, publishPresetBuild,
                 getSkillTypeColor, getAttributeIcon, getContentTypeLabel, getContentTypeIcon, getContentPreview, formatDateLabel,
                 isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
-                isContentOwnedByCurrentUser, editOwnedContent, deleteOwnedContent,
+                isContentOwnedByCurrentUser, editOwnedContent, deleteOwnedContent, isBuildDeleting, isContentDeleting,
                 toggleBuildLike, toggleContentLike, downloadBuild,
             };
         }

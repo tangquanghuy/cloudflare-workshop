@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS workshop_entries (
   owner_discord_id TEXT NOT NULL,
   title TEXT NOT NULL,
   intro TEXT,
+  overview_text TEXT NOT NULL DEFAULT '',
+  trigger_words TEXT NOT NULL DEFAULT '',
   cover_url TEXT,
   cover_object_key TEXT,
   tags_json TEXT NOT NULL DEFAULT '[]',

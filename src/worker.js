@@ -172,6 +172,7 @@ async function handlePresetList(request, env, baseUrl = null) {
         p.owner_discord_id,
         p.title,
         p.intro,
+        p.trigger_words,
         p.cover_url,
         p.cover_object_key,
         p.object_key,
@@ -226,6 +227,9 @@ async function handlePresetCreate(request, env) {
   if (!payload.presetData) {
     return jsonResponse({ ok: false, error: 'preset_json is required.' }, 400);
   }
+  if (!payload.triggerWords.length) {
+    return jsonResponse({ ok: false, error: '请至少填写 1 个预设触发词。' }, 400);
+  }
 
   const duplicatePreset = await findPresetByOwnerAndTitle(env.ngnl_build, payload.ownerDiscordId, payload.title);
   if (duplicatePreset) {
@@ -264,6 +268,7 @@ async function handlePresetCreate(request, env) {
         owner_discord_id,
         title,
         intro,
+        trigger_words,
         cover_url,
         cover_object_key,
         object_key,
@@ -276,13 +281,14 @@ async function handlePresetCreate(request, env) {
         status,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `)
     .bind(
       presetId,
       payload.ownerDiscordId,
       payload.title,
       payload.intro,
+      payload.triggerWordsText,
       coverResult.sourceUrl,
       coverResult.objectKey,
       objectKey,
@@ -319,6 +325,10 @@ async function handlePresetUpdate(presetId, request, env) {
   });
 
   const nextTitle = payload.title || existingRow.title;
+  const nextTriggerWords = payload.triggerWords.length ? payload.triggerWords : parseCommaList(existingRow.trigger_words);
+  if (!nextTriggerWords.length) {
+    return jsonResponse({ ok: false, error: '请至少填写 1 个预设触发词。' }, 400);
+  }
   const duplicatePreset = await findPresetByOwnerAndTitle(env.ngnl_build, ownerDiscordId, nextTitle, presetId);
   if (duplicatePreset) {
     return jsonResponse({ ok: false, error: '你已经发布过同名预设，请修改名称后再试。' }, 409);
@@ -353,6 +363,7 @@ async function handlePresetUpdate(presetId, request, env) {
       SET
         title = ?,
         intro = ?,
+        trigger_words = ?,
         cover_url = ?,
         cover_object_key = ?,
         object_key = ?,
@@ -367,6 +378,7 @@ async function handlePresetUpdate(presetId, request, env) {
     .bind(
       payload.title || existingRow.title,
       payload.intro || '',
+      joinCommaList(nextTriggerWords),
       coverResult.sourceUrl,
       coverResult.objectKey,
       objectKey,
@@ -448,6 +460,8 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
         e.owner_discord_id,
         e.title,
         e.intro,
+        e.overview_text,
+        e.trigger_words,
         e.cover_url,
         e.cover_object_key,
         e.tags_json,
@@ -503,6 +517,12 @@ async function handleWorkshopContentCreate(request, env) {
   if (!payload.contentText) {
     return jsonResponse({ ok: false, error: 'content_text is required.' }, 400);
   }
+  if (payload.overviewText.length > 500) {
+    return jsonResponse({ ok: false, error: '总览区不能超过 500 字。' }, 400);
+  }
+  if (payload.entryType === 'extension' && !payload.triggerWords.length) {
+    return jsonResponse({ ok: false, error: '请至少填写 1 个拓展触发词。' }, 400);
+  }
 
   const duplicateEntry = await findWorkshopEntryByOwnerAndTitle(env.ngnl_build, payload.entryType, payload.ownerDiscordId, payload.title);
   if (duplicateEntry) {
@@ -535,6 +555,8 @@ async function handleWorkshopContentCreate(request, env) {
         owner_discord_id,
         title,
         intro,
+        overview_text,
+        trigger_words,
         cover_url,
         cover_object_key,
         tags_json,
@@ -543,7 +565,7 @@ async function handleWorkshopContentCreate(request, env) {
         status,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `)
     .bind(
       entryId,
@@ -551,6 +573,8 @@ async function handleWorkshopContentCreate(request, env) {
       payload.ownerDiscordId,
       payload.title,
       payload.intro || '',
+      payload.overviewText,
+      payload.triggerWordsText,
       coverResult.sourceUrl,
       coverResult.objectKey,
       stringifyJson(payload.tags),
@@ -583,6 +607,16 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
   }
 
   const nextTitle = payload.title || existingRow.title;
+  const nextTriggerWords = payload.triggerWords.length ? payload.triggerWords : parseCommaList(existingRow.trigger_words);
+  const nextOverviewText = Object.prototype.hasOwnProperty.call(body, 'overview_text') || Object.prototype.hasOwnProperty.call(body, 'overviewText')
+    ? payload.overviewText
+    : (existingRow.overview_text || '');
+  if (nextOverviewText.length > 500) {
+    return jsonResponse({ ok: false, error: '总览区不能超过 500 字。' }, 400);
+  }
+  if (nextEntryType === 'extension' && !nextTriggerWords.length) {
+    return jsonResponse({ ok: false, error: '请至少填写 1 个拓展触发词。' }, 400);
+  }
   const duplicateEntry = await findWorkshopEntryByOwnerAndTitle(env.ngnl_build, nextEntryType, ownerDiscordId, nextTitle, entryId);
   if (duplicateEntry) {
     return jsonResponse({ ok: false, error: '你已经发布过同名内容，请修改名称后再试。' }, 409);
@@ -614,6 +648,8 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
         entry_type = ?,
         title = ?,
         intro = ?,
+        overview_text = ?,
+        trigger_words = ?,
         cover_url = ?,
         cover_object_key = ?,
         tags_json = ?,
@@ -626,6 +662,8 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
       nextEntryType,
       nextTitle,
       payload.intro || '',
+      nextOverviewText,
+      joinCommaList(nextTriggerWords),
       coverResult.sourceUrl,
       coverResult.objectKey,
       stringifyJson(hasTagsInput ? payload.tags : safeJsonParse(existingRow.tags_json, [])),
@@ -837,6 +875,7 @@ async function getPresetRow(db, presetId, viewerDiscordId = '') {
         p.owner_discord_id,
         p.title,
         p.intro,
+        p.trigger_words,
         p.cover_url,
         p.cover_object_key,
         p.object_key,
@@ -876,6 +915,8 @@ async function getWorkshopEntryRow(db, entryId, viewerDiscordId = '') {
         e.owner_discord_id,
         e.title,
         e.intro,
+        e.overview_text,
+        e.trigger_words,
         e.cover_url,
         e.cover_object_key,
         e.tags_json,
@@ -973,6 +1014,7 @@ function normalizePresetPayload(body) {
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => readString(typeof item === 'string' ? item : item?.text)).filter(Boolean)
     : [];
+  const triggerWords = normalizeCommaList(body.trigger_words ?? body.triggerWords);
 
   return {
     id: readString(body.id),
@@ -987,6 +1029,8 @@ function normalizePresetPayload(body) {
     race: readString(body.race || presetData?.race || presetData?.customRace?.name || presetData?.customRace),
     status: readString(body.status) || 'published',
     tags,
+    triggerWords,
+    triggerWordsText: joinCommaList(triggerWords),
     presetData,
     rawPresetJson: typeof body.preset_raw_json === 'string' ? body.preset_raw_json : '',
   };
@@ -996,6 +1040,7 @@ function normalizeWorkshopEntryPayload(body) {
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => readString(typeof item === 'string' ? item : item?.text)).filter(Boolean)
     : [];
+  const triggerWords = normalizeCommaList(body.trigger_words ?? body.triggerWords);
 
   return {
     id: readString(body.id),
@@ -1006,12 +1051,15 @@ function normalizeWorkshopEntryPayload(body) {
     author: readString(body.author),
     title: readString(body.title || body.name),
     intro: readString(body.intro || body.summary),
+    overviewText: readString(body.overview_text || body.overviewText),
     coverUrl: readString(body.cover_url || body.coverUrl),
     contentText: typeof body.content_text === 'string'
       ? body.content_text.trim()
       : readString(body.contentText || body.content),
     status: readString(body.status) || 'published',
     tags,
+    triggerWords,
+    triggerWordsText: joinCommaList(triggerWords),
   };
 }
 
@@ -1049,6 +1097,7 @@ function mapPresetRow(row) {
     className: row.class_name || '',
     race: row.race || '',
     tags: safeJsonParse(row.tags_json, []),
+    triggerWords: parseCommaList(row.trigger_words),
     likes: Number(row.like_count || 0),
     liked: Boolean(Number(row.liked || 0)),
     downloads: Number(row.download_count || 0),
@@ -1072,8 +1121,10 @@ function mapWorkshopEntryRow(row, options = {}) {
     name: row.title,
     title: row.title,
     intro: row.intro || '',
+    overviewText: row.overview_text || '',
     coverUrl: readString(row.cover_object_key) ? `/api/content/${encodeURIComponent(row.id)}/cover` : (row.cover_url || ''),
     tags: Array.isArray(tags) ? tags : [],
+    triggerWords: parseCommaList(row.trigger_words),
     likes: Number(row.like_count || 0),
     liked: Boolean(Number(row.liked || 0)),
     contentText: options.includeContentText ? (row.content_text || '') : '',
@@ -1162,6 +1213,35 @@ function ensureSizeLimit(size, label) {
   if (Number(size) > MAX_UPLOAD_BYTES) {
     throw new Error(`${label} exceeds 5 MB limit.`);
   }
+}
+
+function normalizeCommaList(value) {
+  if (Array.isArray(value)) {
+    return dedupeList(value.map((item) => readString(item)));
+  }
+  return dedupeList(readString(value).split(/[，,]/));
+}
+
+function joinCommaList(items) {
+  return normalizeCommaList(items).join(',');
+}
+
+function parseCommaList(value) {
+  return normalizeCommaList(value);
+}
+
+function dedupeList(items) {
+  const seen = new Set();
+  const output = [];
+  for (const item of items || []) {
+    const normalized = readString(item);
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+    output.push(normalized);
+  }
+  return output;
 }
 
 function stringifyJson(value) {
