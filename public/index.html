@@ -194,6 +194,15 @@
             align-items: center;
             margin-bottom: 24px;
             gap: 16px;
+            flex-wrap: wrap;
+        }
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-left: auto;
         }
         .search-box {
             display: flex;
@@ -465,6 +474,63 @@
             display: flex;
             gap: 12px;
         }
+        .content-textarea {
+            width: 100%;
+            min-height: 280px;
+            resize: vertical;
+            padding: 14px 16px;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: var(--radius-md);
+            background: rgba(255,255,255,0.92);
+            color: var(--primary);
+            font-size: 0.95rem;
+            line-height: 1.75;
+            font-family: var(--font-ui);
+        }
+        .content-textarea:focus {
+            outline: none;
+            border-color: rgba(45,106,79,0.32);
+            box-shadow: 0 0 0 3px rgba(45,106,79,0.08);
+        }
+        .content-preview-excerpt,
+        .content-detail-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.8;
+            color: var(--secondary);
+        }
+        .content-preview-excerpt {
+            font-size: 0.9rem;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            background: rgba(255,255,255,0.68);
+            border: 1px solid rgba(0,0,0,0.05);
+            min-height: 120px;
+        }
+        .content-detail-text {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 22px;
+            border: 1px solid rgba(0,0,0,0.05);
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+        .content-detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.82rem;
+            color: var(--secondary);
+        }
+        .content-detail-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(45,106,79,0.07);
+        }
 
         /* ======== Build Card Grid ======== */
         .build-grid {
@@ -576,6 +642,7 @@
             font-weight: 600;
         }
         .build-tag.race { background: rgba(225,112,85,0.1); color: #e17055; }
+        .build-tag.style-tag { background: rgba(45,106,79,0.08); color: var(--accent); }
         .build-tag.class-tag { background: rgba(45,106,79,0.08); color: var(--accent); }
         .build-tag.companion { background: rgba(108,92,231,0.08); color: #6c5ce7; }
         .build-tag.like-tag { background: rgba(192,57,43,0.1); color: var(--danger); }
@@ -644,8 +711,21 @@
         }
         .management-strip {
             display: flex;
-            justify-content: flex-end;
-            margin: -8px 0 20px;
+            align-items: center;
+            margin: 0;
+        }
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .pagination-info {
+            font-size: 0.84rem;
+            color: var(--secondary);
+            min-width: 120px;
+            text-align: center;
         }
         .modal-footer .btn-row {
             display: flex;
@@ -1143,6 +1223,19 @@
             color: var(--accent);
         }
         .btn-outline:hover { border-color: var(--accent); background: rgba(45,106,79,0.04); }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .spin-icon {
+            animation: buttonSpin 0.9s linear infinite;
+        }
+        @keyframes buttonSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
         /* Placeholder */
         .placeholder-section {
@@ -1173,6 +1266,7 @@
             .workshop-main { padding: 20px 16px; }
             .toolbar { flex-direction: column; align-items: stretch; }
             .search-box { max-width: 100%; }
+            .toolbar-actions { width: 100%; margin-left: 0; justify-content: space-between; }
             .publish-form { grid-template-columns: 1fr; }
             .publish-header { flex-direction: column; }
             .publish-actions { flex-direction: column; align-items: stretch; }
@@ -1222,14 +1316,16 @@
         <!-- Tabs -->
         <nav class="tab-bar">
             <div class="tab-item" :class="{ active: activeTab === 'build' }" @click="activeTab = 'build'">
-                <i class="ri-hammer-line"></i> Build 区
+                <i class="ri-hammer-line"></i> Build
                 <span class="tab-count">{{ builds.length }}</span>
             </div>
             <div class="tab-item" :class="{ active: activeTab === 'character' }" @click="activeTab = 'character'">
-                <i class="ri-user-heart-line"></i> 人设区
+                <i class="ri-user-heart-line"></i> 人设
+                <span class="tab-count">{{ characterSection.items.length }}</span>
             </div>
             <div class="tab-item" :class="{ active: activeTab === 'extension' }" @click="activeTab = 'extension'">
-                <i class="ri-puzzle-line"></i> 拓展区
+                <i class="ri-puzzle-line"></i> 拓展
+                <span class="tab-count">{{ extensionSection.items.length }}</span>
             </div>
         </nav>
 
@@ -1244,20 +1340,22 @@
                             <i class="ri-search-line"></i>
                             <input type="text" placeholder="搜索 Build 名称、职业、作者…" v-model="searchQuery">
                         </div>
-                        <button class="btn btn-outline" @click="openPublishPage" style="white-space:nowrap;">
-                            <i class="ri-upload-2-line"></i> 上传预设
-                        </button>
-                    </div>
-                    <div class="management-strip" v-if="discordUser">
-                        <div class="tag-picker">
-                            <button type="button" class="tag-option" :class="{ active: buildScope === 'all' }" @click="buildScope = 'all'">全部预设</button>
-                            <button type="button" class="tag-option" :class="{ active: buildScope === 'mine' }" @click="buildScope = 'mine'">我的预设 {{ ownedBuildCount }}</button>
+                        <div class="toolbar-actions">
+                            <div class="management-strip" v-if="discordUser">
+                                <div class="tag-picker">
+                                    <button type="button" class="tag-option" :class="{ active: buildScope === 'all' }" @click="buildScope = 'all'">全部预设</button>
+                                    <button type="button" class="tag-option" :class="{ active: buildScope === 'mine' }" @click="buildScope = 'mine'">我的预设 {{ ownedBuildCount }}</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline" @click="openPublishPage" style="white-space:nowrap;">
+                                <i class="ri-upload-2-line"></i> 上传预设
+                            </button>
                         </div>
                     </div>
 
                     <div class="build-grid">
                         <!-- Build Cards -->
-                        <div class="build-card" v-for="(build, idx) in filteredBuilds" :key="idx" @click="openDetail(build)">
+                        <div class="build-card" v-for="(build, idx) in paginatedBuilds" :key="idx" @click="openDetail(build)">
                             <div class="build-cover">
                                 <img class="cover-image" :src="build.coverUrl" :alt="build.name + ' 封面'">
                                 <div class="cover-overlay">
@@ -1282,7 +1380,7 @@
                                     <span class="build-tag like-tag" v-if="build.liked">
                                         <i class="ri-heart-fill" style="margin-right:2px;"></i> 已赞
                                     </span>
-                                    <span class="build-tag race" v-for="t in build.tags" :key="t.text">
+                                    <span class="build-tag style-tag" v-for="t in build.tags" :key="t.text">
                                         <i :class="t.icon" style="margin-right:2px;"></i> {{ t.text }}
                                     </span>
                                 </div>
@@ -1309,6 +1407,15 @@
                             </div>
                         </div>
                     </div>
+                    <div class="pagination-bar" v-if="filteredBuilds.length">
+                        <button type="button" class="btn btn-ghost" @click="goToPrevPage" :disabled="currentBuildPage <= 1">
+                            <i class="ri-arrow-left-s-line"></i> 上一页
+                        </button>
+                        <div class="pagination-info">第 {{ currentBuildPage }} / {{ buildTotalPages }} 页</div>
+                        <button type="button" class="btn btn-ghost" @click="goToNextPage" :disabled="currentBuildPage >= buildTotalPages">
+                            下一页 <i class="ri-arrow-right-s-line"></i>
+                        </button>
+                    </div>
                     <div class="placeholder-section" v-if="!filteredBuilds.length">
                         <i class="ri-file-search-line"></i>
                         <h3>没有可展示的预设</h3>
@@ -1332,7 +1439,7 @@
                             <div class="publish-section">
                                 <div class="form-field">
                                     <label for="preset-name">预设名称</label>
-                                    <input id="preset-name" type="text" v-model="publishForm.name" placeholder="例如：癌骑士 / 夜斗">
+                                    <input id="preset-name" type="text" v-model="publishForm.name" placeholder="填写预设名称">
                                 </div>
                                 <div class="form-field">
                                     <label for="preset-summary">简介</label>
@@ -1351,9 +1458,22 @@
                                     <input id="preset-author" type="text" v-model="publishForm.author" :readonly="!!discordUser" :placeholder="discordUser ? '已同步 Discord 昵称' : '填写作者署名'">
                                 </div>
                                 <div class="form-field">
-                                    <label for="preset-cover">封面图片地址</label>
-                                    <input id="preset-cover" type="url" v-model="publishForm.coverUrl" placeholder="https://example.com/cover.jpg">
-                                    <span class="field-hint">可留空，优先使用预设自带封面。</span>
+                                    <label for="preset-cover">封面图片</label>
+                                    <div class="build-tags" style="margin-bottom:10px;">
+                                        <span class="build-tag class-tag" v-if="publishForm.coverFileName">
+                                            <i class="ri-image-line" style="margin-right:2px;"></i> {{ publishForm.coverFileName }}
+                                        </span>
+                                    </div>
+                                    <div class="tag-custom-row">
+                                        <button type="button" class="btn btn-outline" @click="triggerCoverImageImport">
+                                            <i class="ri-upload-2-line"></i> 上传封面
+                                        </button>
+                                        <button type="button" class="btn btn-ghost" v-if="publishForm.coverUrl" @click="clearCoverImage">
+                                            清空封面
+                                        </button>
+                                    </div>
+                                    <input id="preset-cover" type="url" v-model="publishForm.coverUrl" @input="publishForm.coverFileName = ''" placeholder="也可填写图片地址，例如 https://example.com/cover.jpg">
+                                    <span class="field-hint">支持直接上传到 R2，或填写图片地址；图片大小不能超过 5MB，留空则优先使用预设自带封面。</span>
                                 </div>
                                 <div class="form-field">
                                     <label>预设 JSON</label>
@@ -1420,20 +1540,20 @@
                                     <span class="build-tag race" v-if="publishForm.importedPresetData">
                                         <i class="ri-ghost-smile-line" style="margin-right:2px;"></i> {{ getImportedRaceName() }}
                                     </span>
-                                    <span class="build-tag race" v-for="tag in publishForm.tags" :key="tag">{{ tag }}</span>
+                                    <span class="build-tag style-tag" v-for="tag in publishForm.tags" :key="tag">{{ tag }}</span>
                                 </div>
                             </aside>
                         </div>
 
                         <div class="publish-actions">
-                            <span class="field-hint">先导入 JSON，再发布。</span>
+                            <span class="field-hint">{{ publishSubmitting ? '正在上传 JSON、封面并写入数据库，请勿重复点击。' : '先导入 JSON，再发布。' }}</span>
                             <div class="btn-row">
-                                <button type="button" class="btn btn-outline" @click="triggerPresetJsonImport">
+                                <button type="button" class="btn btn-outline" :disabled="publishSubmitting" @click="triggerPresetJsonImport">
                                     <i class="ri-file-upload-line"></i> 导入 JSON
                                 </button>
-                                <button type="button" class="btn btn-ghost" @click="resetPublishForm">重置</button>
-                                <button type="button" class="btn btn-primary" @click="publishPresetBuild">
-                                    <i class="ri-check-line"></i> 发布预设
+                                <button type="button" class="btn btn-ghost" :disabled="publishSubmitting" @click="resetPublishForm">重置</button>
+                                <button type="button" class="btn btn-primary" :disabled="publishSubmitting || !publishForm.importedPresetData" @click="publishPresetBuild">
+                                    <i :class="publishSubmitting ? 'ri-loader-4-line spin-icon' : 'ri-check-line'"></i> {{ publishButtonLabel }}
                                 </button>
                             </div>
                         </div>
@@ -1441,24 +1561,296 @@
                 </template>
             </template>
 
-            <!-- ===== 人设区 Placeholder ===== -->
-            <template v-if="activeTab === 'character'">
-                <div class="placeholder-section">
-                    <i class="ri-user-heart-line"></i>
-                    <h3>人设区</h3>
-                    <p>角色人设、背景故事、关系图谱等内容即将上线…</p>
-                </div>
-            </template>
+            <template v-if="activeTab === 'character' || activeTab === 'extension'">
+                <template v-if="activeContentSection.view === 'list'">
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <i class="ri-search-line"></i>
+                            <input type="text" :placeholder="activeContentConfig.searchPlaceholder" v-model="activeContentSection.searchQuery">
+                        </div>
+                        <div class="toolbar-actions">
+                            <div class="management-strip" v-if="discordUser">
+                                <div class="tag-picker">
+                                    <button type="button" class="tag-option" :class="{ active: activeContentSection.scope === 'all' }" @click="activeContentSection.scope = 'all'">全部{{ activeContentConfig.title }}</button>
+                                    <button type="button" class="tag-option" :class="{ active: activeContentSection.scope === 'mine' }" @click="activeContentSection.scope = 'mine'">我的{{ activeContentConfig.title }} {{ activeContentSection.ownedCount }}</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline" @click="activeContentSection.openPublishPage()" style="white-space:nowrap;">
+                                <i class="ri-quill-pen-line"></i> {{ activeContentConfig.uploadLabel }}
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- ===== 拓展区 Placeholder ===== -->
-            <template v-if="activeTab === 'extension'">
-                <div class="placeholder-section">
-                    <i class="ri-puzzle-line"></i>
-                    <h3>拓展区</h3>
-                    <p>更多自定义模组、世界规则和剧情拓展包敬请期待…</p>
-                </div>
+                    <div class="build-grid">
+                        <div class="build-card" v-for="item in activeContentSection.paginatedItems" :key="item.id" @click="activeContentSection.openDetail(item)">
+                            <div class="build-cover">
+                                <img v-if="item.coverUrl" class="cover-image" :src="item.coverUrl" :alt="item.name + ' 封面'">
+                                <div v-else class="cover-placeholder">
+                                    <i :class="activeContentConfig.icon"></i>
+                                </div>
+                                <div class="cover-overlay">
+                                    <span class="race-badge">{{ activeContentConfig.title }}</span>
+                                </div>
+                            </div>
+                            <div class="build-body">
+                                <div class="build-title">{{ item.name }}</div>
+                                <div class="build-author-row">
+                                    <img v-if="item.authorAvatar" class="author-avatar" :src="item.authorAvatar" :alt="item.author">
+                                    <span v-else class="author-avatar placeholder"><i class="ri-user-3-line"></i></span>
+                                    <div class="author-info">
+                                        <div class="author-name">作者:{{ item.author }}</div>
+                                        <div class="author-meta">{{ activeContentConfig.title }} · {{ formatDateLabel(item.updatedAt || item.createdAt) }}</div>
+                                    </div>
+                                </div>
+                                <div class="build-desc">{{ item.intro || getContentPreview(item.contentText) }}</div>
+                                <div class="build-tags">
+                                    <span class="build-tag class-tag" v-if="isContentOwnedByCurrentUser(item)">
+                                        <i class="ri-user-settings-line" style="margin-right:2px;"></i> 我的
+                                    </span>
+                                    <span class="build-tag like-tag" v-if="item.liked">
+                                        <i class="ri-heart-fill" style="margin-right:2px;"></i> 已赞
+                                    </span>
+                                    <span class="build-tag style-tag" v-for="tag in item.tags" :key="tag">
+                                        <i class="ri-price-tag-3-line" style="margin-right:2px;"></i> {{ tag }}
+                                    </span>
+                                </div>
+                                <div class="build-footer">
+                                    <div class="build-stats">
+                                        <span class="build-stat"><i class="ri-time-line"></i> {{ formatDateLabel(item.updatedAt || item.createdAt) }}</span>
+                                        <span class="build-stat"><i class="ri-heart-line"></i> {{ item.likes }}</span>
+                                    </div>
+                                    <div class="build-action-row">
+                                        <button v-if="isContentOwnedByCurrentUser(item)" class="download-btn edit" @click.stop="editOwnedContent(item)" :title="`编辑${activeContentConfig.title}`">
+                                            <i class="ri-edit-line"></i>
+                                        </button>
+                                        <button v-if="isContentOwnedByCurrentUser(item)" class="download-btn danger" @click.stop="deleteOwnedContent(item)" :title="`删除${activeContentConfig.title}`">
+                                            <i class="ri-delete-bin-line"></i>
+                                        </button>
+                                        <button class="download-btn like-btn" :class="{ liked: item.liked }" @click.stop="toggleContentLike(item)" :title="item.liked ? '已点赞' : `点赞${activeContentConfig.title}`">
+                                            <i :class="item.liked ? 'ri-heart-fill' : 'ri-heart-line'"></i>
+                                        </button>
+                                        <button class="download-btn" @click.stop="activeContentSection.openDetail(item)" :title="`查看${activeContentConfig.title}`">
+                                            <i class="ri-arrow-right-line"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pagination-bar" v-if="activeContentSection.filteredItems.length">
+                        <button type="button" class="btn btn-ghost" @click="activeContentSection.goToPrevPage()" :disabled="activeContentSection.currentPage <= 1">
+                            <i class="ri-arrow-left-s-line"></i> 上一页
+                        </button>
+                        <div class="pagination-info">第 {{ activeContentSection.currentPage }} / {{ activeContentSection.totalPages }} 页</div>
+                        <button type="button" class="btn btn-ghost" @click="activeContentSection.goToNextPage()" :disabled="activeContentSection.currentPage >= activeContentSection.totalPages">
+                            下一页 <i class="ri-arrow-right-s-line"></i>
+                        </button>
+                    </div>
+                    <div class="placeholder-section" v-if="!activeContentSection.filteredItems.length">
+                        <i :class="activeContentConfig.icon"></i>
+                        <h3>没有可展示的{{ activeContentConfig.title }}</h3>
+                        <p>{{ activeContentSection.status }}</p>
+                    </div>
+                </template>
+
+                <template v-else>
+                    <section class="publish-panel">
+                        <div class="publish-header">
+                            <div>
+                                <h2>{{ activeContentConfig.publishTitle }}</h2>
+                                <p>{{ activeContentConfig.publishDescription }}</p>
+                            </div>
+                            <button class="btn btn-ghost" @click="activeContentSection.closePublishPage()">
+                                <i class="ri-close-line"></i> 返回列表
+                            </button>
+                        </div>
+
+                        <div class="publish-layout">
+                            <div class="publish-form">
+                                <div class="form-grid">
+                                    <div class="form-field full-width" v-if="discordUser">
+                                        <label>发布账号</label>
+                                        <div class="form-account">
+                                            <img v-if="discordUser.avatarUrl" class="discord-avatar" :src="discordUser.avatarUrl" :alt="discordUser.username">
+                                            <span v-else class="discord-avatar placeholder"><i class="ri-user-3-line"></i></span>
+                                            <div class="form-account-body">
+                                                <div class="form-account-title">已同步 Discord 账号</div>
+                                                <div class="form-account-subtitle">发布时会自动带上头像和昵称。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>名称</label>
+                                        <input type="text" v-model="activeContentSection.form.name" :placeholder="activeContentConfig.namePlaceholder">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>作者</label>
+                                        <input type="text" v-model="activeContentSection.form.author" :readonly="!!discordUser" :placeholder="discordUser ? '已同步 Discord 昵称' : '填写作者署名'">
+                                    </div>
+                                    <div class="form-field full-width">
+                                        <label>简介</label>
+                                        <textarea rows="4" v-model="activeContentSection.form.intro" :placeholder="activeContentConfig.introPlaceholder"></textarea>
+                                    </div>
+                                    <div class="form-field full-width">
+                                        <label>封面图片</label>
+                                        <div class="build-tags" style="margin-bottom:10px;">
+                                            <span class="build-tag class-tag" v-if="activeContentSection.form.coverFileName">
+                                                <i class="ri-image-line" style="margin-right:2px;"></i> {{ activeContentSection.form.coverFileName }}
+                                            </span>
+                                        </div>
+                                        <div class="tag-custom-row">
+                                            <button type="button" class="btn btn-outline" @click="activeContentSection.triggerCoverImport()">
+                                                <i class="ri-upload-2-line"></i> 上传封面
+                                            </button>
+                                            <button type="button" class="btn btn-ghost" v-if="activeContentSection.form.coverUrl" @click="activeContentSection.clearCover()">
+                                                清空封面
+                                            </button>
+                                        </div>
+                                        <input type="url" v-model="activeContentSection.form.coverUrl" @input="activeContentSection.form.coverFileName = ''" placeholder="也可填写图片地址，例如 https://example.com/cover.jpg">
+                                        <span class="field-hint">支持直接上传到 R2，或填写图片地址；图片大小不能超过 5MB。</span>
+                                    </div>
+                                    <div class="form-field full-width">
+                                        <label>风格标签</label>
+                                        <div class="tag-picker">
+                                            <button
+                                                v-for="tag in presetTagOptions"
+                                                :key="tag"
+                                                type="button"
+                                                class="tag-option"
+                                                :class="{ active: activeContentSection.form.tags.includes(tag) }"
+                                                @click="activeContentSection.toggleTag(tag)">
+                                                {{ tag }}
+                                            </button>
+                                        </div>
+                                        <div class="tag-custom-row">
+                                            <input
+                                                class="tag-custom-input"
+                                                type="text"
+                                                v-model="activeContentSection.form.customTagInput"
+                                                maxlength="12"
+                                                placeholder="自定义标签，最多12字"
+                                                @keydown.enter.prevent="activeContentSection.addCustomTag()">
+                                            <button type="button" class="tag-custom-add" @click="activeContentSection.addCustomTag()">添加标签</button>
+                                        </div>
+                                        <div class="selected-tag-list" v-if="activeContentSection.form.tags.length">
+                                            <span class="selected-tag-chip" v-for="tag in activeContentSection.form.tags" :key="tag">
+                                                {{ tag }}
+                                                <button type="button" class="selected-tag-remove" @click="activeContentSection.removeTag(tag)">
+                                                    <i class="ri-close-line"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                        <span class="field-hint">最多 5 个，可自定义输入；单个标签最多 12 个字符，已选 {{ activeContentSection.form.tags.length }}/5</span>
+                                    </div>
+                                    <div class="form-field full-width">
+                                        <label>{{ activeContentConfig.contentLabel }}</label>
+                                        <textarea class="content-textarea" v-model="activeContentSection.form.contentText" :placeholder="activeContentConfig.contentPlaceholder"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <aside class="publish-preview">
+                                <div class="preview-cover">
+                                    <img v-if="activeContentSection.form.coverUrl" :src="activeContentSection.form.coverUrl" :alt="activeContentSection.form.name + ' 封面预览'">
+                                    <div v-else class="preview-cover-empty">封面预览</div>
+                                </div>
+                                <div class="preview-meta">
+                                    <h3>{{ activeContentSection.form.name || `未命名${activeContentConfig.title}` }}</h3>
+                                    <p>{{ activeContentSection.form.intro || '这里会显示简介预览。' }}</p>
+                                </div>
+                                <div class="build-tags">
+                                    <span class="build-tag class-tag" v-if="activeContentSection.form.author">
+                                        <i class="ri-user-3-line" style="margin-right:2px;"></i> {{ activeContentSection.form.author }}
+                                    </span>
+                                    <span class="build-tag race">
+                                        <i :class="activeContentConfig.icon" style="margin-right:2px;"></i> {{ activeContentConfig.title }}
+                                    </span>
+                                    <span class="build-tag style-tag" v-for="tag in activeContentSection.form.tags" :key="tag">{{ tag }}</span>
+                                </div>
+                                <div class="content-preview-excerpt">{{ activeContentSection.form.contentText || activeContentConfig.previewPlaceholder }}</div>
+                            </aside>
+                        </div>
+
+                        <div class="publish-actions">
+                            <span class="field-hint">{{ activeContentSection.submitting ? `正在保存${activeContentConfig.title}，请勿重复点击。` : `填写完整内容后即可发布${activeContentConfig.title}。` }}</span>
+                            <div class="btn-row">
+                                <button type="button" class="btn btn-ghost" :disabled="activeContentSection.submitting" @click="activeContentSection.resetForm()">重置</button>
+                                <button type="button" class="btn btn-primary" :disabled="activeContentSection.submitting" @click="activeContentSection.publish()">
+                                    <i :class="activeContentSection.submitting ? 'ri-loader-4-line spin-icon' : 'ri-check-line'"></i>
+                                    {{ activeContentSection.submitButtonLabel }}
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </template>
             </template>
         </main>
+
+        <div class="modal-overlay" v-if="selectedContent" @click.self="selectedContent = null">
+            <div class="modal-panel">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        {{ selectedContent.name }}
+                        <span class="title-badge">{{ getContentTypeLabel(selectedContent.type) }}</span>
+                    </div>
+                    <button class="modal-close" @click="selectedContent = null">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-section">
+                        <div class="section-heading">
+                            <i class="ri-book-2-line"></i> 基本信息
+                        </div>
+                        <div class="race-info-card">
+                            <div class="race-icon-lg" style="background: rgba(45,106,79,0.12);">
+                                <img v-if="selectedContent.coverUrl" :src="selectedContent.coverUrl" :alt="selectedContent.name + ' 封面'">
+                                <i v-else :class="getContentTypeIcon(selectedContent.type)" style="font-size:2rem;color:var(--accent);"></i>
+                            </div>
+                            <div class="race-meta">
+                                <h3>{{ selectedContent.name }}</h3>
+                                <div class="race-class">{{ getContentTypeLabel(selectedContent.type) }}</div>
+                                <div class="content-detail-meta">
+                                    <span><i class="ri-user-3-line"></i> {{ selectedContent.author }}</span>
+                                    <span><i class="ri-time-line"></i> {{ formatDateLabel(selectedContent.updatedAt || selectedContent.createdAt) }}</span>
+                                </div>
+                                <div class="detail-tag-row" v-if="selectedContent.tags && selectedContent.tags.length">
+                                    <span class="detail-tag" v-for="tag in selectedContent.tags" :key="tag">
+                                        <i class="ri-price-tag-3-line"></i>
+                                        {{ tag }}
+                                    </span>
+                                </div>
+                                <p class="detail-intro">{{ selectedContent.intro || '暂无简介。' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="section-heading">
+                            <i class="ri-file-text-line"></i> 正文内容
+                        </div>
+                        <div class="content-detail-text">{{ selectedContent.contentText || '暂无正文内容。' }}</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-ghost" @click="selectedContent = null">
+                        <i class="ri-close-line"></i> 关闭
+                    </button>
+                    <div class="btn-row">
+                        <button v-if="isContentOwnedByCurrentUser(selectedContent)" class="btn btn-outline" @click="editOwnedContent(selectedContent)">
+                            <i class="ri-edit-line"></i> 编辑{{ getContentTypeLabel(selectedContent.type) }}
+                        </button>
+                        <button v-if="isContentOwnedByCurrentUser(selectedContent)" class="btn btn-ghost" @click="deleteOwnedContent(selectedContent)">
+                            <i class="ri-delete-bin-line"></i> 删除{{ getContentTypeLabel(selectedContent.type) }}
+                        </button>
+                        <button class="btn btn-primary" @click="toggleContentLike(selectedContent)">
+                            <i :class="selectedContent.liked ? 'ri-heart-fill' : 'ri-heart-line'"></i> {{ selectedContent.liked ? `已点赞 ${selectedContent.likes}` : `点赞 ${selectedContent.likes}` }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- ===== Build Detail Modal ===== -->
         <div class="modal-overlay" v-if="selectedBuild" @click.self="selectedBuild = null">
@@ -1608,8 +2000,8 @@
                         </div>
                         <div class="placeholder-section" v-else style="padding: 28px 12px;">
                             <i class="ri-group-line"></i>
-                            <h3>当前 JSON 未包含同伴数据</h3>
-                            <p>如果后续把队友详情也导出到 JSON，这里会直接跟着渲染。</p>
+                            <h3>暂无羁绊角色</h3>
+                            <p>这个预设暂时没有可展示的羁绊角色信息。</p>
                         </div>
                     </div>
                 </div>
@@ -1720,7 +2112,7 @@
     </div>
 
     <script>
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
 
     // ===== 技能 SVG 图标（由 scripts/sync_skill_svg.js 从“开局.html”同步） =====
     // SKILL_SVG_SYNC_START
@@ -2409,6 +2801,67 @@
             : [];
     }
 
+    function createWorkshopContentEntry(rawItem) {
+        if (!rawItem?.id || !(rawItem.title || rawItem.name)) {
+            return null;
+        }
+        const tags = Array.isArray(rawItem.tags)
+            ? rawItem.tags.map((item) => typeof item === 'string' ? item : item?.text).filter(Boolean)
+            : [];
+        return {
+            id: rawItem.id,
+            type: rawItem.type || '',
+            ownerId: rawItem.ownerId || '',
+            ownerName: rawItem.ownerName || '',
+            author: rawItem.author || '',
+            authorAvatar: rawItem.authorAvatar || '',
+            name: rawItem.name || rawItem.title || '',
+            title: rawItem.title || rawItem.name || '',
+            intro: rawItem.intro || '',
+            coverUrl: rawItem.coverUrl || '',
+            tags,
+            likes: Number(rawItem.likes || 0),
+            liked: !!rawItem.liked,
+            contentText: rawItem.contentText || '',
+            status: rawItem.status || 'published',
+            createdAt: rawItem.createdAt || '',
+            updatedAt: rawItem.updatedAt || '',
+        };
+    }
+
+    async function fetchWorkshopContentFromApi(type, viewerIdentityId = '') {
+        const query = new URLSearchParams({ type });
+        if (viewerIdentityId) {
+            query.set('viewer_discord_id', viewerIdentityId);
+        }
+        const payload = await apiRequest(`/content?${query.toString()}`);
+        return Array.isArray(payload.items)
+            ? payload.items.map(createWorkshopContentEntry).filter(Boolean)
+            : [];
+    }
+
+    async function fetchWorkshopContentDetailFromApi(id, viewerIdentityId = '') {
+        const query = viewerIdentityId ? `?viewer_discord_id=${encodeURIComponent(viewerIdentityId)}` : '';
+        const payload = await apiRequest(`/content/${encodeURIComponent(id)}${query}`);
+        return createWorkshopContentEntry(payload.item);
+    }
+
+    function formatDateLabel(value) {
+        const text = String(value || '').trim();
+        if (!text) {
+            return '刚刚更新';
+        }
+        return text.replace('T', ' ').slice(0, 16);
+    }
+
+    function getContentPreview(contentText) {
+        const text = String(contentText || '').trim();
+        if (!text) {
+            return '暂无正文内容';
+        }
+        return text.length > 90 ? `${text.slice(0, 90)}…` : text;
+    }
+
     async function syncDiscordUserToApi(user) {
         if (!user?.id || !user?.username) {
             return;
@@ -2449,22 +2902,59 @@
             const buildView = ref('list');
             const searchQuery = ref('');
             const selectedBuild = ref(null);
+            const selectedContent = ref(null);
             const skillDetail = ref(null);
             const traitDetail = ref(null);
             const companionDetail = ref(null);
             const buildDataStatus = ref('暂无预设，请在“上传预设”里手动选择 JSON 文件导入');
             const presetTagOptions = ['爆发', '续航', '清怪', '对单', '控制', '召唤', '生存', '整活'];
+            const contentSectionConfig = {
+                character: {
+                    title: '人设',
+                    icon: 'ri-user-heart-line',
+                    uploadLabel: '上传人设',
+                    publishTitle: '上传人设',
+                    publishDescription: '填写名称、简介、封面和正文后即可发布角色人设。',
+                    searchPlaceholder: '搜索人设名称、标签、作者…',
+                    namePlaceholder: '填写人设名称',
+                    introPlaceholder: '用几句话概括这个角色的人设亮点。',
+                    contentLabel: '人设正文',
+                    contentPlaceholder: '填写完整的人设正文，例如背景、经历、口癖、关系、设定细节等。',
+                    previewPlaceholder: '这里会显示正文预览。',
+                },
+                extension: {
+                    title: '拓展',
+                    icon: 'ri-puzzle-line',
+                    uploadLabel: '上传拓展',
+                    publishTitle: '上传拓展',
+                    publishDescription: '填写名称、简介、封面和正文后即可发布模组、规则或剧情拓展。',
+                    searchPlaceholder: '搜索拓展名称、标签、作者…',
+                    namePlaceholder: '填写拓展名称',
+                    introPlaceholder: '概括这个拓展包适合什么玩法、包含什么内容。',
+                    contentLabel: '拓展正文',
+                    contentPlaceholder: '填写完整拓展内容，例如规则改动、世界观补充、剧情说明、使用方式等。',
+                    previewPlaceholder: '这里会显示正文预览。',
+                },
+            };
             const discordAuth = ref(loadStoredDiscordAuth());
             const discordUser = computed(() => discordAuth.value?.user || null);
             const discordLoading = ref(false);
             const buildScope = ref('all');
             const editingBuildId = ref('');
+            const publishSubmitting = ref(false);
+            const publishButtonLabel = computed(() => {
+                if (publishSubmitting.value) {
+                    return editingBuildId.value ? '正在保存…' : '正在发布…';
+                }
+                return editingBuildId.value ? '保存修改' : '发布预设';
+            });
             const viewerIdentityId = computed(() => discordUser.value?.id || getOrCreateBrowserViewerId());
             const createInitialPublishForm = () => ({
                 name: '',
                 intro: '',
                 author: discordUser.value?.username || '',
                 coverUrl: '',
+                coverFileName: '',
                 tags: [],
                 customTagInput: '',
                 importedFileName: '',
@@ -2474,6 +2964,8 @@
             const publishForm = ref(createInitialPublishForm());
             const builds = ref(loadStoredPublishedBuilds());
             const buildsLoading = ref(false);
+            const BUILD_PAGE_SIZE = 12;
+            const currentBuildPage = ref(1);
             const ownedBuildCount = computed(() => {
                 const currentUserId = discordUser.value?.id;
                 if (!currentUserId) {
@@ -2498,6 +2990,387 @@
                         || build.race.toLowerCase().includes(q);
                 });
             });
+            const buildTotalPages = computed(() => Math.max(1, Math.ceil(filteredBuilds.value.length / BUILD_PAGE_SIZE)));
+            const paginatedBuilds = computed(() => {
+                const start = (currentBuildPage.value - 1) * BUILD_PAGE_SIZE;
+                return filteredBuilds.value.slice(start, start + BUILD_PAGE_SIZE);
+            });
+
+            const createInitialContentForm = () => ({
+                name: '',
+                intro: '',
+                author: discordUser.value?.username || '',
+                coverUrl: '',
+                coverFileName: '',
+                tags: [],
+                customTagInput: '',
+                contentText: '',
+            });
+
+            function createContentSection(type) {
+                const section = reactive({
+                    type,
+                    view: 'list',
+                    scope: 'all',
+                    searchQuery: '',
+                    status: `暂无${contentSectionConfig[type].title}`,
+                    items: [],
+                    loading: false,
+                    currentPage: 1,
+                    editingId: '',
+                    submitting: false,
+                    form: createInitialContentForm(),
+                    filteredItems: [],
+                    paginatedItems: [],
+                    totalPages: 1,
+                    ownedCount: 0,
+                    submitButtonLabel: contentSectionConfig[type].uploadLabel,
+                });
+
+                const filteredItems = computed(() => {
+                    const query = section.searchQuery.trim().toLowerCase();
+                    const currentUserId = discordUser.value?.id;
+                    return section.items.filter((item) => {
+                        if (section.scope === 'mine' && (!currentUserId || item.ownerId !== currentUserId)) {
+                            return false;
+                        }
+                        if (!query) {
+                            return true;
+                        }
+                        return item.name.toLowerCase().includes(query)
+                            || item.author.toLowerCase().includes(query)
+                            || item.intro.toLowerCase().includes(query)
+                            || item.tags.some((tag) => tag.toLowerCase().includes(query));
+                    });
+                });
+                const totalPages = computed(() => Math.max(1, Math.ceil(filteredItems.value.length / BUILD_PAGE_SIZE)));
+                const paginatedItems = computed(() => {
+                    const start = (section.currentPage - 1) * BUILD_PAGE_SIZE;
+                    return filteredItems.value.slice(start, start + BUILD_PAGE_SIZE);
+                });
+                const ownedCount = computed(() => {
+                    const currentUserId = discordUser.value?.id;
+                    if (!currentUserId) {
+                        return 0;
+                    }
+                    return section.items.filter((item) => item.ownerId === currentUserId).length;
+                });
+                const submitButtonLabel = computed(() => {
+                    if (section.submitting) {
+                        return section.editingId ? '正在保存…' : '正在发布…';
+                    }
+                    return section.editingId ? '保存修改' : contentSectionConfig[type].uploadLabel;
+                });
+
+                watch([() => section.searchQuery, () => section.scope], () => {
+                    section.currentPage = 1;
+                });
+                watch(filteredItems, (items) => {
+                    if (!items.length) {
+                        section.currentPage = 1;
+                        return;
+                    }
+                    if (section.currentPage > totalPages.value) {
+                        section.currentPage = totalPages.value;
+                    }
+                });
+
+                section.loadItems = async () => {
+                    section.loading = true;
+                    try {
+                        section.items = await fetchWorkshopContentFromApi(type, viewerIdentityId.value || '');
+                        section.status = section.items.length
+                            ? `已加载 ${section.items.length} 条${contentSectionConfig[type].title}`
+                            : `暂无${contentSectionConfig[type].title}`;
+                    } catch (error) {
+                        console.warn(`Load ${type} failed:`, error);
+                        section.items = [];
+                        section.status = `加载${contentSectionConfig[type].title}失败：${error instanceof Error ? error.message : String(error)}`;
+                    } finally {
+                        section.loading = false;
+                    }
+                };
+                section.openPublishPage = () => {
+                    section.editingId = '';
+                    section.form = createInitialContentForm();
+                    section.view = 'publish';
+                    if (discordUser.value) {
+                        section.form.author = discordUser.value.username;
+                    }
+                };
+                section.closePublishPage = () => {
+                    section.view = 'list';
+                };
+                section.resetForm = () => {
+                    section.editingId = '';
+                    section.form = createInitialContentForm();
+                    if (discordUser.value) {
+                        section.form.author = discordUser.value.username;
+                    }
+                };
+                section.triggerCoverImport = () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.multiple = false;
+                    input.onchange = async (event) => {
+                        const files = Array.from(event?.target?.files || []);
+                        if (!files.length) {
+                            return;
+                        }
+                        const file = files[0];
+                        if (!file.type || !file.type.startsWith('image/')) {
+                            section.status = '请选择图片文件作为封面';
+                            return;
+                        }
+                        if (file.size > 5 * 1024 * 1024) {
+                            section.status = '封面图片不能超过 5MB';
+                            return;
+                        }
+                        try {
+                            const dataUrl = await readFileAsDataUrl(file);
+                            section.form.coverUrl = dataUrl;
+                            section.form.coverFileName = file.name;
+                            section.status = `已载入封面：${file.name}`;
+                        } catch (error) {
+                            console.warn(`Import ${type} cover failed:`, error);
+                            section.status = '封面读取失败，请重新选择图片';
+                        }
+                    };
+                    input.click();
+                };
+                section.clearCover = () => {
+                    section.form.coverUrl = '';
+                    section.form.coverFileName = '';
+                };
+                section.toggleTag = (tag) => {
+                    const selectedTags = section.form.tags;
+                    if (selectedTags.includes(tag)) {
+                        section.form.tags = selectedTags.filter((item) => item !== tag);
+                        return;
+                    }
+                    if (selectedTags.length >= 5) {
+                        section.status = '风格标签最多 5 个';
+                        return;
+                    }
+                    section.form.tags = [...selectedTags, tag];
+                };
+                section.addCustomTag = () => {
+                    const input = String(section.form.customTagInput || '').trim();
+                    if (!input) {
+                        return;
+                    }
+                    const normalizedTag = input.slice(0, 12);
+                    const selectedTags = section.form.tags;
+                    if (selectedTags.includes(normalizedTag)) {
+                        section.form.customTagInput = '';
+                        return;
+                    }
+                    if (selectedTags.length >= 5) {
+                        section.status = '风格标签最多 5 个';
+                        return;
+                    }
+                    section.form.tags = [...selectedTags, normalizedTag];
+                    section.form.customTagInput = '';
+                };
+                section.removeTag = (tag) => {
+                    section.form.tags = section.form.tags.filter((item) => item !== tag);
+                };
+                section.findDuplicateByName = (name) => {
+                    const normalized = String(name || '').trim().toLowerCase();
+                    if (!normalized || !discordUser.value?.id) {
+                        return null;
+                    }
+                    return section.items.find((item) => (
+                        item.ownerId === discordUser.value.id
+                        && item.id !== section.editingId
+                        && String(item.name || item.title || '').trim().toLowerCase() === normalized
+                    )) || null;
+                };
+                section.openDetail = async (item) => {
+                    try {
+                        const detailed = await fetchWorkshopContentDetailFromApi(item.id, viewerIdentityId.value || '');
+                        selectedContent.value = detailed ? { ...detailed, type } : { ...item, type };
+                    } catch (error) {
+                        console.warn(`Open ${type} detail failed:`, error);
+                        selectedContent.value = { ...item, type };
+                        section.status = `读取${contentSectionConfig[type].title}详情失败：${error instanceof Error ? error.message : String(error)}`;
+                    }
+                };
+                section.editOwnedItem = async (item) => {
+                    if (!isContentOwnedByCurrentUser(item)) {
+                        return;
+                    }
+                    try {
+                        const detailed = await fetchWorkshopContentDetailFromApi(item.id, viewerIdentityId.value || '');
+                        const editable = detailed || item;
+                        section.editingId = editable.id;
+                        section.form = {
+                            name: editable.name || '',
+                            intro: editable.intro || '',
+                            author: discordUser.value?.username || editable.author || '',
+                            coverUrl: editable.coverUrl || '',
+                            coverFileName: '',
+                            tags: [...(editable.tags || [])],
+                            customTagInput: '',
+                            contentText: editable.contentText || '',
+                        };
+                        section.view = 'publish';
+                        selectedContent.value = null;
+                        section.status = `正在编辑${contentSectionConfig[type].title}：${editable.name}`;
+                    } catch (error) {
+                        console.warn(`Edit ${type} failed:`, error);
+                        section.status = `读取${contentSectionConfig[type].title}详情失败：${error instanceof Error ? error.message : String(error)}`;
+                    }
+                };
+                section.deleteOwnedItem = async (item) => {
+                    if (!isContentOwnedByCurrentUser(item)) {
+                        return;
+                    }
+                    if (!window.confirm(`确认删除“${item.name}”吗？`)) {
+                        return;
+                    }
+                    try {
+                        await apiRequest(`/content/${encodeURIComponent(item.id)}`, {
+                            method: 'DELETE',
+                            body: {
+                                owner_discord_id: discordUser.value.id,
+                            },
+                        });
+                        section.items = section.items.filter((entry) => entry.id !== item.id);
+                        if (selectedContent.value?.id === item.id) {
+                            selectedContent.value = null;
+                        }
+                        if (section.editingId === item.id) {
+                            section.resetForm();
+                        }
+                        section.status = `已删除${contentSectionConfig[type].title}：${item.name}`;
+                    } catch (error) {
+                        console.warn(`Delete ${type} failed:`, error);
+                        section.status = `删除${contentSectionConfig[type].title}失败：${error instanceof Error ? error.message : String(error)}`;
+                    }
+                };
+                section.publish = async () => {
+                    if (section.submitting) {
+                        return;
+                    }
+                    if (!discordUser.value?.id) {
+                        section.status = `请先登录 Discord 再发布${contentSectionConfig[type].title}`;
+                        return;
+                    }
+                    const name = String(section.form.name || '').trim();
+                    if (!name) {
+                        section.status = `请填写${contentSectionConfig[type].title}名称`;
+                        return;
+                    }
+                    if (!String(section.form.contentText || '').trim()) {
+                        section.status = `请填写${contentSectionConfig[type].title}正文`;
+                        return;
+                    }
+                    const duplicateItem = section.findDuplicateByName(name);
+                    if (duplicateItem) {
+                        section.status = `你已经发布过同名${contentSectionConfig[type].title}：${name}`;
+                        return;
+                    }
+
+                    section.submitting = true;
+                    section.status = section.editingId
+                        ? `正在保存${contentSectionConfig[type].title}，请稍候…`
+                        : `正在发布${contentSectionConfig[type].title}，请稍候…`;
+
+                    try {
+                        const response = await apiRequest(
+                            section.editingId
+                                ? `/content/${encodeURIComponent(section.editingId)}`
+                                : '/content',
+                            {
+                                method: section.editingId ? 'PUT' : 'POST',
+                                body: {
+                                    id: section.editingId || undefined,
+                                    entry_type: type,
+                                    owner_discord_id: discordUser.value.id,
+                                    username: discordUser.value.username,
+                                    avatar_url: discordUser.value.avatarUrl || '',
+                                    title: name,
+                                    intro: String(section.form.intro || '').trim(),
+                                    cover_url: String(section.form.coverUrl || '').trim(),
+                                    tags: section.form.tags,
+                                    content_text: String(section.form.contentText || '').trim(),
+                                },
+                            }
+                        );
+
+                        const savedItem = createWorkshopContentEntry(response.item);
+                        if (!savedItem) {
+                            throw new Error('返回的内容数据无效');
+                        }
+
+                        const existingIndex = section.items.findIndex((entry) => entry.id === savedItem.id);
+                        if (existingIndex >= 0) {
+                            section.items.splice(existingIndex, 1, savedItem);
+                        } else {
+                            section.items.unshift(savedItem);
+                        }
+
+                        section.status = section.editingId
+                            ? `已保存${contentSectionConfig[type].title}：${savedItem.name}`
+                            : `已发布${contentSectionConfig[type].title}：${savedItem.name}`;
+                        section.resetForm();
+                        section.view = 'list';
+                    } catch (error) {
+                        console.warn(`Publish ${type} failed:`, error);
+                        section.status = `发布${contentSectionConfig[type].title}失败：${error instanceof Error ? error.message : String(error)}`;
+                    } finally {
+                        section.submitting = false;
+                    }
+                };
+                section.goToPrevPage = () => {
+                    section.currentPage = Math.max(1, section.currentPage - 1);
+                };
+                section.goToNextPage = () => {
+                    section.currentPage = Math.min(totalPages.value, section.currentPage + 1);
+                };
+
+                watch(filteredItems, (items) => {
+                    section.filteredItems = items;
+                    section.paginatedItems = paginatedItems.value;
+                    section.totalPages = totalPages.value;
+                    section.ownedCount = ownedCount.value;
+                    section.submitButtonLabel = submitButtonLabel.value;
+                }, { immediate: true });
+                watch([totalPages, ownedCount, submitButtonLabel, paginatedItems], () => {
+                    section.paginatedItems = paginatedItems.value;
+                    section.totalPages = totalPages.value;
+                    section.ownedCount = ownedCount.value;
+                    section.submitButtonLabel = submitButtonLabel.value;
+                }, { immediate: true });
+
+                return section;
+            }
+
+            const characterSection = createContentSection('character');
+            const extensionSection = createContentSection('extension');
+            const activeContentSection = computed(() => activeTab.value === 'extension' ? extensionSection : characterSection);
+            const activeContentConfig = computed(() => contentSectionConfig[activeTab.value] || contentSectionConfig.character);
+
+            watch([searchQuery, buildScope], () => {
+                currentBuildPage.value = 1;
+            });
+
+            watch(filteredBuilds, (nextBuilds) => {
+                const maxPage = Math.max(1, Math.ceil(nextBuilds.length / BUILD_PAGE_SIZE));
+                if (currentBuildPage.value > maxPage) {
+                    currentBuildPage.value = maxPage;
+                }
+            });
+
+            function goToPrevPage() {
+                currentBuildPage.value = Math.max(1, currentBuildPage.value - 1);
+            }
+
+            function goToNextPage() {
+                currentBuildPage.value = Math.min(buildTotalPages.value, currentBuildPage.value + 1);
+            }
 
             function applyPresetExports(presetExports, sourceLabel) {
                 const importedBuilds = presetExports
@@ -2619,6 +3492,57 @@
                 }
             }
 
+            async function toggleContentLike(item) {
+                if (!item?.id || !item?.type) {
+                    return;
+                }
+                try {
+                    const actingUserId = viewerIdentityId.value || getOrCreateBrowserViewerId();
+                    const response = await apiRequest(`/content/${encodeURIComponent(item.id)}/like`, {
+                        method: 'POST',
+                        body: {
+                            user_discord_id: actingUserId,
+                            username: discordUser.value?.username || '',
+                            avatar_url: discordUser.value?.avatarUrl || '',
+                        },
+                    });
+
+                    const updatedItem = createWorkshopContentEntry(response.item);
+                    if (!updatedItem) {
+                        throw new Error('Like succeeded but content data is invalid');
+                    }
+                    updatedItem.liked = !!response.liked;
+                    updatedItem.likes = Number(response.like_count || updatedItem.likes || 0);
+
+                    const section = getContentSectionByType(updatedItem.type || item.type);
+                    const index = section.items.findIndex((entry) => entry.id === updatedItem.id);
+                    if (index >= 0) {
+                        section.items.splice(index, 1, {
+                            ...section.items[index],
+                            ...updatedItem,
+                        });
+                    }
+
+                    item.liked = updatedItem.liked;
+                    item.likes = updatedItem.likes;
+
+                    if (selectedContent.value?.id === updatedItem.id) {
+                        selectedContent.value = {
+                            ...selectedContent.value,
+                            ...updatedItem,
+                        };
+                    }
+
+                    section.status = response.liked
+                        ? `已点赞：${updatedItem.name}`
+                        : `已取消点赞：${updatedItem.name}`;
+                } catch (error) {
+                    console.warn('Toggle content like failed:', error);
+                    const section = getContentSectionByType(item.type);
+                    section.status = `点赞失败：${error instanceof Error ? error.message : String(error)}`;
+                }
+            }
+
             function openSkillDetail(skill) { skillDetail.value = skill; }
 
             function canOpenTraitDetail(trait) {
@@ -2648,7 +3572,39 @@
             function syncPublishAuthorFromDiscord() {
                 if (discordUser.value) {
                     publishForm.value.author = discordUser.value.username;
+                    characterSection.form.author = discordUser.value.username;
+                    extensionSection.form.author = discordUser.value.username;
                 }
+            }
+
+            function getContentTypeLabel(type) {
+                return contentSectionConfig[type]?.title || '内容';
+            }
+
+            function getContentTypeIcon(type) {
+                return contentSectionConfig[type]?.icon || 'ri-book-2-line';
+            }
+
+            function isContentOwnedByCurrentUser(item) {
+                return !!item && !!discordUser.value?.id && item.ownerId === discordUser.value.id;
+            }
+
+            function getContentSectionByType(type) {
+                return type === 'extension' ? extensionSection : characterSection;
+            }
+
+            async function editOwnedContent(item) {
+                if (!item?.type) {
+                    return;
+                }
+                await getContentSectionByType(item.type).editOwnedItem(item);
+            }
+
+            async function deleteOwnedContent(item) {
+                if (!item?.type) {
+                    return;
+                }
+                await getContentSectionByType(item.type).deleteOwnedItem(item);
             }
 
             async function ensureDiscordUserSynced() {
@@ -2724,6 +3680,12 @@
                 if (publishForm.value.author === currentName) {
                     publishForm.value.author = "";
                 }
+                if (characterSection.form.author === currentName) {
+                    characterSection.form.author = "";
+                }
+                if (extensionSection.form.author === currentName) {
+                    extensionSection.form.author = "";
+                }
                 buildDataStatus.value = "已退出 Discord 登录";
             }
 
@@ -2769,6 +3731,58 @@
                 input.click();
             }
 
+            function triggerCoverImageImport() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.multiple = false;
+                input.onchange = (event) => {
+                    handleCoverImageImport(event);
+                };
+                input.click();
+            }
+
+            async function handleCoverImageImport(event) {
+                const files = Array.from(event?.target?.files || []);
+                if (!files.length) {
+                    return;
+                }
+
+                const file = files[0];
+                if (!file.type || !file.type.startsWith('image/')) {
+                    buildDataStatus.value = '请选择图片文件作为封面';
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    buildDataStatus.value = '封面图片不能超过 5MB';
+                    return;
+                }
+
+                try {
+                    const dataUrl = await readFileAsDataUrl(file);
+                    publishForm.value.coverUrl = dataUrl;
+                    publishForm.value.coverFileName = file.name;
+                    buildDataStatus.value = `已载入封面：${file.name}`;
+                } catch (error) {
+                    console.warn('Local cover image import failed:', error);
+                    buildDataStatus.value = '封面读取失败，请重新选择图片';
+                }
+            }
+
+            function clearCoverImage() {
+                publishForm.value.coverUrl = '';
+                publishForm.value.coverFileName = '';
+            }
+
+            function readFileAsDataUrl(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(String(reader.result || ''));
+                    reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+                    reader.readAsDataURL(file);
+                });
+            }
+
             async function handlePresetJsonImport(event) {
                 const files = Array.from(event?.target?.files || []);
                 if (!files.length) {
@@ -2781,12 +3795,12 @@
                     const parsed = JSON.parse(text);
                     const normalized = normalizePresetExport(parsed);
                     if (!normalized) {
-                        throw new Error(`?????????: ${file.name}`);
+                        throw new Error(`预设文件格式无效: ${file.name}`);
                     }
                     publishForm.value.importedFileName = file.name;
                     publishForm.value.importedPresetData = normalized.preset.data;
                     publishForm.value.importedPresetRawJson = text;
-                    buildDataStatus.value = `????? JSON?${file.name}`;
+                    buildDataStatus.value = `已导入 JSON：${file.name}`;
                                 } catch (error) {
                     console.warn("Local preset JSON parse failed:", error);
                     buildDataStatus.value = "手动导入失败，请确认选择的是“开局”导出的预设 JSON 或完整预设对象 JSON";
@@ -2814,6 +3828,7 @@
                     intro: editableBuild.intro || "",
                     author: discordUser.value?.username || editableBuild.author || "",
                     coverUrl: editableBuild.coverUrl || "",
+                    coverFileName: "",
                     tags: (editableBuild.tags || []).map((item) => item?.text || item).filter(Boolean),
                     customTagInput: "",
                     importedFileName: `${editableBuild.name || "preset"}.json`,
@@ -2854,23 +3869,51 @@
                 }
             }
 
+            function normalizeBuildTitle(value) {
+                return String(value || '').trim().toLowerCase();
+            }
+
+            function findDuplicateOwnedBuildByName(name) {
+                const normalizedName = normalizeBuildTitle(name);
+                if (!normalizedName || !discordUser.value?.id) {
+                    return null;
+                }
+                return builds.value.find((item) => (
+                    item.ownerId === discordUser.value.id
+                    && item.id !== editingBuildId.value
+                    && normalizeBuildTitle(item.name || item.title) === normalizedName
+                )) || null;
+            }
+
             async function publishPresetBuild() {
-                buildDataStatus.value = "Publishing preset...";
+                if (publishSubmitting.value) {
+                    return;
+                }
                 console.log("publishPresetBuild clicked", { hasPreset: !!publishForm.value.importedPresetData, discordUserId: discordUser.value?.id || "" });
                 if (!publishForm.value.importedPresetData) {
-                    buildDataStatus.value = 'Please select and parse a preset JSON file first';
+                    buildDataStatus.value = '请先导入并解析预设 JSON';
                     return;
                 }
                 if (!discordUser.value?.id) {
-                    buildDataStatus.value = 'Please log in with Discord before publishing';
+                    buildDataStatus.value = '请先登录 Discord 再发布预设';
                     return;
                 }
 
                 const presetData = publishForm.value.importedPresetData;
-                const name = publishForm.value.name.trim() || presetData.name || 'Untitled preset';
+                const name = publishForm.value.name.trim() || presetData.name || '未命名预设';
                 const existingBuild = editingBuildId.value
                     ? builds.value.find((item) => item.id === editingBuildId.value)
                     : null;
+                const duplicateBuild = findDuplicateOwnedBuildByName(name);
+                if (duplicateBuild) {
+                    buildDataStatus.value = `你已经发布过同名预设：${name}`;
+                    return;
+                }
+
+                publishSubmitting.value = true;
+                buildDataStatus.value = existingBuild
+                    ? '正在保存预设，封面和 JSON 上传中，请稍候…'
+                    : '正在发布预设，封面和 JSON 上传中，请稍候…';
 
                 try {
                     const payload = {
@@ -2880,7 +3923,7 @@
                         username: discordUser.value.username,
                         avatar_url: discordUser.value.avatarUrl || '',
                         title: name,
-                        intro: publishForm.value.intro.trim() || presetData.customClassStyle || presetData.backstory || 'No intro yet',
+                        intro: publishForm.value.intro.trim() || presetData.customClassStyle || presetData.backstory || '暂无简介',
                         cover_url: publishForm.value.coverUrl.trim() || presetData.avatar || '',
                         class_name: getImportedClassName(),
                         race: getImportedRaceName(),
@@ -2901,7 +3944,7 @@
 
                     const savedBuild = createStoredBuildEntry(response.preset);
                     if (!savedBuild) {
-                        throw new Error('Save succeeded but returned preset data is invalid');
+                        throw new Error('保存成功，但返回的预设数据无效');
                     }
 
                     const existingIndex = builds.value.findIndex((item) => item.id === savedBuild.id);
@@ -2913,13 +3956,15 @@
 
                     persistPublishedBuilds();
                     buildDataStatus.value = existingBuild
-                        ? `Updated preset: ${savedBuild.name}`
-                        : `Published preset: ${savedBuild.name}`;
+                        ? `已保存预设：${savedBuild.name}`
+                        : `已发布预设：${savedBuild.name}`;
                     resetPublishForm();
                     buildView.value = 'list';
                 } catch (error) {
                     console.warn('Publish preset failed:', error);
-                    buildDataStatus.value = `Publish failed: ${error instanceof Error ? error.message : String(error)}`;
+                    buildDataStatus.value = `发布失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    publishSubmitting.value = false;
                 }
             }
 
@@ -3002,22 +4047,29 @@
                     syncPublishAuthorFromDiscord();
                     await ensureDiscordUserSynced();
                 }
-                await loadPublishedBuilds();
+                await Promise.all([
+                    loadPublishedBuilds(),
+                    characterSection.loadItems(),
+                    extensionSection.loadItems(),
+                ]);
             });
 
             return {
-                activeTab, buildView, buildScope, searchQuery, builds, filteredBuilds, ownedBuildCount,
+                activeTab, buildView, buildScope, searchQuery, builds, filteredBuilds, paginatedBuilds, ownedBuildCount,
+                currentBuildPage, buildTotalPages, goToPrevPage, goToNextPage,
                 discordUser, startDiscordLogin, logoutDiscord,
-                selectedBuild, skillDetail, traitDetail, companionDetail,
-                publishForm, presetTagOptions, buildDataStatus,
+                selectedBuild, selectedContent, skillDetail, traitDetail, companionDetail,
+                publishForm, presetTagOptions, buildDataStatus, publishSubmitting, publishButtonLabel,
+                characterSection, extensionSection, activeContentSection, activeContentConfig,
                 openDetail, openSkillDetail, openTraitDetail, openCompanionDetail,
                 canOpenTraitDetail,
-                openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, togglePublishTag,
+                openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, triggerCoverImageImport, handleCoverImageImport, clearCoverImage, togglePublishTag,
                 addCustomPublishTag, removePublishTag,
                 getImportedClassName, getImportedRaceName, publishPresetBuild,
-                getSkillTypeColor, getAttributeIcon,
+                getSkillTypeColor, getAttributeIcon, getContentTypeLabel, getContentTypeIcon, getContentPreview, formatDateLabel,
                 isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
-                toggleBuildLike, downloadBuild,
+                isContentOwnedByCurrentUser, editOwnedContent, deleteOwnedContent,
+                toggleBuildLike, toggleContentLike, downloadBuild,
             };
         }
     }).mount('#app');

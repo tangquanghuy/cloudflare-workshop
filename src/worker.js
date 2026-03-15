@@ -5,6 +5,8 @@
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const PRESET_PREFIX = 'presets';
 const COVER_PREFIX = 'covers';
+const CONTENT_COVER_PREFIX = 'content-covers';
+const WORKSHOP_ENTRY_TYPES = new Set(['character', 'extension']);
 
 export default {
   async fetch(request, env) {
@@ -53,6 +55,14 @@ export default {
         return handlePresetCreate(request, env, url);
       }
 
+      if (url.pathname === '/api/content' && request.method === 'GET') {
+        return handleWorkshopContentList(request, env, url);
+      }
+
+      if (url.pathname === '/api/content' && request.method === 'POST') {
+        return handleWorkshopContentCreate(request, env);
+      }
+
       const presetRouteMatch = url.pathname.match(/^\/api\/presets\/([^/]+)(?:\/(download|like|file|cover))?$/);
       if (presetRouteMatch) {
         const presetId = decodeURIComponent(presetRouteMatch[1]);
@@ -78,6 +88,28 @@ export default {
         }
         if (action === 'cover' && request.method === 'GET') {
           return handlePresetCover(presetId, env);
+        }
+      }
+
+      const contentRouteMatch = url.pathname.match(/^\/api\/content\/([^/]+)(?:\/(cover|like))?$/);
+      if (contentRouteMatch) {
+        const entryId = decodeURIComponent(contentRouteMatch[1]);
+        const action = contentRouteMatch[2] || '';
+
+        if (!action && request.method === 'GET') {
+          return handleWorkshopContentGet(entryId, env, url);
+        }
+        if (!action && request.method === 'PUT') {
+          return handleWorkshopContentUpdate(entryId, request, env);
+        }
+        if (!action && request.method === 'DELETE') {
+          return handleWorkshopContentDelete(entryId, request, env);
+        }
+        if (action === 'like' && request.method === 'POST') {
+          return handleWorkshopContentLikeToggle(entryId, request, env);
+        }
+        if (action === 'cover' && request.method === 'GET') {
+          return handleWorkshopContentCover(entryId, env);
         }
       }
 
@@ -195,6 +227,11 @@ async function handlePresetCreate(request, env) {
     return jsonResponse({ ok: false, error: 'preset_json is required.' }, 400);
   }
 
+  const duplicatePreset = await findPresetByOwnerAndTitle(env.ngnl_build, payload.ownerDiscordId, payload.title);
+  if (duplicatePreset) {
+    return jsonResponse({ ok: false, error: '你已经发布过同名预设，请修改名称后再试。' }, 409);
+  }
+
   const presetId = payload.id || crypto.randomUUID();
   const rawPresetJson = payload.rawPresetJson || stringifyJson(payload.presetData);
   ensureSizeLimit(byteSize(rawPresetJson), 'Preset JSON');
@@ -208,9 +245,10 @@ async function handlePresetCreate(request, env) {
   const coverResult = await syncCoverAsset({
     bucket: env.ngnl,
     coverUrl: payload.coverUrl,
-    presetId,
+    assetId: presetId,
     existingCoverObjectKey: '',
     allowReuseApiPath: false,
+    coverApiPath: `/api/presets/${encodeURIComponent(presetId)}/cover`,
   });
 
   await upsertUser(env.ngnl_build, {
@@ -280,6 +318,12 @@ async function handlePresetUpdate(presetId, request, env) {
     avatarUrl: payload.avatarUrl || existingRow.avatar_url || '',
   });
 
+  const nextTitle = payload.title || existingRow.title;
+  const duplicatePreset = await findPresetByOwnerAndTitle(env.ngnl_build, ownerDiscordId, nextTitle, presetId);
+  if (duplicatePreset) {
+    return jsonResponse({ ok: false, error: '你已经发布过同名预设，请修改名称后再试。' }, 409);
+  }
+
   const objectKey = readString(existingRow.object_key) || `${PRESET_PREFIX}/${presetId}.json`;
   let previewPresetData = safeJsonParse(existingRow.preset_json, null);
   if (payload.presetData) {
@@ -295,9 +339,10 @@ async function handlePresetUpdate(presetId, request, env) {
   const coverResult = await syncCoverAsset({
     bucket: env.ngnl,
     coverUrl: payload.coverUrl,
-    presetId,
+    assetId: presetId,
     existingCoverObjectKey: readString(existingRow.cover_object_key),
     allowReuseApiPath: true,
+    coverApiPath: `/api/presets/${encodeURIComponent(presetId)}/cover`,
   });
 
   const mergedTags = payload.tags.length ? payload.tags : safeJsonParse(existingRow.tags_json, []);
@@ -362,6 +407,322 @@ async function handlePresetDelete(presetId, request, env) {
   ]);
 
   return jsonResponse({ ok: true, deleted_id: presetId });
+}
+
+async function handleWorkshopContentList(request, env, baseUrl = null) {
+  const url = baseUrl || new URL(request.url);
+  const entryType = readString(url.searchParams.get('type'));
+  const viewerDiscordId = readString(url.searchParams.get('viewer_discord_id') || url.searchParams.get('user_discord_id'));
+  const ownerDiscordId = readString(url.searchParams.get('owner_discord_id'));
+  const search = readString(url.searchParams.get('search'));
+  const status = readString(url.searchParams.get('status')) || 'published';
+
+  if (entryType && !isValidWorkshopEntryType(entryType)) {
+    return jsonResponse({ ok: false, error: 'Invalid content type.' }, 400);
+  }
+
+  const whereClauses = ['e.status = ?'];
+  const params = [status];
+
+  if (entryType) {
+    whereClauses.push('e.entry_type = ?');
+    params.push(entryType);
+  }
+
+  if (ownerDiscordId) {
+    whereClauses.push('e.owner_discord_id = ?');
+    params.push(ownerDiscordId);
+  }
+
+  if (search) {
+    const keyword = `%${search.toLowerCase()}%`;
+    whereClauses.push('(LOWER(e.title) LIKE ? OR LOWER(e.intro) LIKE ? OR LOWER(COALESCE(u.username, e.owner_discord_id)) LIKE ? OR LOWER(e.tags_json) LIKE ?)');
+    params.push(keyword, keyword, keyword, keyword);
+  }
+
+  const { results } = await env.ngnl_build
+    .prepare(`
+      SELECT
+        e.id,
+        e.entry_type,
+        e.owner_discord_id,
+        e.title,
+        e.intro,
+        e.cover_url,
+        e.cover_object_key,
+        e.tags_json,
+        e.like_count,
+        e.status,
+        e.created_at,
+        e.updated_at,
+        CASE
+          WHEN ? != '' AND EXISTS(
+            SELECT 1 FROM workshop_entry_likes wl
+            WHERE wl.entry_id = e.id AND wl.user_discord_id = ?
+          ) THEN 1
+          ELSE 0
+        END AS liked,
+        u.username,
+        u.avatar_url
+      FROM workshop_entries e
+      LEFT JOIN users u ON u.discord_id = e.owner_discord_id
+      WHERE ${whereClauses.join(' AND ')}
+      ORDER BY datetime(e.updated_at) DESC, datetime(e.created_at) DESC
+    `)
+    .bind(viewerDiscordId, viewerDiscordId, ...params)
+    .all();
+
+  return jsonResponse({
+    ok: true,
+    items: (results || []).map((row) => mapWorkshopEntryRow(row)),
+  });
+}
+
+async function handleWorkshopContentGet(entryId, env, url = null) {
+  const viewerDiscordId = readString(url?.searchParams.get('viewer_discord_id') || url?.searchParams.get('user_discord_id'));
+  const row = await getWorkshopEntryRow(env.ngnl_build, entryId, viewerDiscordId);
+  if (!row) {
+    return jsonResponse({ ok: false, error: 'Content not found.' }, 404);
+  }
+  return jsonResponse({ ok: true, item: mapWorkshopEntryRow(row, { includeContentText: true }) });
+}
+
+async function handleWorkshopContentCreate(request, env) {
+  const body = await readJsonBody(request);
+  const payload = normalizeWorkshopEntryPayload(body);
+
+  if (!isValidWorkshopEntryType(payload.entryType)) {
+    return jsonResponse({ ok: false, error: 'entry_type is required.' }, 400);
+  }
+  if (!payload.ownerDiscordId) {
+    return jsonResponse({ ok: false, error: 'owner_discord_id is required.' }, 400);
+  }
+  if (!payload.title) {
+    return jsonResponse({ ok: false, error: 'title is required.' }, 400);
+  }
+  if (!payload.contentText) {
+    return jsonResponse({ ok: false, error: 'content_text is required.' }, 400);
+  }
+
+  const duplicateEntry = await findWorkshopEntryByOwnerAndTitle(env.ngnl_build, payload.entryType, payload.ownerDiscordId, payload.title);
+  if (duplicateEntry) {
+    return jsonResponse({ ok: false, error: '你已经发布过同名内容，请修改名称后再试。' }, 409);
+  }
+
+  const entryId = payload.id || crypto.randomUUID();
+  const coverApiPath = `/api/content/${encodeURIComponent(entryId)}/cover`;
+  const coverResult = await syncCoverAsset({
+    bucket: env.ngnl,
+    coverUrl: payload.coverUrl,
+    assetId: entryId,
+    existingCoverObjectKey: '',
+    allowReuseApiPath: false,
+    coverApiPath,
+    objectKeyPrefix: `${CONTENT_COVER_PREFIX}/${payload.entryType}`,
+  });
+
+  await upsertUser(env.ngnl_build, {
+    discordId: payload.ownerDiscordId,
+    username: payload.username || payload.author || payload.ownerDiscordId,
+    avatarUrl: payload.avatarUrl,
+  });
+
+  await env.ngnl_build
+    .prepare(`
+      INSERT INTO workshop_entries (
+        id,
+        entry_type,
+        owner_discord_id,
+        title,
+        intro,
+        cover_url,
+        cover_object_key,
+        tags_json,
+        content_text,
+        like_count,
+        status,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `)
+    .bind(
+      entryId,
+      payload.entryType,
+      payload.ownerDiscordId,
+      payload.title,
+      payload.intro || '',
+      coverResult.sourceUrl,
+      coverResult.objectKey,
+      stringifyJson(payload.tags),
+      payload.contentText,
+      payload.status || 'published',
+    )
+    .run();
+
+  const row = await getWorkshopEntryRow(env.ngnl_build, entryId);
+  return jsonResponse({ ok: true, item: mapWorkshopEntryRow(row, { includeContentText: true }) }, 201);
+}
+
+async function handleWorkshopContentUpdate(entryId, request, env) {
+  const body = await readJsonBody(request);
+  const payload = normalizeWorkshopEntryPayload(body);
+  const existingRow = await getWorkshopEntryRow(env.ngnl_build, entryId);
+
+  if (!existingRow) {
+    return jsonResponse({ ok: false, error: 'Content not found.' }, 404);
+  }
+
+  const ownerDiscordId = payload.ownerDiscordId || readString(body.owner_discord_id || body.ownerId);
+  if (!ownerDiscordId || ownerDiscordId !== existingRow.owner_discord_id) {
+    return jsonResponse({ ok: false, error: 'Only the owner can update this content.' }, 403);
+  }
+
+  const nextEntryType = payload.entryType || existingRow.entry_type;
+  if (!isValidWorkshopEntryType(nextEntryType)) {
+    return jsonResponse({ ok: false, error: 'Invalid content type.' }, 400);
+  }
+
+  const nextTitle = payload.title || existingRow.title;
+  const duplicateEntry = await findWorkshopEntryByOwnerAndTitle(env.ngnl_build, nextEntryType, ownerDiscordId, nextTitle, entryId);
+  if (duplicateEntry) {
+    return jsonResponse({ ok: false, error: '你已经发布过同名内容，请修改名称后再试。' }, 409);
+  }
+
+  await upsertUser(env.ngnl_build, {
+    discordId: ownerDiscordId,
+    username: payload.username || payload.author || existingRow.username || ownerDiscordId,
+    avatarUrl: payload.avatarUrl || existingRow.avatar_url || '',
+  });
+
+  const coverApiPath = `/api/content/${encodeURIComponent(entryId)}/cover`;
+  const hasCoverInput = Object.prototype.hasOwnProperty.call(body, 'cover_url') || Object.prototype.hasOwnProperty.call(body, 'coverUrl');
+  const hasTagsInput = Array.isArray(body.tags);
+  const coverResult = await syncCoverAsset({
+    bucket: env.ngnl,
+    coverUrl: hasCoverInput ? payload.coverUrl : (readString(existingRow.cover_object_key) ? coverApiPath : existingRow.cover_url || ''),
+    assetId: entryId,
+    existingCoverObjectKey: readString(existingRow.cover_object_key),
+    allowReuseApiPath: true,
+    coverApiPath,
+    objectKeyPrefix: `${CONTENT_COVER_PREFIX}/${nextEntryType}`,
+  });
+
+  await env.ngnl_build
+    .prepare(`
+      UPDATE workshop_entries
+      SET
+        entry_type = ?,
+        title = ?,
+        intro = ?,
+        cover_url = ?,
+        cover_object_key = ?,
+        tags_json = ?,
+        content_text = ?,
+        status = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND owner_discord_id = ?
+    `)
+    .bind(
+      nextEntryType,
+      nextTitle,
+      payload.intro || '',
+      coverResult.sourceUrl,
+      coverResult.objectKey,
+      stringifyJson(hasTagsInput ? payload.tags : safeJsonParse(existingRow.tags_json, [])),
+      payload.contentText || existingRow.content_text || '',
+      payload.status || existingRow.status || 'published',
+      entryId,
+      ownerDiscordId,
+    )
+    .run();
+
+  const row = await getWorkshopEntryRow(env.ngnl_build, entryId);
+  return jsonResponse({ ok: true, item: mapWorkshopEntryRow(row, { includeContentText: true }) });
+}
+
+async function handleWorkshopContentDelete(entryId, request, env) {
+  const body = request.method === 'DELETE' ? await readJsonBody(request) : {};
+  const url = new URL(request.url);
+  const ownerDiscordId = readString(body.owner_discord_id || body.ownerId || url.searchParams.get('owner_discord_id') || url.searchParams.get('ownerId'));
+
+  const existingRow = await getWorkshopEntryRow(env.ngnl_build, entryId);
+  if (!existingRow) {
+    return jsonResponse({ ok: false, error: 'Content not found.' }, 404);
+  }
+  if (!ownerDiscordId || ownerDiscordId !== existingRow.owner_discord_id) {
+    return jsonResponse({ ok: false, error: 'Only the owner can delete this content.' }, 403);
+  }
+
+  await deleteIfPresent(env.ngnl, readString(existingRow.cover_object_key));
+  await env.ngnl_build.batch([
+    env.ngnl_build.prepare('DELETE FROM workshop_entry_likes WHERE entry_id = ?').bind(entryId),
+    env.ngnl_build.prepare('DELETE FROM workshop_entries WHERE id = ? AND owner_discord_id = ?').bind(entryId, ownerDiscordId),
+  ]);
+
+  return jsonResponse({ ok: true, deleted_id: entryId });
+}
+
+async function handleWorkshopContentLikeToggle(entryId, request, env) {
+  const body = await readJsonBody(request);
+  const userDiscordId = readString(body.user_discord_id || body.userId);
+  const username = readString(body.username);
+  const avatarUrl = readString(body.avatar_url || body.avatarUrl);
+
+  const existingRow = await getWorkshopEntryRow(env.ngnl_build, entryId, userDiscordId);
+  if (!existingRow) {
+    return jsonResponse({ ok: false, error: 'Content not found.' }, 404);
+  }
+  if (!userDiscordId) {
+    return jsonResponse({ ok: false, error: 'user_discord_id is required.' }, 400);
+  }
+
+  if (username) {
+    await upsertUser(env.ngnl_build, { discordId: userDiscordId, username, avatarUrl });
+  }
+
+  const likeRow = await env.ngnl_build
+    .prepare('SELECT 1 AS liked FROM workshop_entry_likes WHERE entry_id = ? AND user_discord_id = ?')
+    .bind(entryId, userDiscordId)
+    .first();
+
+  if (likeRow?.liked) {
+    await env.ngnl_build.batch([
+      env.ngnl_build.prepare('DELETE FROM workshop_entry_likes WHERE entry_id = ? AND user_discord_id = ?').bind(entryId, userDiscordId),
+      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = MAX(like_count - 1, 0), updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(entryId),
+    ]);
+  } else {
+    await env.ngnl_build.batch([
+      env.ngnl_build.prepare('INSERT INTO workshop_entry_likes (entry_id, user_discord_id) VALUES (?, ?)').bind(entryId, userDiscordId),
+      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = like_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(entryId),
+    ]);
+  }
+
+  const row = await getWorkshopEntryRow(env.ngnl_build, entryId, userDiscordId);
+  return jsonResponse({ ok: true, liked: !likeRow?.liked, like_count: Number(row?.like_count || 0), item: row ? mapWorkshopEntryRow(row, { includeContentText: true }) : null });
+}
+
+async function handleWorkshopContentCover(entryId, env) {
+  const row = await getWorkshopEntryRow(env.ngnl_build, entryId);
+  if (!row) {
+    return jsonResponse({ ok: false, error: 'Content not found.' }, 404);
+  }
+
+  const objectKey = readString(row.cover_object_key);
+  if (!objectKey) {
+    return jsonResponse({ ok: false, error: 'Cover not found.' }, 404);
+  }
+
+  const object = await env.ngnl.get(objectKey);
+  if (!object) {
+    return jsonResponse({ ok: false, error: 'Cover file not found in R2.' }, 404);
+  }
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set('etag', object.httpEtag);
+  headers.set('cache-control', 'public, max-age=86400');
+
+  return new Response(object.body, { headers });
 }
 
 async function handlePresetDownload(presetId, request, env) {
@@ -506,6 +867,107 @@ async function getPresetRow(db, presetId, viewerDiscordId = '') {
     .first();
 }
 
+async function getWorkshopEntryRow(db, entryId, viewerDiscordId = '') {
+  return db
+    .prepare(`
+      SELECT
+        e.id,
+        e.entry_type,
+        e.owner_discord_id,
+        e.title,
+        e.intro,
+        e.cover_url,
+        e.cover_object_key,
+        e.tags_json,
+        e.content_text,
+        e.like_count,
+        e.status,
+        e.created_at,
+        e.updated_at,
+        CASE
+          WHEN ? != '' AND EXISTS(
+            SELECT 1 FROM workshop_entry_likes wl
+            WHERE wl.entry_id = e.id AND wl.user_discord_id = ?
+          ) THEN 1
+          ELSE 0
+        END AS liked,
+        u.username,
+        u.avatar_url
+      FROM workshop_entries e
+      LEFT JOIN users u ON u.discord_id = e.owner_discord_id
+      WHERE e.id = ?
+      LIMIT 1
+    `)
+    .bind(viewerDiscordId, viewerDiscordId, entryId)
+    .first();
+}
+
+async function findPresetByOwnerAndTitle(db, ownerDiscordId, title, excludePresetId = '') {
+  const normalizedTitle = readString(title);
+  if (!ownerDiscordId || !normalizedTitle) {
+    return null;
+  }
+
+  if (excludePresetId) {
+    return db
+      .prepare(`
+        SELECT id, title
+        FROM presets
+        WHERE owner_discord_id = ?
+          AND LOWER(title) = LOWER(?)
+          AND id != ?
+        LIMIT 1
+      `)
+      .bind(ownerDiscordId, normalizedTitle, excludePresetId)
+      .first();
+  }
+
+  return db
+    .prepare(`
+      SELECT id, title
+      FROM presets
+      WHERE owner_discord_id = ?
+        AND LOWER(title) = LOWER(?)
+      LIMIT 1
+    `)
+    .bind(ownerDiscordId, normalizedTitle)
+    .first();
+}
+
+async function findWorkshopEntryByOwnerAndTitle(db, entryType, ownerDiscordId, title, excludeEntryId = '') {
+  const normalizedTitle = readString(title);
+  if (!isValidWorkshopEntryType(entryType) || !ownerDiscordId || !normalizedTitle) {
+    return null;
+  }
+
+  if (excludeEntryId) {
+    return db
+      .prepare(`
+        SELECT id, title
+        FROM workshop_entries
+        WHERE entry_type = ?
+          AND owner_discord_id = ?
+          AND LOWER(title) = LOWER(?)
+          AND id != ?
+        LIMIT 1
+      `)
+      .bind(entryType, ownerDiscordId, normalizedTitle, excludeEntryId)
+      .first();
+  }
+
+  return db
+    .prepare(`
+      SELECT id, title
+      FROM workshop_entries
+      WHERE entry_type = ?
+        AND owner_discord_id = ?
+        AND LOWER(title) = LOWER(?)
+      LIMIT 1
+    `)
+    .bind(entryType, ownerDiscordId, normalizedTitle)
+    .first();
+}
+
 function normalizePresetPayload(body) {
   const presetData = body.presetData ?? body.preset_json ?? null;
   const tags = Array.isArray(body.tags)
@@ -527,6 +989,29 @@ function normalizePresetPayload(body) {
     tags,
     presetData,
     rawPresetJson: typeof body.preset_raw_json === 'string' ? body.preset_raw_json : '',
+  };
+}
+
+function normalizeWorkshopEntryPayload(body) {
+  const tags = Array.isArray(body.tags)
+    ? body.tags.map((item) => readString(typeof item === 'string' ? item : item?.text)).filter(Boolean)
+    : [];
+
+  return {
+    id: readString(body.id),
+    entryType: readString(body.entry_type || body.entryType || body.type),
+    ownerDiscordId: readString(body.owner_discord_id || body.ownerDiscordId || body.ownerId),
+    username: readString(body.username || body.owner_name || body.ownerName || body.author),
+    avatarUrl: readString(body.avatar_url || body.avatarUrl || body.authorAvatar),
+    author: readString(body.author),
+    title: readString(body.title || body.name),
+    intro: readString(body.intro || body.summary),
+    coverUrl: readString(body.cover_url || body.coverUrl),
+    contentText: typeof body.content_text === 'string'
+      ? body.content_text.trim()
+      : readString(body.contentText || body.content),
+    status: readString(body.status) || 'published',
+    tags,
   };
 }
 
@@ -575,7 +1060,30 @@ function mapPresetRow(row) {
   };
 }
 
-async function syncCoverAsset({ bucket, coverUrl, presetId, existingCoverObjectKey, allowReuseApiPath }) {
+function mapWorkshopEntryRow(row, options = {}) {
+  const tags = safeJsonParse(row.tags_json, []);
+  return {
+    id: row.id,
+    type: row.entry_type,
+    ownerId: row.owner_discord_id,
+    ownerName: row.username || row.owner_discord_id,
+    author: row.username || row.owner_discord_id,
+    authorAvatar: row.avatar_url || '',
+    name: row.title,
+    title: row.title,
+    intro: row.intro || '',
+    coverUrl: readString(row.cover_object_key) ? `/api/content/${encodeURIComponent(row.id)}/cover` : (row.cover_url || ''),
+    tags: Array.isArray(tags) ? tags : [],
+    likes: Number(row.like_count || 0),
+    liked: Boolean(Number(row.liked || 0)),
+    contentText: options.includeContentText ? (row.content_text || '') : '',
+    status: row.status || 'published',
+    createdAt: row.created_at || '',
+    updatedAt: row.updated_at || '',
+  };
+}
+
+async function syncCoverAsset({ bucket, coverUrl, assetId, existingCoverObjectKey, allowReuseApiPath, coverApiPath = '', objectKeyPrefix = COVER_PREFIX }) {
   const cleanedUrl = readString(coverUrl);
   if (!cleanedUrl) {
     if (existingCoverObjectKey) {
@@ -584,7 +1092,7 @@ async function syncCoverAsset({ bucket, coverUrl, presetId, existingCoverObjectK
     return { sourceUrl: '', objectKey: '' };
   }
 
-  if (allowReuseApiPath && cleanedUrl === `/api/presets/${encodeURIComponent(presetId)}/cover`) {
+  if (allowReuseApiPath && coverApiPath && cleanedUrl === coverApiPath) {
     return { sourceUrl: '', objectKey: existingCoverObjectKey || '' };
   }
 
@@ -627,7 +1135,7 @@ async function syncCoverAsset({ bucket, coverUrl, presetId, existingCoverObjectK
 
   ensureSizeLimit(bytes.byteLength, 'Cover image');
 
-  const objectKey = `${COVER_PREFIX}/${presetId}.${ext}`;
+  const objectKey = `${objectKeyPrefix}/${assetId}.${ext}`;
   await bucket.put(objectKey, bytes, { httpMetadata: { contentType } });
 
   if (existingCoverObjectKey && existingCoverObjectKey !== objectKey) {
@@ -636,6 +1144,10 @@ async function syncCoverAsset({ bucket, coverUrl, presetId, existingCoverObjectK
 
   const persistedSourceUrl = cleanedUrl.startsWith('data:image/') ? '' : cleanedUrl;
   return { sourceUrl: persistedSourceUrl, objectKey };
+}
+
+function isValidWorkshopEntryType(value) {
+  return WORKSHOP_ENTRY_TYPES.has(readString(value));
 }
 
 async function deleteIfPresent(bucket, objectKey) {
