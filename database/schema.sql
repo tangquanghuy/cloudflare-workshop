@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS presets (
   owner_discord_id TEXT NOT NULL,
   title TEXT NOT NULL,
   intro TEXT,
-  trigger_words TEXT NOT NULL DEFAULT '',
   cover_url TEXT,
   cover_object_key TEXT,
   object_key TEXT NOT NULL,

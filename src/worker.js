@@ -44,23 +44,23 @@ export default {
 
     try {
       if (url.pathname === '/api/users/sync' && request.method === 'POST') {
-        return handleUserSync(request, env);
+        return await handleUserSync(request, env);
       }
 
       if (url.pathname === '/api/presets' && request.method === 'GET') {
-        return handlePresetList(request, env);
+        return await handlePresetList(request, env);
       }
 
       if (url.pathname === '/api/presets' && request.method === 'POST') {
-        return handlePresetCreate(request, env, url);
+        return await handlePresetCreate(request, env, url);
       }
 
       if (url.pathname === '/api/content' && request.method === 'GET') {
-        return handleWorkshopContentList(request, env, url);
+        return await handleWorkshopContentList(request, env, url);
       }
 
       if (url.pathname === '/api/content' && request.method === 'POST') {
-        return handleWorkshopContentCreate(request, env);
+        return await handleWorkshopContentCreate(request, env);
       }
 
       const presetRouteMatch = url.pathname.match(/^\/api\/presets\/([^/]+)(?:\/(download|like|file|cover))?$/);
@@ -69,25 +69,25 @@ export default {
         const action = presetRouteMatch[2] || '';
 
         if (!action && request.method === 'GET') {
-          return handlePresetGet(presetId, env, url);
+          return await handlePresetGet(presetId, env, url);
         }
         if (!action && request.method === 'PUT') {
-          return handlePresetUpdate(presetId, request, env, url);
+          return await handlePresetUpdate(presetId, request, env, url);
         }
         if (!action && request.method === 'DELETE') {
-          return handlePresetDelete(presetId, request, env);
+          return await handlePresetDelete(presetId, request, env);
         }
         if (action === 'download' && request.method === 'POST') {
-          return handlePresetDownload(presetId, request, env, url);
+          return await handlePresetDownload(presetId, request, env, url);
         }
         if (action === 'like' && request.method === 'POST') {
-          return handlePresetLikeToggle(presetId, request, env, url);
+          return await handlePresetLikeToggle(presetId, request, env, url);
         }
         if (action === 'file' && request.method === 'GET') {
-          return handlePresetFile(presetId, env);
+          return await handlePresetFile(presetId, env);
         }
         if (action === 'cover' && request.method === 'GET') {
-          return handlePresetCover(presetId, env);
+          return await handlePresetCover(presetId, env);
         }
       }
 
@@ -97,19 +97,19 @@ export default {
         const action = contentRouteMatch[2] || '';
 
         if (!action && request.method === 'GET') {
-          return handleWorkshopContentGet(entryId, env, url);
+          return await handleWorkshopContentGet(entryId, env, url);
         }
         if (!action && request.method === 'PUT') {
-          return handleWorkshopContentUpdate(entryId, request, env);
+          return await handleWorkshopContentUpdate(entryId, request, env);
         }
         if (!action && request.method === 'DELETE') {
-          return handleWorkshopContentDelete(entryId, request, env);
+          return await handleWorkshopContentDelete(entryId, request, env);
         }
         if (action === 'like' && request.method === 'POST') {
-          return handleWorkshopContentLikeToggle(entryId, request, env);
+          return await handleWorkshopContentLikeToggle(entryId, request, env);
         }
         if (action === 'cover' && request.method === 'GET') {
-          return handleWorkshopContentCover(entryId, env);
+          return await handleWorkshopContentCover(entryId, env);
         }
       }
 
@@ -172,7 +172,6 @@ async function handlePresetList(request, env, baseUrl = null) {
         p.owner_discord_id,
         p.title,
         p.intro,
-        p.trigger_words,
         p.cover_url,
         p.cover_object_key,
         p.object_key,
@@ -227,10 +226,6 @@ async function handlePresetCreate(request, env) {
   if (!payload.presetData) {
     return jsonResponse({ ok: false, error: 'preset_json is required.' }, 400);
   }
-  if (!payload.triggerWords.length) {
-    return jsonResponse({ ok: false, error: '请至少填写 1 个预设触发词。' }, 400);
-  }
-
   const duplicatePreset = await findPresetByOwnerAndTitle(env.ngnl_build, payload.ownerDiscordId, payload.title);
   if (duplicatePreset) {
     return jsonResponse({ ok: false, error: '你已经发布过同名预设，请修改名称后再试。' }, 409);
@@ -268,7 +263,6 @@ async function handlePresetCreate(request, env) {
         owner_discord_id,
         title,
         intro,
-        trigger_words,
         cover_url,
         cover_object_key,
         object_key,
@@ -281,14 +275,13 @@ async function handlePresetCreate(request, env) {
         status,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `)
     .bind(
       presetId,
       payload.ownerDiscordId,
       payload.title,
       payload.intro,
-      payload.triggerWordsText,
       coverResult.sourceUrl,
       coverResult.objectKey,
       objectKey,
@@ -325,10 +318,6 @@ async function handlePresetUpdate(presetId, request, env) {
   });
 
   const nextTitle = payload.title || existingRow.title;
-  const nextTriggerWords = payload.triggerWords.length ? payload.triggerWords : parseCommaList(existingRow.trigger_words);
-  if (!nextTriggerWords.length) {
-    return jsonResponse({ ok: false, error: '请至少填写 1 个预设触发词。' }, 400);
-  }
   const duplicatePreset = await findPresetByOwnerAndTitle(env.ngnl_build, ownerDiscordId, nextTitle, presetId);
   if (duplicatePreset) {
     return jsonResponse({ ok: false, error: '你已经发布过同名预设，请修改名称后再试。' }, 409);
@@ -363,7 +352,6 @@ async function handlePresetUpdate(presetId, request, env) {
       SET
         title = ?,
         intro = ?,
-        trigger_words = ?,
         cover_url = ?,
         cover_object_key = ?,
         object_key = ?,
@@ -378,7 +366,6 @@ async function handlePresetUpdate(presetId, request, env) {
     .bind(
       payload.title || existingRow.title,
       payload.intro || '',
-      joinCommaList(nextTriggerWords),
       coverResult.sourceUrl,
       coverResult.objectKey,
       objectKey,
@@ -875,7 +862,6 @@ async function getPresetRow(db, presetId, viewerDiscordId = '') {
         p.owner_discord_id,
         p.title,
         p.intro,
-        p.trigger_words,
         p.cover_url,
         p.cover_object_key,
         p.object_key,
@@ -1014,7 +1000,6 @@ function normalizePresetPayload(body) {
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => readString(typeof item === 'string' ? item : item?.text)).filter(Boolean)
     : [];
-  const triggerWords = normalizeCommaList(body.trigger_words ?? body.triggerWords);
 
   return {
     id: readString(body.id),
@@ -1029,8 +1014,6 @@ function normalizePresetPayload(body) {
     race: readString(body.race || presetData?.race || presetData?.customRace?.name || presetData?.customRace),
     status: readString(body.status) || 'published',
     tags,
-    triggerWords,
-    triggerWordsText: joinCommaList(triggerWords),
     presetData,
     rawPresetJson: typeof body.preset_raw_json === 'string' ? body.preset_raw_json : '',
   };
@@ -1097,7 +1080,6 @@ function mapPresetRow(row) {
     className: row.class_name || '',
     race: row.race || '',
     tags: safeJsonParse(row.tags_json, []),
-    triggerWords: parseCommaList(row.trigger_words),
     likes: Number(row.like_count || 0),
     liked: Boolean(Number(row.liked || 0)),
     downloads: Number(row.download_count || 0),

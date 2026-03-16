@@ -1666,21 +1666,6 @@
                                     </div>
                                     <span class="field-hint">最多 5 个，可自定义输入；单个标签最多 12 个字符，已选 {{ publishForm.tags.length }}/5</span>
                                 </div>
-                                <div class="form-field">
-                                    <label>触发词</label>
-                                    <div class="trigger-word-list">
-                                        <div class="trigger-word-row" v-for="(word, index) in publishForm.triggerWords" :key="`build-trigger-${index}`">
-                                            <input type="text" v-model="publishForm.triggerWords[index]" :placeholder="`触发词 ${index + 1}`">
-                                            <button v-if="publishForm.triggerWords.length > 1" type="button" class="trigger-word-remove" @click="removePublishTriggerWord(index)">
-                                                <i class="ri-close-line"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="trigger-word-actions">
-                                        <button type="button" class="tag-custom-add" @click="addPublishTriggerWord">添加触发词</button>
-                                    </div>
-                                    <span class="field-hint">预设至少填写 1 个触发词，保存时会按英文逗号拼接。</span>
-                                </div>
                             </div>
                             <aside class="publish-preview">
                                 <div class="preview-cover">
@@ -2935,7 +2920,6 @@
         build.createdAt = rawItem.createdAt || '';
         build.updatedAt = rawItem.updatedAt || '';
         build.downloadUrl = rawItem.downloadUrl || '';
-        build.triggerWords = normalizeTriggerWords(rawItem.triggerWords || [], true);
         build.liked = !!rawItem.liked;
         build.status = rawItem.status || '';
         build.source = rawItem.source || 'remote-published';
@@ -2990,7 +2974,6 @@
                     coverUrl: build.coverUrl || '',
                     intro: build.intro || '',
                     tags: (build.tags || []).map((item) => item?.text || item).filter(Boolean),
-                    triggerWords: normalizeTriggerWords(build.triggerWords || []),
                     downloads: build.downloads || 0,
                     likes: build.likes || 0,
                     liked: !!build.liked,
@@ -3211,7 +3194,6 @@
                 coverUrl: '',
                 coverFileName: '',
                 tags: [],
-                triggerWords: [''],
                 customTagInput: '',
                 importedFileName: '',
                 importedPresetData: null,
@@ -3738,7 +3720,6 @@
                     fullBuild.updatedAt = build.updatedAt || "";
                     fullBuild.source = build.source || "remote-published";
                     fullBuild.downloadUrl = build.downloadUrl || "";
-                    fullBuild.triggerWords = normalizeTriggerWords(build.triggerWords || [], true);
                     return { build: fullBuild, rawText: text };
                 } catch (error) {
                     console.warn("Hydrate build failed:", error);
@@ -4086,16 +4067,6 @@
                 publishForm.value.coverFileName = '';
             }
 
-            function addPublishTriggerWord() {
-                const currentWords = Array.isArray(publishForm.value.triggerWords) ? [...publishForm.value.triggerWords] : [];
-                publishForm.value.triggerWords = [...currentWords, ''];
-            }
-
-            function removePublishTriggerWord(index) {
-                const nextWords = (publishForm.value.triggerWords || []).filter((_, currentIndex) => currentIndex !== index);
-                publishForm.value.triggerWords = nextWords.length ? nextWords : [''];
-            }
-
             function readFileAsDataUrl(file) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -4152,7 +4123,6 @@
                     coverUrl: editableBuild.coverUrl || "",
                     coverFileName: "",
                     tags: (editableBuild.tags || []).map((item) => item?.text || item).filter(Boolean),
-                    triggerWords: normalizeTriggerWords(editableBuild.triggerWords || [], true),
                     customTagInput: "",
                     importedFileName: `${editableBuild.name || "preset"}.json`,
                     importedPresetData: editableBuild.presetData || null,
@@ -4242,11 +4212,6 @@
 
                 const presetData = publishForm.value.importedPresetData;
                 const name = publishForm.value.name.trim() || presetData.name || '未命名预设';
-                const triggerWordsText = buildTriggerWordsText(publishForm.value.triggerWords || []);
-                if (!triggerWordsText) {
-                    buildDataStatus.value = '请至少填写 1 个预设触发词';
-                    return;
-                }
                 const existingBuild = editingBuildId.value
                     ? builds.value.find((item) => item.id === editingBuildId.value)
                     : null;
@@ -4274,7 +4239,6 @@
                         class_name: getImportedClassName(),
                         race: getImportedRaceName(),
                         tags: publishForm.value.tags,
-                        trigger_words: triggerWordsText,
                         preset_json: presetData,
                         preset_raw_json: publishForm.value.importedPresetRawJson || '',
                     };
@@ -4412,7 +4376,7 @@
                 openDetail, openSkillDetail, openTraitDetail, openCompanionDetail,
                 canOpenTraitDetail,
                 openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, triggerCoverImageImport, handleCoverImageImport, clearCoverImage, togglePublishTag,
-                addCustomPublishTag, removePublishTag, addPublishTriggerWord, removePublishTriggerWord,
+                addCustomPublishTag, removePublishTag,
                 getImportedClassName, getImportedRaceName, publishPresetBuild,
                 getSkillTypeColor, getAttributeIcon, getContentTypeLabel, getContentTypeIcon, getContentPreview, formatDateLabel,
                 isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
