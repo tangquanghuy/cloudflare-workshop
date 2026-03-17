@@ -2058,7 +2058,7 @@
                                     <span v-else class="author-avatar placeholder"><i class="ri-user-3-line"></i></span>
                                     <div class="author-info">
                                         <div class="author-name">作者:{{ item.author }}</div>
-                                        <div class="author-meta">{{ activeContentConfig.title }} · {{ formatDateLabel(item.updatedAt || item.createdAt) }}</div>
+                                        <div class="author-meta">{{ activeContentConfig.title }}</div>
                                     </div>
                                 </div>
                                 <div class="build-desc">{{ item.intro || getContentPreview(item.contentText) }}</div>
@@ -2075,7 +2075,6 @@
                                 </div>
                                 <div class="build-footer">
                                     <div class="build-stats">
-                                        <span class="build-stat"><i class="ri-time-line"></i> {{ formatDateLabel(item.updatedAt || item.createdAt) }}</span>
                                         <span class="build-stat"><i class="ri-heart-line"></i> {{ item.likes }}</span>
                                     </div>
                                     <div class="build-action-row">
@@ -2439,11 +2438,7 @@
                 </div>
 
                 <div class="modal-footer detail-action-bar">
-                    <div class="detail-action-group">
-                        <button class="btn btn-ghost btn-compact" @click="selectedContent = null">
-                            <i class="ri-close-line"></i> 关闭
-                        </button>
-                    </div>
+                    <div class="detail-action-group"></div>
                     <div class="btn-row">
                         <button
                             v-if="selectedContent && (selectedContent.type === 'character' || selectedContent.type === 'extension')"
