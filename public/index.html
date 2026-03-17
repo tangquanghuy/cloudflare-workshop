@@ -1337,6 +1337,196 @@
         }
         .placeholder-section p { font-size: 0.9rem; opacity: 0.5; }
 
+        .worldbook-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .worldbook-summary-grid {
+            display: grid;
+            grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+            gap: 20px;
+        }
+        .worldbook-panel {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-card);
+            padding: 24px;
+        }
+        .worldbook-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .worldbook-panel-header h2 {
+            font-family: var(--font-main);
+            font-size: 1.28rem;
+            margin-bottom: 6px;
+        }
+        .worldbook-panel-header p {
+            color: var(--secondary);
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+        .worldbook-status-card {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .worldbook-status-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+        .status-pill.online {
+            background: rgba(39,174,96,0.12);
+            color: var(--success);
+            border-color: rgba(39,174,96,0.18);
+        }
+        .status-pill.warning {
+            background: rgba(212,168,83,0.14);
+            color: var(--gold-dim);
+            border-color: rgba(212,168,83,0.2);
+        }
+        .status-pill.offline {
+            background: rgba(192,57,43,0.1);
+            color: var(--danger);
+            border-color: rgba(192,57,43,0.16);
+        }
+        .worldbook-binding-list,
+        .worldbook-meta-row,
+        .worldbook-filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .worldbook-binding-chip,
+        .worldbook-meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            color: var(--primary);
+            background: #f6f7f8;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .worldbook-meta-chip.workshop {
+            background: rgba(45,106,79,0.08);
+            color: var(--accent);
+            border-color: rgba(45,106,79,0.14);
+        }
+        .worldbook-select-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .worldbook-select-row select,
+        .worldbook-select-row input,
+        .worldbook-editor-grid select,
+        .worldbook-editor-grid input,
+        .worldbook-editor-grid textarea {
+            width: 100%;
+            border: 2px solid rgba(0,0,0,0.06);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            font-size: 0.94rem;
+            color: var(--primary);
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .worldbook-select-row select:focus,
+        .worldbook-select-row input:focus,
+        .worldbook-editor-grid select:focus,
+        .worldbook-editor-grid input:focus,
+        .worldbook-editor-grid textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(45,106,79,0.08);
+        }
+        .worldbook-select-wrap {
+            flex: 1;
+            min-width: 220px;
+        }
+        .worldbook-entry-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .worldbook-entry-card {
+            background: linear-gradient(180deg, #ffffff, #fbfbf8);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 28px rgba(45,52,54,0.06);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 0;
+        }
+        .worldbook-entry-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .worldbook-entry-name {
+            font-family: var(--font-main);
+            font-size: 1.02rem;
+            font-weight: 700;
+            line-height: 1.5;
+            color: var(--primary);
+            word-break: break-word;
+        }
+        .worldbook-entry-preview {
+            font-size: 0.88rem;
+            color: var(--secondary);
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 4.8em;
+        }
+        .worldbook-entry-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .worldbook-entry-actions .btn,
+        .worldbook-select-row .btn {
+            white-space: nowrap;
+        }
+        .worldbook-editor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .worldbook-editor-grid .full-width {
+            grid-column: 1 / -1;
+        }
+        .worldbook-editor-grid textarea {
+            min-height: 240px;
+            resize: vertical;
+            font-family: var(--font-mono);
+            line-height: 1.6;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -1390,6 +1580,9 @@
             .build-grid { grid-template-columns: 1fr; }
             .modal-panel { width: 95%; max-height: 92vh; }
             .modal-body { padding: 20px; }
+            .worldbook-summary-grid { grid-template-columns: 1fr; }
+            .worldbook-entry-list { grid-template-columns: 1fr; }
+            .worldbook-editor-grid { grid-template-columns: 1fr; }
             .race-info-card { flex-direction: column; }
             .companion-card { flex-direction: column; }
             .sub-detail-panel { width: 95%; }
@@ -1472,6 +1665,10 @@
             <div class="tab-item" :class="{ active: activeTab === 'extension' }" @click="activeTab = 'extension'">
                 <i class="ri-puzzle-line"></i> 拓展
                 <span class="tab-count">{{ extensionSection.items.length }}</span>
+            </div>
+            <div class="tab-item" :class="{ active: activeTab === 'worldbook' }" @click="openWorldbookTab()">
+                <i class="ri-book-open-line"></i> 世界书
+                <span class="tab-count">{{ worldbookEntryCount }}</span>
             </div>
         </nav>
 
@@ -1931,6 +2128,140 @@
                     </section>
                 </template>
             </template>
+
+            <template v-if="activeTab === 'worldbook'">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="ri-search-line"></i>
+                        <input type="text" placeholder="搜索世界书条目名称、来源或内容" v-model="worldbookState.searchQuery">
+                    </div>
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn btn-outline" :disabled="worldbookState.loading" @click="refreshWorldbookEnvironment(true)">
+                            <i :class="worldbookState.loading ? 'ri-loader-4-line spin-icon' : 'ri-refresh-line'"></i> 刷新环境
+                        </button>
+                        <button type="button" class="btn btn-outline" :disabled="!worldbookState.available || !worldbookState.selectedWorldbook || worldbookState.saving" @click="createBlankWorldbookEntry()">
+                            <i class="ri-add-line"></i> 新建条目
+                        </button>
+                        <button type="button" class="btn btn-primary" :disabled="!worldbookState.canCreateWorldbook || worldbookState.saving" @click="promptCreateWorldbook()">
+                            <i class="ri-book-3-line"></i> 新建世界书
+                        </button>
+                    </div>
+                </div>
+
+                <div class="worldbook-shell">
+                    <section class="worldbook-panel">
+                        <div class="worldbook-panel-header">
+                            <div>
+                                <h2>世界书管理</h2>
+                                <p>在酒馆环境中读取和管理当前可用的世界书，并把创意工坊里的角色或拓展直接写入目标世界书。</p>
+                            </div>
+                        </div>
+
+                        <div class="worldbook-summary-grid">
+                            <div class="worldbook-status-card">
+                                <div class="worldbook-status-row">
+                                    <span class="status-pill" :class="worldbookState.available ? 'online' : (worldbookState.mode === 'detecting' ? 'warning' : 'offline')">
+                                        <i :class="worldbookState.available ? 'ri-checkbox-circle-line' : (worldbookState.mode === 'detecting' ? 'ri-loader-4-line spin-icon' : 'ri-close-circle-line')"></i>
+                                        {{ worldbookState.modeLabel }}
+                                    </span>
+                                    <span class="status-pill warning" v-if="worldbookState.available && worldbookState.driverLabel">
+                                        <i class="ri-links-line"></i> {{ worldbookState.driverLabel }}
+                                    </span>
+                                </div>
+                                <div class="field-hint">{{ worldbookState.status }}</div>
+                                <div class="worldbook-binding-list" v-if="worldbookBindingChips.length">
+                                    <span class="worldbook-binding-chip" v-for="chip in worldbookBindingChips" :key="chip.label + chip.value">
+                                        <i :class="chip.icon"></i> {{ chip.label }}: {{ chip.value }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="worldbook-status-card">
+                                <div class="worldbook-select-row">
+                                    <div class="worldbook-select-wrap">
+                                        <select v-model="worldbookState.selectedWorldbook" @change="refreshWorldbookEntries()">
+                                            <option value="" disabled>选择要管理的世界书</option>
+                                            <option v-for="name in worldbookState.worldbookNames" :key="name" :value="name">{{ name }}</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-outline" :disabled="!worldbookState.available || !worldbookState.selectedWorldbook || worldbookState.loading" @click="refreshWorldbookEntries()">
+                                        <i class="ri-repeat-2-line"></i> 刷新条目
+                                    </button>
+                                </div>
+                                <div class="worldbook-meta-row">
+                                    <span class="worldbook-meta-chip">
+                                        <i class="ri-stack-line"></i> 当前条目 {{ worldbookEntryCount }}
+                                    </span>
+                                    <span class="worldbook-meta-chip workshop">
+                                        <i class="ri-apps-2-line"></i> 工坊管理 {{ workshopWorldbookEntryCount }}
+                                    </span>
+                                </div>
+                                <div class="worldbook-filter-row" v-if="worldbookState.available">
+                                    <button type="button" class="tag-option" :class="{ active: worldbookState.filterMode === 'all' }" @click="worldbookState.filterMode = 'all'">全部</button>
+                                    <button type="button" class="tag-option" :class="{ active: worldbookState.filterMode === 'workshop' }" @click="worldbookState.filterMode = 'workshop'">工坊条目</button>
+                                    <button type="button" class="tag-option" :class="{ active: worldbookState.filterMode === 'enabled' }" @click="worldbookState.filterMode = 'enabled'">已启用</button>
+                                    <button type="button" class="tag-option" :class="{ active: worldbookState.filterMode === 'disabled' }" @click="worldbookState.filterMode = 'disabled'">已禁用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="worldbook-panel" v-if="worldbookState.available && filteredWorldbookEntries.length">
+                        <div class="section-heading">
+                            <i class="ri-file-list-3-line"></i> 条目列表
+                        </div>
+                        <div class="worldbook-entry-list">
+                            <article class="worldbook-entry-card" v-for="entry in filteredWorldbookEntries" :key="entry.uid">
+                                <div class="worldbook-entry-top">
+                                    <div>
+                                        <div class="worldbook-entry-name">{{ entry.name || `未命名条目 #${entry.uid}` }}</div>
+                                        <div class="worldbook-meta-row" style="margin-top:10px;">
+                                            <span class="worldbook-meta-chip">
+                                                <i class="ri-hashtag"></i> UID {{ entry.uid }}
+                                            </span>
+                                            <span class="worldbook-meta-chip" :class="{ workshop: isCreativeWorkshopEntry(entry) }">
+                                                <i :class="isCreativeWorkshopEntry(entry) ? 'ri-apps-2-line' : 'ri-book-2-line'"></i> {{ getWorldbookEntrySourceLabel(entry) }}
+                                            </span>
+                                            <span class="worldbook-meta-chip" :class="{ workshop: entry.enabled }">
+                                                <i :class="entry.enabled ? 'ri-toggle-fill' : 'ri-toggle-line'"></i> {{ entry.enabled ? '已启用' : '已禁用' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="worldbook-entry-preview">{{ getWorldbookEntryPreview(entry) }}</div>
+                                <div class="worldbook-meta-row" v-if="getWorldbookEntrySourceMeta(entry)">
+                                    <span class="worldbook-meta-chip workshop">
+                                        <i class="ri-price-tag-3-line"></i> {{ getWorldbookEntrySourceMeta(entry).sourceTitle || getWorldbookEntrySourceMeta(entry).sourceId }}
+                                    </span>
+                                </div>
+                                <div class="worldbook-entry-actions">
+                                    <button type="button" class="btn btn-ghost" :disabled="worldbookState.saving" @click="toggleWorldbookEntryEnabled(entry)">
+                                        <i :class="entry.enabled ? 'ri-eye-off-line' : 'ri-eye-line'"></i> {{ entry.enabled ? '禁用' : '启用' }}
+                                    </button>
+                                    <button type="button" class="btn btn-outline" :disabled="worldbookState.saving" @click="openWorldbookEntryEditor(entry)">
+                                        <i class="ri-edit-line"></i> 编辑
+                                    </button>
+                                    <button type="button" class="btn btn-ghost" :disabled="worldbookState.saving" @click="deleteWorldbookEntry(entry)">
+                                        <i class="ri-delete-bin-line"></i> 删除
+                                    </button>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <div class="placeholder-section" v-else-if="worldbookState.available">
+                        <i class="ri-book-open-line"></i>
+                        <h3>当前没有可显示的条目</h3>
+                        <p>{{ worldbookState.selectedWorldbook ? '可以切换筛选条件，或直接在角色 / 拓展详情里写入世界书。' : '请先选择目标世界书。' }}</p>
+                    </div>
+
+                    <div class="placeholder-section" v-else>
+                        <i class="ri-plug-2-line"></i>
+                        <h3>未检测到酒馆世界书环境</h3>
+                        <p>独立打开时会自动禁用世界书管理。若你是嵌入到酒馆中使用，请确认页面已接入酒馆 API 或宿主桥接。</p>
+                    </div>
+                </div>
+            </template>
         </main>
 
         <div class="modal-overlay" v-if="selectedContent" @click.self="selectedContent = null">
@@ -1992,6 +2323,17 @@
                         <i class="ri-close-line"></i> 关闭
                     </button>
                     <div class="btn-row">
+                        <button v-if="selectedContent && (selectedContent.type === 'character' || selectedContent.type === 'extension')" class="btn btn-ghost" @click="openWorldbookTab(true)">
+                            <i class="ri-book-open-line"></i> 世界书
+                        </button>
+                        <button
+                            v-if="selectedContent && (selectedContent.type === 'character' || selectedContent.type === 'extension')"
+                            class="btn btn-outline"
+                            :disabled="!canInstallSelectedContent"
+                            :title="getContentInstallDisabledReason(selectedContent)"
+                            @click="installSelectedContentToWorldbook(selectedContent)">
+                            <i class="ri-book-marked-line"></i> 写入世界书
+                        </button>
                         <button v-if="isContentOwnedByCurrentUser(selectedContent)" class="btn btn-outline" @click="editOwnedContent(selectedContent)">
                             <i class="ri-edit-line"></i> 编辑{{ getContentTypeLabel(selectedContent.type) }}
                         </button>
@@ -2000,6 +2342,111 @@
                         </button>
                         <button class="btn btn-primary" @click="toggleContentLike(selectedContent)">
                             <i :class="selectedContent.liked ? 'ri-heart-fill' : 'ri-heart-line'"></i> {{ selectedContent.liked ? `已点赞 ${selectedContent.likes}` : `点赞 ${selectedContent.likes}` }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" v-if="worldbookEditor.open" @click.self="closeWorldbookEditor()">
+            <div class="modal-panel">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        编辑世界书条目
+                        <span class="title-badge" style="background: var(--accent);">{{ worldbookEditor.form.name || `UID ${worldbookEditor.form.uid || '-'}` }}</span>
+                    </div>
+                    <button class="modal-close" @click="closeWorldbookEditor()">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="worldbook-editor-grid">
+                        <div class="form-field">
+                            <label>条目名称</label>
+                            <input type="text" v-model="worldbookEditor.form.name" placeholder="输入条目名称">
+                        </div>
+                        <div class="form-field">
+                            <label>启用状态</label>
+                            <select v-model="worldbookEditor.form.enabledText">
+                                <option value="true">已启用</option>
+                                <option value="false">已禁用</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>激活类型</label>
+                            <select v-model="worldbookEditor.form.strategyType">
+                                <option value="constant">constant</option>
+                                <option value="selective">selective</option>
+                                <option value="vectorized">vectorized</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>扫描深度</label>
+                            <input type="text" v-model="worldbookEditor.form.scanDepth" placeholder="same_as_global 或数字">
+                        </div>
+                        <div class="form-field">
+                            <label>主触发词</label>
+                            <input type="text" v-model="worldbookEditor.form.keysText" placeholder="用逗号分隔多个触发词">
+                        </div>
+                        <div class="form-field">
+                            <label>次级触发词逻辑</label>
+                            <select v-model="worldbookEditor.form.secondaryLogic">
+                                <option value="and_any">and_any</option>
+                                <option value="and_all">and_all</option>
+                                <option value="not_all">not_all</option>
+                                <option value="not_any">not_any</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>次级触发词</label>
+                            <input type="text" v-model="worldbookEditor.form.secondaryKeysText" placeholder="用逗号分隔多个次级触发词">
+                        </div>
+                        <div class="form-field">
+                            <label>插入位置</label>
+                            <select v-model="worldbookEditor.form.positionType">
+                                <option value="before_character_definition">before_character_definition</option>
+                                <option value="after_character_definition">after_character_definition</option>
+                                <option value="before_example_messages">before_example_messages</option>
+                                <option value="after_example_messages">after_example_messages</option>
+                                <option value="before_author_note">before_author_note</option>
+                                <option value="after_author_note">after_author_note</option>
+                                <option value="at_depth">at_depth</option>
+                                <option value="outlet">outlet</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>消息角色</label>
+                            <select v-model="worldbookEditor.form.role">
+                                <option value="system">system</option>
+                                <option value="assistant">assistant</option>
+                                <option value="user">user</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>深度</label>
+                            <input type="number" v-model="worldbookEditor.form.depth" min="0" step="1">
+                        </div>
+                        <div class="form-field">
+                            <label>顺序</label>
+                            <input type="number" v-model="worldbookEditor.form.order" step="1">
+                        </div>
+                        <div class="form-field">
+                            <label>激活概率</label>
+                            <input type="number" v-model="worldbookEditor.form.probability" min="0" max="100" step="1">
+                        </div>
+                        <div class="form-field full-width">
+                            <label>条目内容</label>
+                            <textarea v-model="worldbookEditor.form.content" placeholder="输入世界书正文"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-ghost" @click="closeWorldbookEditor()">
+                        <i class="ri-close-line"></i> 取消
+                    </button>
+                    <div class="btn-row">
+                        <button class="btn btn-outline" :disabled="worldbookState.saving" @click="saveWorldbookEntryEdits()">
+                            <i :class="worldbookState.saving ? 'ri-loader-4-line spin-icon' : 'ri-save-line'"></i> 保存
                         </button>
                     </div>
                 </div>
@@ -3121,6 +3568,551 @@
             avatarUrl: getDiscordAvatarUrl(user)
         };
     }
+
+    const WORLDBOOK_BRIDGE_CHANNEL = 'creative-workshop:worldbook';
+    const WORKSHOP_WORLDBOOK_PREFIX = '🧩mod ';
+
+    function normalizeCharWorldbooks(value) {
+        return {
+            primary: value?.primary || '',
+            additional: Array.isArray(value?.additional) ? value.additional.filter(Boolean) : [],
+        };
+    }
+
+    function normalizeWorldbookKeywordList(values) {
+        const source = Array.isArray(values)
+            ? values
+            : String(values || '').split(/[\n,，]/);
+        const output = [];
+        const seen = new Set();
+        source.forEach((item) => {
+            const text = String(item instanceof RegExp ? item.toString() : item || '').trim();
+            if (!text || seen.has(text)) {
+                return;
+            }
+            seen.add(text);
+            output.push(text);
+        });
+        return output;
+    }
+
+    function stringifyWorldbookKeywordList(values) {
+        return normalizeWorldbookKeywordList(values).join(', ');
+    }
+
+    function hasWorkshopWorldbookPrefix(entryName) {
+        return String(entryName || '').trim().startsWith(WORKSHOP_WORLDBOOK_PREFIX);
+    }
+
+    function getWorldbookEntrySourceMeta(entry) {
+        const meta = entry?.extra?.creativeWorkshop || null;
+        if (meta) {
+            return meta;
+        }
+        if (hasWorkshopWorldbookPrefix(entry?.name)) {
+            return {
+                sourceId: '',
+                sourceType: 'prefix',
+                sourceTitle: String(entry?.name || '').replace(WORKSHOP_WORLDBOOK_PREFIX, '').trim(),
+                sourceUpdatedAt: '',
+                installedAt: '',
+                slot: 'prefix_only',
+                fallback: true,
+            };
+        }
+        return null;
+    }
+
+    function matchesCreativeWorkshopEntry(entry, sourceMeta) {
+        const meta = getWorldbookEntrySourceMeta(entry);
+        if (!meta || !sourceMeta?.sourceId) {
+            return false;
+        }
+        return String(meta.sourceId) === String(sourceMeta.sourceId)
+            && (!sourceMeta.sourceType || String(meta.sourceType || '') === String(sourceMeta.sourceType));
+    }
+
+    function buildWorkshopWorldbookContent(item) {
+        const blocks = [];
+        const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
+        if (item?.intro) {
+            blocks.push(`【简介】\n${String(item.intro).trim()}`);
+        }
+        if (item?.overviewText) {
+            blocks.push(`【总览】\n${String(item.overviewText).trim()}`);
+        }
+        if (item?.contentText) {
+            blocks.push(`【正文】\n${String(item.contentText).trim()}`);
+        }
+        if (triggerWords.length) {
+            blocks.push(`【触发词】\n${triggerWords.join(' / ')}`);
+        }
+        return blocks.filter(Boolean).join('\n\n');
+    }
+
+    function buildWorkshopWorldbookEntries(item) {
+        const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
+        const sourceType = item?.type === 'character' ? 'character' : 'extension';
+        const strategyType = sourceType === 'extension' && triggerWords.length ? 'selective' : 'constant';
+        return [{
+            name: `${WORKSHOP_WORLDBOOK_PREFIX}${item?.name || '未命名内容'}`,
+            enabled: true,
+            strategy: {
+                type: strategyType,
+                keys: strategyType === 'selective' ? triggerWords : [],
+                keys_secondary: { logic: 'and_any', keys: [] },
+                scan_depth: 'same_as_global',
+            },
+            position: {
+                type: 'before_character_definition',
+                role: 'system',
+                depth: 0,
+                order: 100,
+            },
+            content: buildWorkshopWorldbookContent(item),
+            probability: 100,
+            recursion: {
+                prevent_incoming: false,
+                prevent_outgoing: false,
+                delay_until: null,
+            },
+            effect: {
+                sticky: null,
+                cooldown: null,
+                delay: null,
+            },
+            extra: {
+                creativeWorkshop: {
+                    sourceId: item?.id || '',
+                    sourceType,
+                    sourceTitle: item?.name || item?.title || '',
+                    sourceUpdatedAt: item?.updatedAt || item?.createdAt || '',
+                    installedAt: new Date().toISOString(),
+                    slot: 'main',
+                },
+            },
+        }];
+    }
+
+    function createBlankWorldbookEntryPayload() {
+        return {
+            name: '新条目',
+            enabled: true,
+            strategy: {
+                type: 'constant',
+                keys: [],
+                keys_secondary: { logic: 'and_any', keys: [] },
+                scan_depth: 'same_as_global',
+            },
+            position: {
+                type: 'before_character_definition',
+                role: 'system',
+                depth: 0,
+                order: 0,
+            },
+            content: '',
+            probability: 100,
+            recursion: {
+                prevent_incoming: false,
+                prevent_outgoing: false,
+                delay_until: null,
+            },
+            effect: {
+                sticky: null,
+                cooldown: null,
+                delay: null,
+            },
+            extra: {
+                creativeWorkshop: {
+                    sourceId: `manual-${Date.now()}`,
+                    sourceType: 'manual',
+                    sourceTitle: '手动创建条目',
+                    installedAt: new Date().toISOString(),
+                    slot: 'manual',
+                },
+            },
+        };
+    }
+
+    const WORKSHOP_WORLDBOOK_VISIBLE_PREFIX = '🧩mod ';
+    const WORKSHOP_MOD_START_NAME = '--/Mod开始';
+    const WORKSHOP_MOD_END_NAME = '--/Mod结束';
+    const WORKSHOP_MOD_START_ORDER = 400;
+    const WORKSHOP_MOD_END_ORDER = 500;
+
+    function hasWorkshopWorldbookPrefix(entryName) {
+        return String(entryName || '').trim().startsWith(WORKSHOP_WORLDBOOK_VISIBLE_PREFIX);
+    }
+
+    function getWorldbookEntrySourceMeta(entry) {
+        const meta = entry?.extra?.creativeWorkshop || null;
+        if (meta) {
+            return meta;
+        }
+        if (hasWorkshopWorldbookPrefix(entry?.name)) {
+            return {
+                sourceId: '',
+                sourceType: 'prefix',
+                sourceTitle: String(entry?.name || '').replace(WORKSHOP_WORLDBOOK_VISIBLE_PREFIX, '').trim(),
+                sourceUpdatedAt: '',
+                installedAt: '',
+                slot: 'prefix_only',
+                fallback: true,
+            };
+        }
+        return null;
+    }
+
+    function createWorkshopManagedEntry({ item, slot, nameSuffix, content, strategyType, keys = [] }) {
+        return {
+            name: `${WORKSHOP_WORLDBOOK_VISIBLE_PREFIX}${item?.name || '未命名内容'}${nameSuffix}`,
+            enabled: true,
+            strategy: {
+                type: strategyType,
+                keys,
+                keys_secondary: { logic: 'and_any', keys: [] },
+                scan_depth: 'same_as_global',
+            },
+            position: {
+                type: 'after_character_definition',
+                role: 'system',
+                depth: 0,
+                order: WORKSHOP_MOD_START_ORDER + 1,
+            },
+            content,
+            probability: 100,
+            recursion: {
+                prevent_incoming: false,
+                prevent_outgoing: false,
+                delay_until: null,
+            },
+            effect: {
+                sticky: null,
+                cooldown: null,
+                delay: null,
+            },
+            extra: {
+                creativeWorkshop: {
+                    sourceId: item?.id || '',
+                    sourceType: item?.type === 'character' ? 'character' : 'extension',
+                    sourceTitle: item?.name || item?.title || '',
+                    sourceUpdatedAt: item?.updatedAt || item?.createdAt || '',
+                    installedAt: new Date().toISOString(),
+                    slot,
+                },
+            },
+        };
+    }
+
+    function buildWorkshopOverviewContent(item) {
+        const blocks = [];
+        if (item?.intro) {
+            blocks.push(`【简介】\n${String(item.intro).trim()}`);
+        }
+        if (item?.overviewText) {
+            blocks.push(`【总览】\n${String(item.overviewText).trim()}`);
+        }
+        return blocks.filter(Boolean).join('\n\n');
+    }
+
+    function buildWorkshopBodyContent(item) {
+        const blocks = [];
+        if (item?.intro && !item?.overviewText) {
+            blocks.push(`【简介】\n${String(item.intro).trim()}`);
+        }
+        if (item?.contentText) {
+            blocks.push(`【正文】\n${String(item.contentText).trim()}`);
+        }
+        const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
+        if (triggerWords.length) {
+            blocks.push(`【触发词】\n${triggerWords.join(' / ')}`);
+        }
+        return blocks.filter(Boolean).join('\n\n');
+    }
+
+    function buildWorkshopWorldbookEntries(item) {
+        const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
+        const overviewContent = buildWorkshopOverviewContent(item);
+        const bodyContent = buildWorkshopBodyContent(item);
+        const bodyStrategyType = triggerWords.length ? 'selective' : 'constant';
+        const entries = [];
+        if (overviewContent) {
+            entries.push(createWorkshopManagedEntry({
+                item,
+                slot: 'overview',
+                nameSuffix: ' [总览]',
+                content: overviewContent,
+                strategyType: 'constant',
+                keys: [],
+            }));
+        }
+        if (bodyContent) {
+            entries.push(createWorkshopManagedEntry({
+                item,
+                slot: 'content',
+                nameSuffix: overviewContent ? ' [正文]' : '',
+                content: bodyContent,
+                strategyType: bodyStrategyType,
+                keys: bodyStrategyType === 'selective' ? triggerWords : [],
+            }));
+        }
+        return entries;
+    }
+
+    function createModBoundaryEntry(name, order) {
+        return {
+            name,
+            enabled: true,
+            strategy: {
+                type: 'constant',
+                keys: [],
+                keys_secondary: { logic: 'and_any', keys: [] },
+                scan_depth: 'same_as_global',
+            },
+            position: {
+                type: 'after_character_definition',
+                role: 'system',
+                depth: 0,
+                order,
+            },
+            content: '',
+            probability: 100,
+            recursion: {
+                prevent_incoming: false,
+                prevent_outgoing: false,
+                delay_until: null,
+            },
+            effect: {
+                sticky: null,
+                cooldown: null,
+                delay: null,
+            },
+            extra: {
+                creativeWorkshop: {
+                    sourceId: name,
+                    sourceType: 'anchor',
+                    sourceTitle: name,
+                    installedAt: new Date().toISOString(),
+                    slot: 'anchor',
+                },
+            },
+        };
+    }
+
+    function ensureWorkshopBoundaryEntries(worldbook) {
+        const nextWorldbook = [...worldbook];
+        let startEntry = nextWorldbook.find((entry) => entry.name === WORKSHOP_MOD_START_NAME);
+        let endEntry = nextWorldbook.find((entry) => entry.name === WORKSHOP_MOD_END_NAME);
+        if (!startEntry) {
+            startEntry = createModBoundaryEntry(WORKSHOP_MOD_START_NAME, WORKSHOP_MOD_START_ORDER);
+            nextWorldbook.push(startEntry);
+        }
+        if (!endEntry) {
+            endEntry = createModBoundaryEntry(WORKSHOP_MOD_END_NAME, WORKSHOP_MOD_END_ORDER);
+            nextWorldbook.push(endEntry);
+        }
+        startEntry.position = { ...(startEntry.position || {}), type: 'after_character_definition', role: 'system', depth: 0, order: WORKSHOP_MOD_START_ORDER };
+        endEntry.position = { ...(endEntry.position || {}), type: 'after_character_definition', role: 'system', depth: 0, order: WORKSHOP_MOD_END_ORDER };
+        startEntry.enabled = true;
+        endEntry.enabled = true;
+        return nextWorldbook;
+    }
+
+    function reorderWorkshopManagedEntries(worldbook) {
+        const nextWorldbook = ensureWorkshopBoundaryEntries(worldbook);
+        const managedEntries = nextWorldbook
+            .filter((entry) => {
+                if (entry.name === WORKSHOP_MOD_START_NAME || entry.name === WORKSHOP_MOD_END_NAME) {
+                    return false;
+                }
+                const meta = getWorldbookEntrySourceMeta(entry);
+                return !!meta && meta.sourceType !== 'anchor';
+            })
+            .sort((a, b) => {
+                const aOrder = Number(a?.position?.order ?? 0);
+                const bOrder = Number(b?.position?.order ?? 0);
+                if (aOrder !== bOrder) {
+                    return aOrder - bOrder;
+                }
+                return String(a?.name || '').localeCompare(String(b?.name || ''));
+            });
+        managedEntries.forEach((entry, index) => {
+            entry.position = {
+                ...(entry.position || {}),
+                type: 'after_character_definition',
+                role: 'system',
+                depth: 0,
+                order: WORKSHOP_MOD_START_ORDER + 1 + index,
+            };
+        });
+        return nextWorldbook;
+    }
+
+    function collectWorkshopGroupEntries(worldbook, sourceMeta) {
+        return worldbook.filter((entry) => matchesCreativeWorkshopEntry(entry, sourceMeta));
+    }
+
+    function createWorldbookEditorForm(entry) {
+        return {
+            uid: entry?.uid ?? null,
+            name: entry?.name || '',
+            enabledText: entry?.enabled === false ? 'false' : 'true',
+            strategyType: entry?.strategy?.type || 'constant',
+            keysText: stringifyWorldbookKeywordList(entry?.strategy?.keys || []),
+            secondaryLogic: entry?.strategy?.keys_secondary?.logic || 'and_any',
+            secondaryKeysText: stringifyWorldbookKeywordList(entry?.strategy?.keys_secondary?.keys || []),
+            scanDepth: entry?.strategy?.scan_depth === 'same_as_global'
+                ? 'same_as_global'
+                : String(entry?.strategy?.scan_depth ?? 'same_as_global'),
+            positionType: entry?.position?.type || 'before_character_definition',
+            role: entry?.position?.role || 'system',
+            depth: String(entry?.position?.depth ?? 0),
+            order: String(entry?.position?.order ?? 0),
+            probability: String(entry?.probability ?? 100),
+            content: entry?.content || '',
+        };
+    }
+
+    function createWorldbookBridgeClient() {
+        let requestSeq = 0;
+        return {
+            request(action, payload = {}, timeoutMs = 2500) {
+                return new Promise((resolve, reject) => {
+                    if (!window.parent || window.parent === window) {
+                        reject(new Error('No bridge host'));
+                        return;
+                    }
+                    const id = `cw-wb-${Date.now()}-${++requestSeq}`;
+                    const timer = window.setTimeout(() => {
+                        window.removeEventListener('message', handleMessage);
+                        reject(new Error('Bridge timeout'));
+                    }, timeoutMs);
+                    function handleMessage(event) {
+                        const data = event.data;
+                        if (event.source !== window.parent) {
+                            return;
+                        }
+                        if (!data || data.channel !== WORLDBOOK_BRIDGE_CHANNEL || data.kind !== 'response' || data.id !== id) {
+                            return;
+                        }
+                        window.clearTimeout(timer);
+                        window.removeEventListener('message', handleMessage);
+                        if (data.ok === false) {
+                            reject(new Error(data.error || 'Bridge request failed'));
+                            return;
+                        }
+                        resolve(data.payload);
+                    }
+                    window.addEventListener('message', handleMessage);
+                    window.parent.postMessage({
+                        channel: WORLDBOOK_BRIDGE_CHANNEL,
+                        kind: 'request',
+                        id,
+                        action,
+                        payload,
+                    }, '*');
+                });
+            },
+        };
+    }
+
+    function getDirectWorldbookDriver() {
+        const required = ['getWorldbookNames', 'getWorldbook', 'updateWorldbookWith', 'createWorldbookEntries', 'deleteWorldbookEntries'];
+        if (!required.every((name) => typeof window[name] === 'function')) {
+            return null;
+        }
+        return {
+            mode: 'direct',
+            label: '酒馆直连',
+            async getContext() {
+                return {
+                    worldbookNames: typeof window.getWorldbookNames === 'function' ? (window.getWorldbookNames() || []) : [],
+                    globalWorldbooks: typeof window.getGlobalWorldbookNames === 'function' ? (window.getGlobalWorldbookNames() || []) : [],
+                    charWorldbooks: typeof window.getCharWorldbookNames === 'function'
+                        ? normalizeCharWorldbooks(window.getCharWorldbookNames('current'))
+                        : { primary: '', additional: [] },
+                    chatWorldbook: typeof window.getChatWorldbookName === 'function' ? (window.getChatWorldbookName('current') || '') : '',
+                    canCreateWorldbook: typeof window.createWorldbook === 'function',
+                };
+            },
+            async getEntries(worldbookName) {
+                return await window.getWorldbook(worldbookName);
+            },
+            async createWorldbook(worldbookName) {
+                if (typeof window.createWorldbook !== 'function') {
+                    throw new Error('createWorldbook 不可用');
+                }
+                return await window.createWorldbook(worldbookName, []);
+            },
+            async createEntries(worldbookName, entries) {
+                return await window.createWorldbookEntries(worldbookName, entries, { render: 'immediate' });
+            },
+            async updateEntry(worldbookName, uid, nextEntry) {
+                return await window.updateWorldbookWith(worldbookName, (worldbook) => worldbook.map((entry) => (
+                    Number(entry.uid) === Number(uid) ? { ...entry, ...nextEntry } : entry
+                )), { render: 'immediate' });
+            },
+            async deleteEntries(worldbookName, uids) {
+                const uidSet = new Set((uids || []).map((uid) => Number(uid)));
+                return await window.deleteWorldbookEntries(worldbookName, (entry) => uidSet.has(Number(entry.uid)), { render: 'immediate' });
+            },
+            async upsertWorkshopEntries(worldbookName, sourceMeta, entries) {
+                return await window.updateWorldbookWith(worldbookName, (worldbook) => {
+                    const withBoundaries = ensureWorkshopBoundaryEntries(worldbook);
+                    const remaining = withBoundaries.filter((entry) => !matchesCreativeWorkshopEntry(entry, sourceMeta));
+                    return reorderWorkshopManagedEntries([...remaining, ...entries]);
+                }, { render: 'immediate' });
+            },
+        };
+    }
+
+    function createBridgeWorldbookDriver(bridge, handshakePayload = {}) {
+        return {
+            mode: 'bridge',
+            label: handshakePayload?.label || '宿主桥接',
+            async getContext() {
+                const payload = await bridge.request('getContext', {}, 4000);
+                return payload?.context || payload || {};
+            },
+            async getEntries(worldbookName) {
+                const payload = await bridge.request('getEntries', { worldbookName }, 5000);
+                return payload?.entries || [];
+            },
+            async createWorldbook(worldbookName) {
+                return await bridge.request('createWorldbook', { worldbookName }, 5000);
+            },
+            async createEntries(worldbookName, entries) {
+                return await bridge.request('createEntries', { worldbookName, entries }, 5000);
+            },
+            async updateEntry(worldbookName, uid, nextEntry) {
+                return await bridge.request('updateEntry', { worldbookName, uid, nextEntry }, 5000);
+            },
+            async deleteEntries(worldbookName, uids) {
+                return await bridge.request('deleteEntries', { worldbookName, uids }, 5000);
+            },
+            async upsertWorkshopEntries(worldbookName, sourceMeta, entries) {
+                return await bridge.request('upsertWorkshopEntries', { worldbookName, sourceMeta, entries }, 5000);
+            },
+        };
+    }
+
+    async function createWorldbookDriver() {
+        const directDriver = getDirectWorldbookDriver();
+        if (directDriver) {
+            return directDriver;
+        }
+        const bridge = createWorldbookBridgeClient();
+        try {
+            const handshakePayload = await bridge.request('handshake', { source: 'creative-workshop' }, 1500);
+            if (handshakePayload?.ok === false) {
+                throw new Error(handshakePayload.error || 'Bridge handshake failed');
+            }
+            return createBridgeWorldbookDriver(bridge, handshakePayload || {});
+        } catch (error) {
+            return null;
+        }
+    }
+
     createApp({
         setup() {
             const activeTab = ref('build');
@@ -3131,6 +4123,7 @@
             const skillDetail = ref(null);
             const traitDetail = ref(null);
             const companionDetail = ref(null);
+            let worldbookDriver = null;
             const buildDataStatus = ref('暂无预设，请在“上传预设”里手动选择 JSON 文件导入');
             const presetTagOptions = ['爆发', '续航', '清怪', '对单', '控制', '召唤', '生存', '整活'];
             const characterTagOptions = ['原创', '同人', '恋爱', '病娇', '温柔', '冷淡', '反派', '治愈'];
@@ -3626,6 +4619,421 @@
             const extensionSection = createContentSection('extension');
             const activeContentSection = computed(() => activeTab.value === 'extension' ? extensionSection : characterSection);
             const activeContentConfig = computed(() => contentSectionConfig[activeTab.value] || contentSectionConfig.character);
+            const worldbookState = reactive({
+                mode: 'detecting',
+                modeLabel: '检测中',
+                driverLabel: '',
+                status: '正在检测世界书环境…',
+                available: false,
+                initialized: false,
+                loading: false,
+                saving: false,
+                canCreateWorldbook: false,
+                worldbookNames: [],
+                selectedWorldbook: '',
+                entries: [],
+                searchQuery: '',
+                filterMode: 'all',
+                charWorldbooks: { primary: '', additional: [] },
+                globalWorldbooks: [],
+                chatWorldbook: '',
+            });
+            const worldbookEditor = reactive({
+                open: false,
+                entry: null,
+                form: createWorldbookEditorForm(null),
+            });
+            const worldbookEntryCount = computed(() => worldbookState.entries.filter((entry) => getWorldbookEntrySourceMeta(entry)?.sourceType !== 'anchor').length);
+            const workshopWorldbookEntryCount = computed(() => worldbookState.entries.filter((entry) => {
+                const meta = getWorldbookEntrySourceMeta(entry);
+                return !!meta && meta.sourceType !== 'anchor';
+            }).length);
+            const worldbookBindingChips = computed(() => {
+                const chips = [];
+                if (worldbookState.charWorldbooks.primary) {
+                    chips.push({ icon: 'ri-user-star-line', label: '角色主世界书', value: worldbookState.charWorldbooks.primary });
+                }
+                (worldbookState.charWorldbooks.additional || []).forEach((name) => {
+                    chips.push({ icon: 'ri-user-add-line', label: '角色附加世界书', value: name });
+                });
+                if (worldbookState.chatWorldbook) {
+                    chips.push({ icon: 'ri-message-3-line', label: '聊天世界书', value: worldbookState.chatWorldbook });
+                }
+                (worldbookState.globalWorldbooks || []).forEach((name) => {
+                    chips.push({ icon: 'ri-global-line', label: '全局世界书', value: name });
+                });
+                return chips;
+            });
+            const filteredWorldbookEntries = computed(() => {
+                const query = String(worldbookState.searchQuery || '').trim().toLowerCase();
+                return worldbookState.entries.filter((entry) => {
+                    const meta = getWorldbookEntrySourceMeta(entry);
+                    if (meta?.sourceType === 'anchor') {
+                        return false;
+                    }
+                    if (worldbookState.filterMode === 'workshop' && !meta) {
+                        return false;
+                    }
+                    if (worldbookState.filterMode === 'enabled' && !entry.enabled) {
+                        return false;
+                    }
+                    if (worldbookState.filterMode === 'disabled' && entry.enabled) {
+                        return false;
+                    }
+                    if (!query) {
+                        return true;
+                    }
+                    return String(entry?.name || '').toLowerCase().includes(query)
+                        || String(entry?.content || '').toLowerCase().includes(query)
+                        || String(meta?.sourceTitle || '').toLowerCase().includes(query)
+                        || String(meta?.sourceId || '').toLowerCase().includes(query);
+                });
+            });
+            const canInstallSelectedContent = computed(() => {
+                const item = selectedContent.value;
+                return !!item
+                    && (item.type === 'character' || item.type === 'extension')
+                    && worldbookState.available
+                    && !!worldbookState.selectedWorldbook;
+            });
+
+            function getPreferredWorldbookName(context, currentValue = '') {
+                const names = Array.isArray(context?.worldbookNames) ? context.worldbookNames.filter(Boolean) : [];
+                if (currentValue && names.includes(currentValue)) {
+                    return currentValue;
+                }
+                if (context?.charWorldbooks?.primary && names.includes(context.charWorldbooks.primary)) {
+                    return context.charWorldbooks.primary;
+                }
+                if (context?.chatWorldbook && names.includes(context.chatWorldbook)) {
+                    return context.chatWorldbook;
+                }
+                return names[0] || '';
+            }
+
+            async function refreshWorldbookEntries() {
+                if (!worldbookDriver || !worldbookState.selectedWorldbook) {
+                    worldbookState.entries = [];
+                    return;
+                }
+                worldbookState.loading = true;
+                try {
+                    const entries = await worldbookDriver.getEntries(worldbookState.selectedWorldbook);
+                    worldbookState.entries = Array.isArray(entries)
+                        ? [...entries].sort((a, b) => Number(a.uid || 0) - Number(b.uid || 0))
+                        : [];
+                    worldbookState.status = `已读取 ${worldbookState.selectedWorldbook}，共 ${worldbookState.entries.length} 个条目`;
+                } catch (error) {
+                    console.warn('Load worldbook entries failed:', error);
+                    worldbookState.entries = [];
+                    worldbookState.status = `读取世界书失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    worldbookState.loading = false;
+                }
+            }
+
+            async function refreshWorldbookEnvironment(forceRefreshEntries = false) {
+                worldbookState.loading = true;
+                try {
+                    worldbookDriver = await createWorldbookDriver();
+                    if (!worldbookDriver) {
+                        worldbookState.mode = 'disabled';
+                        worldbookState.modeLabel = '未连接';
+                        worldbookState.driverLabel = '独立打开';
+                        worldbookState.available = false;
+                        worldbookState.canCreateWorldbook = false;
+                        worldbookState.worldbookNames = [];
+                        worldbookState.selectedWorldbook = '';
+                        worldbookState.entries = [];
+                        worldbookState.status = '未检测到酒馆世界书 API。独立打开时会自动禁用世界书管理。';
+                        return;
+                    }
+                    const context = await worldbookDriver.getContext();
+                    worldbookState.mode = worldbookDriver.mode;
+                    worldbookState.modeLabel = '已连接';
+                    worldbookState.driverLabel = worldbookDriver.label;
+                    worldbookState.available = true;
+                    worldbookState.canCreateWorldbook = !!context?.canCreateWorldbook;
+                    worldbookState.worldbookNames = Array.isArray(context?.worldbookNames) ? context.worldbookNames.filter(Boolean) : [];
+                    worldbookState.charWorldbooks = normalizeCharWorldbooks(context?.charWorldbooks);
+                    worldbookState.globalWorldbooks = Array.isArray(context?.globalWorldbooks) ? context.globalWorldbooks.filter(Boolean) : [];
+                    worldbookState.chatWorldbook = context?.chatWorldbook || '';
+                    worldbookState.selectedWorldbook = getPreferredWorldbookName(context, worldbookState.selectedWorldbook);
+                    if (worldbookState.selectedWorldbook && (forceRefreshEntries || !worldbookState.entries.length || !worldbookState.initialized)) {
+                        await refreshWorldbookEntries();
+                    } else if (!worldbookState.selectedWorldbook) {
+                        worldbookState.entries = [];
+                        worldbookState.status = worldbookState.worldbookNames.length
+                            ? '请选择要管理的世界书'
+                            : '当前没有可用的世界书，可尝试新建一本';
+                    }
+                } catch (error) {
+                    console.warn('Detect worldbook environment failed:', error);
+                    worldbookState.mode = 'disabled';
+                    worldbookState.modeLabel = '检测失败';
+                    worldbookState.driverLabel = '';
+                    worldbookState.available = false;
+                    worldbookState.entries = [];
+                    worldbookState.status = `世界书环境检测失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    worldbookState.initialized = true;
+                    worldbookState.loading = false;
+                }
+            }
+
+            function getWorldbookEntrySourceLabel(entry) {
+                const meta = getWorldbookEntrySourceMeta(entry);
+                if (!meta) {
+                    return '普通条目';
+                }
+                if (meta.sourceType === 'character') {
+                    return '工坊角色';
+                }
+                if (meta.sourceType === 'extension') {
+                    return '工坊拓展';
+                }
+                if (meta.sourceType === 'prefix') {
+                    return '工坊条目';
+                }
+                if (meta.sourceType === 'manual') {
+                    return '手动创建';
+                }
+                return '工坊条目';
+            }
+
+            function getWorldbookEntryPreview(entry) {
+                return getContentPreview(entry?.content || '');
+            }
+
+            function isCreativeWorkshopEntry(entry) {
+                return !!getWorldbookEntrySourceMeta(entry);
+            }
+
+            function closeWorldbookEditor() {
+                worldbookEditor.open = false;
+                worldbookEditor.entry = null;
+                worldbookEditor.form = createWorldbookEditorForm(null);
+            }
+
+            function openWorldbookEntryEditor(entry) {
+                worldbookEditor.entry = entry;
+                worldbookEditor.form = createWorldbookEditorForm(entry);
+                worldbookEditor.open = true;
+            }
+
+            async function saveWorldbookEntryEdits() {
+                if (!worldbookDriver || !worldbookEditor.entry || !worldbookState.selectedWorldbook) {
+                    return;
+                }
+                const name = String(worldbookEditor.form.name || '').trim();
+                if (!name) {
+                    worldbookState.status = '条目名称不能为空';
+                    return;
+                }
+                worldbookState.saving = true;
+                try {
+                    const strategyType = worldbookEditor.form.strategyType || 'constant';
+                    const nextEntry = {
+                        ...worldbookEditor.entry,
+                        name,
+                        enabled: worldbookEditor.form.enabledText !== 'false',
+                        content: String(worldbookEditor.form.content || ''),
+                        probability: Math.min(100, Math.max(0, Number(worldbookEditor.form.probability || 100))),
+                        strategy: {
+                            ...(worldbookEditor.entry?.strategy || {}),
+                            type: strategyType,
+                            keys: strategyType === 'constant' ? [] : normalizeWorldbookKeywordList(worldbookEditor.form.keysText),
+                            keys_secondary: {
+                                logic: worldbookEditor.form.secondaryLogic || 'and_any',
+                                keys: strategyType === 'constant' ? [] : normalizeWorldbookKeywordList(worldbookEditor.form.secondaryKeysText),
+                            },
+                            scan_depth: String(worldbookEditor.form.scanDepth || 'same_as_global') === 'same_as_global'
+                                ? 'same_as_global'
+                                : Math.max(0, Number(worldbookEditor.form.scanDepth || 0)),
+                        },
+                        position: {
+                            ...(worldbookEditor.entry?.position || {}),
+                            type: worldbookEditor.form.positionType || 'before_character_definition',
+                            role: worldbookEditor.form.role || 'system',
+                            depth: Math.max(0, Number(worldbookEditor.form.depth || 0)),
+                            order: Number(worldbookEditor.form.order || 0),
+                        },
+                    };
+                    await worldbookDriver.updateEntry(worldbookState.selectedWorldbook, worldbookEditor.entry.uid, nextEntry);
+                    worldbookState.status = `已保存条目：${name}`;
+                    closeWorldbookEditor();
+                    await refreshWorldbookEntries();
+                } catch (error) {
+                    console.warn('Save worldbook entry failed:', error);
+                    worldbookState.status = `保存条目失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    worldbookState.saving = false;
+                }
+            }
+
+            async function toggleWorldbookEntryEnabled(entry) {
+                if (!worldbookDriver || !worldbookState.selectedWorldbook) {
+                    return;
+                }
+                worldbookState.saving = true;
+                try {
+                    await worldbookDriver.updateEntry(worldbookState.selectedWorldbook, entry.uid, {
+                        ...entry,
+                        enabled: !entry.enabled,
+                    });
+                    worldbookState.status = `${entry.name || `UID ${entry.uid}`} 已${entry.enabled ? '禁用' : '启用'}`;
+                    await refreshWorldbookEntries();
+                } catch (error) {
+                    console.warn('Toggle worldbook entry failed:', error);
+                    worldbookState.status = `更新条目状态失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    worldbookState.saving = false;
+                }
+            }
+
+            async function deleteWorldbookEntry(entry) {
+                if (!worldbookDriver || !worldbookState.selectedWorldbook) {
+                    return;
+                }
+                if (!window.confirm(`确认删除世界书条目「${entry.name || `UID ${entry.uid}`}」吗？`)) {
+                    return;
+                }
+                worldbookState.saving = true;
+                try {
+                    await worldbookDriver.deleteEntries(worldbookState.selectedWorldbook, [entry.uid]);
+                    if (worldbookEditor.entry?.uid === entry.uid) {
+                        closeWorldbookEditor();
+                    }
+                    worldbookState.status = `已删除条目：${entry.name || `UID ${entry.uid}`}`;
+                    await refreshWorldbookEntries();
+                } catch (error) {
+                    console.warn('Delete worldbook entry failed:', error);
+                    worldbookState.status = `删除条目失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    worldbookState.saving = false;
+                }
+            }
+
+            async function deleteWorldbookEntry(entry) {
+                if (!worldbookDriver || !worldbookState.selectedWorldbook) {
+                    return;
+                }
+                const sourceMeta = getWorldbookEntrySourceMeta(entry);
+                const groupedEntries = sourceMeta?.sourceId ? collectWorkshopGroupEntries(worldbookState.entries, sourceMeta) : [];
+                const targetEntries = groupedEntries.length ? groupedEntries : [entry];
+                const confirmLabel = groupedEntries.length
+                    ? `确认卸载「${sourceMeta?.sourceTitle || entry.name || `UID ${entry.uid}`}」并清理 ${groupedEntries.length} 条关联条目吗？`
+                    : `确认删除世界书条目「${entry.name || `UID ${entry.uid}`}」吗？`;
+                if (!window.confirm(confirmLabel)) {
+                    return;
+                }
+                worldbookState.saving = true;
+                try {
+                    await worldbookDriver.deleteEntries(worldbookState.selectedWorldbook, targetEntries.map((item) => item.uid));
+                    if (targetEntries.some((item) => worldbookEditor.entry?.uid === item.uid)) {
+                        closeWorldbookEditor();
+                    }
+                    worldbookState.status = groupedEntries.length
+                        ? `已卸载 ${sourceMeta?.sourceTitle || entry.name || `UID ${entry.uid}`}`
+                        : `已删除条目：${entry.name || `UID ${entry.uid}`}`;
+                    await refreshWorldbookEntries();
+                } catch (error) {
+                    console.warn('Delete worldbook entry failed:', error);
+                    worldbookState.status = `删除条目失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    worldbookState.saving = false;
+                }
+            }
+
+            async function createBlankWorldbookEntry() {
+                if (!worldbookDriver || !worldbookState.selectedWorldbook) {
+                    return;
+                }
+                worldbookState.saving = true;
+                try {
+                    const payload = createBlankWorldbookEntryPayload();
+                    const result = await worldbookDriver.createEntries(worldbookState.selectedWorldbook, [payload]);
+                    worldbookState.status = `已在 ${worldbookState.selectedWorldbook} 中创建空白条目`;
+                    await refreshWorldbookEntries();
+                    const createdEntry = Array.isArray(result?.new_entries) ? result.new_entries[0] : null;
+                    if (createdEntry) {
+                        openWorldbookEntryEditor(createdEntry);
+                    }
+                } catch (error) {
+                    console.warn('Create blank worldbook entry failed:', error);
+                    worldbookState.status = `创建条目失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    worldbookState.saving = false;
+                }
+            }
+
+            async function promptCreateWorldbook() {
+                if (!worldbookDriver || !worldbookState.canCreateWorldbook) {
+                    return;
+                }
+                const name = String(window.prompt('请输入新世界书名称') || '').trim();
+                if (!name) {
+                    return;
+                }
+                worldbookState.saving = true;
+                try {
+                    await worldbookDriver.createWorldbook(name);
+                    worldbookState.status = `已创建世界书：${name}`;
+                    await refreshWorldbookEnvironment(true);
+                    worldbookState.selectedWorldbook = name;
+                    await refreshWorldbookEntries();
+                } catch (error) {
+                    console.warn('Create worldbook failed:', error);
+                    worldbookState.status = `创建世界书失败：${error instanceof Error ? error.message : String(error)}`;
+                } finally {
+                    worldbookState.saving = false;
+                }
+            }
+
+            function getContentInstallDisabledReason(item) {
+                if (!item || (item.type !== 'character' && item.type !== 'extension')) {
+                    return '';
+                }
+                if (!worldbookState.available) {
+                    return '仅在酒馆环境或已接入桥接的嵌入环境中可用';
+                }
+                if (!worldbookState.selectedWorldbook) {
+                    return '当前没有可写入的目标世界书';
+                }
+                return '';
+            }
+
+            async function installSelectedContentToWorldbook(item) {
+                if (!item || !worldbookDriver || !worldbookState.selectedWorldbook) {
+                    openWorldbookTab(true);
+                    return;
+                }
+                const sourceMeta = {
+                    sourceId: item.id,
+                    sourceType: item.type,
+                };
+                const entries = buildWorkshopWorldbookEntries(item);
+                worldbookState.saving = true;
+                try {
+                    await worldbookDriver.upsertWorkshopEntries(worldbookState.selectedWorldbook, sourceMeta, entries);
+                    worldbookState.status = `已将「${item.name}」写入 ${worldbookState.selectedWorldbook}`;
+                    await refreshWorldbookEntries();
+                    activeTab.value = 'worldbook';
+                } catch (error) {
+                    console.warn('Install workshop content to worldbook failed:', error);
+                    worldbookState.status = `写入世界书失败：${error instanceof Error ? error.message : String(error)}`;
+                    activeTab.value = 'worldbook';
+                } finally {
+                    worldbookState.saving = false;
+                }
+            }
+
+            function openWorldbookTab(forceRefresh = false) {
+                activeTab.value = 'worldbook';
+                if (!worldbookState.initialized || forceRefresh) {
+                    refreshWorldbookEnvironment(forceRefresh);
+                }
+            }
 
             watch([searchQuery, buildScope], () => {
                 currentBuildPage.value = 1;
@@ -4363,6 +5771,13 @@
                     characterSection.loadItems(),
                     extensionSection.loadItems(),
                 ]);
+                await refreshWorldbookEnvironment();
+            });
+
+            watch(() => activeTab.value, (tab) => {
+                if (tab === 'worldbook' && (!worldbookState.initialized || !worldbookState.available)) {
+                    refreshWorldbookEnvironment();
+                }
             });
 
             return {
@@ -4373,6 +5788,7 @@
                 selectedBuild, selectedContent, skillDetail, traitDetail, companionDetail,
                 publishForm, presetTagOptions, buildDataStatus, publishSubmitting, publishButtonLabel,
                 characterSection, extensionSection, activeContentSection, activeContentConfig,
+                worldbookState, worldbookEditor, worldbookEntryCount, workshopWorldbookEntryCount, worldbookBindingChips, filteredWorldbookEntries,
                 openDetail, openSkillDetail, openTraitDetail, openCompanionDetail,
                 canOpenTraitDetail,
                 openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, triggerCoverImageImport, handleCoverImageImport, clearCoverImage, togglePublishTag,
@@ -4382,6 +5798,10 @@
                 isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
                 isContentOwnedByCurrentUser, editOwnedContent, deleteOwnedContent, isBuildDeleting, isContentDeleting,
                 toggleBuildLike, toggleContentLike, downloadBuild,
+                refreshWorldbookEnvironment, refreshWorldbookEntries, promptCreateWorldbook, createBlankWorldbookEntry,
+                getWorldbookEntrySourceMeta, getWorldbookEntrySourceLabel, getWorldbookEntryPreview, isCreativeWorkshopEntry,
+                openWorldbookEntryEditor, closeWorldbookEditor, saveWorldbookEntryEdits, toggleWorldbookEntryEnabled, deleteWorldbookEntry,
+                openWorldbookTab, installSelectedContentToWorldbook, canInstallSelectedContent, getContentInstallDisabledReason,
             };
         }
     }).mount('#app');
