@@ -838,6 +838,39 @@
             gap: 12px;
             margin-top: 22px;
         }
+        .action-dialog-card {
+            width: min(92vw, 520px);
+            background: linear-gradient(180deg, #fff, #fafaf7);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 24px;
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+            padding: 26px;
+            animation: modalSlide 0.24s ease;
+        }
+        .action-dialog-card.danger .login-prompt-icon {
+            background: linear-gradient(135deg, rgba(231,76,60,0.12), rgba(192,57,43,0.18));
+            color: var(--danger);
+        }
+        .action-dialog-card.success .login-prompt-icon {
+            background: linear-gradient(135deg, rgba(45,106,79,0.12), rgba(64,145,108,0.18));
+            color: var(--accent);
+        }
+        .action-dialog-input {
+            width: 100%;
+            margin-top: 18px;
+            border: 2px solid rgba(0,0,0,0.06);
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            color: var(--primary);
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .action-dialog-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(45,106,79,0.08);
+        }
         @keyframes modalSlide {
             from { opacity: 0; transform: translateY(30px) scale(0.97); }
             to { opacity: 1; transform: translateY(0) scale(1); }
@@ -1279,6 +1312,41 @@
             border-radius: 0 0 var(--radius-lg) var(--radius-lg);
             position: sticky; bottom: 0;
         }
+        .detail-action-bar {
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .detail-action-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .detail-action-bar .btn-row {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .btn-compact {
+            min-height: 44px;
+            padding: 10px 18px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .btn-compact i {
+            font-size: 1rem;
+        }
+        .btn-danger-soft {
+            background: rgba(192,57,43,0.08);
+            color: var(--danger);
+            border: 1px solid rgba(192,57,43,0.14);
+        }
+        .btn-danger-soft:hover {
+            background: rgba(192,57,43,0.14);
+            color: #a5281b;
+        }
 
         /* Buttons */
         .btn {
@@ -1580,6 +1648,9 @@
             .build-grid { grid-template-columns: 1fr; }
             .modal-panel { width: 95%; max-height: 92vh; }
             .modal-body { padding: 20px; }
+            .detail-action-bar { align-items: stretch; }
+            .detail-action-group, .detail-action-bar .btn-row { width: 100%; }
+            .detail-action-group .btn, .detail-action-bar .btn-row .btn { justify-content: center; flex: 1 1 160px; }
             .worldbook-summary-grid { grid-template-columns: 1fr; }
             .worldbook-entry-list { grid-template-columns: 1fr; }
             .worldbook-editor-grid { grid-template-columns: 1fr; }
@@ -2318,29 +2389,41 @@
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button class="btn btn-ghost" @click="selectedContent = null">
-                        <i class="ri-close-line"></i> 关闭
-                    </button>
-                    <div class="btn-row">
-                        <button v-if="selectedContent && (selectedContent.type === 'character' || selectedContent.type === 'extension')" class="btn btn-ghost" @click="openWorldbookTab(true)">
-                            <i class="ri-book-open-line"></i> 世界书
+                <div class="modal-footer detail-action-bar">
+                    <div class="detail-action-group">
+                        <button class="btn btn-ghost btn-compact" @click="selectedContent = null">
+                            <i class="ri-close-line"></i> 关闭
                         </button>
                         <button
                             v-if="selectedContent && (selectedContent.type === 'character' || selectedContent.type === 'extension')"
-                            class="btn btn-outline"
+                            class="btn btn-outline btn-compact"
+                            @click="openWorldbookTab(true)">
+                            <i class="ri-book-open-line"></i> 世界书
+                        </button>
+                    </div>
+                    <div class="btn-row">
+                        <button
+                            v-if="selectedContent && (selectedContent.type === 'character' || selectedContent.type === 'extension')"
+                            class="btn btn-outline btn-compact"
                             :disabled="!canInstallSelectedContent"
                             :title="getContentInstallDisabledReason(selectedContent)"
                             @click="installSelectedContentToWorldbook(selectedContent)">
                             <i class="ri-book-marked-line"></i> 写入世界书
                         </button>
-                        <button v-if="isContentOwnedByCurrentUser(selectedContent)" class="btn btn-outline" @click="editOwnedContent(selectedContent)">
-                            <i class="ri-edit-line"></i> 编辑{{ getContentTypeLabel(selectedContent.type) }}
+                        <button
+                            v-if="isContentOwnedByCurrentUser(selectedContent)"
+                            class="btn btn-outline btn-compact"
+                            @click="editOwnedContent(selectedContent)">
+                            <i class="ri-edit-line"></i> 编辑人设
                         </button>
-                        <button v-if="isContentOwnedByCurrentUser(selectedContent)" class="btn btn-ghost" :disabled="isContentDeleting(selectedContent)" @click="deleteOwnedContent(selectedContent)">
-                            <i :class="isContentDeleting(selectedContent) ? 'ri-loader-4-line spin-icon' : 'ri-delete-bin-line'"></i> {{ isContentDeleting(selectedContent) ? '删除中…' : `删除${getContentTypeLabel(selectedContent.type)}` }}
+                        <button
+                            v-if="isContentOwnedByCurrentUser(selectedContent)"
+                            class="btn btn-danger-soft btn-compact"
+                            :disabled="isContentDeleting(selectedContent)"
+                            @click="deleteOwnedContent(selectedContent)">
+                            <i :class="isContentDeleting(selectedContent) ? 'ri-loader-4-line spin-icon' : 'ri-delete-bin-line'"></i> {{ isContentDeleting(selectedContent) ? '删除中…' : '删除人设' }}
                         </button>
-                        <button class="btn btn-primary" @click="toggleContentLike(selectedContent)">
+                        <button class="btn btn-primary btn-compact" @click="toggleContentLike(selectedContent)">
                             <i :class="selectedContent.liked ? 'ri-heart-fill' : 'ri-heart-line'"></i> {{ selectedContent.liked ? `已点赞 ${selectedContent.likes}` : `点赞 ${selectedContent.likes}` }}
                         </button>
                     </div>
@@ -2721,6 +2804,38 @@
                     <button type="button" class="btn btn-ghost" @click="closeLoginPrompt()">稍后再说</button>
                     <button type="button" class="btn discord-login" @click="confirmLoginPrompt()">
                         <i class="ri-discord-fill"></i> 立即登录
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-prompt-overlay" v-if="actionDialog.visible" @click.self="closeActionDialog()">
+            <div class="action-dialog-card" :class="actionDialog.tone">
+                <div class="login-prompt-icon">
+                    <i :class="actionDialog.icon"></i>
+                </div>
+                <div class="login-prompt-title">{{ actionDialog.title }}</div>
+                <div class="login-prompt-text">{{ actionDialog.message }}</div>
+                <input
+                    v-if="actionDialog.showInput"
+                    v-model="actionDialogInput"
+                    class="action-dialog-input"
+                    type="text"
+                    :placeholder="actionDialog.inputPlaceholder">
+                <div class="login-prompt-actions">
+                    <button
+                        v-if="actionDialog.showCancel"
+                        type="button"
+                        class="btn btn-ghost"
+                        @click="closeActionDialog()">
+                        {{ actionDialog.cancelLabel }}
+                    </button>
+                    <button
+                        type="button"
+                        class="btn"
+                        :class="actionDialog.tone === 'danger' ? 'btn-danger-soft' : 'btn-primary'"
+                        @click="confirmActionDialog()">
+                        <i :class="actionDialog.confirmIcon"></i> {{ actionDialog.confirmLabel }}
                     </button>
                 </div>
             </div>
@@ -3805,29 +3920,11 @@
     }
 
     function buildWorkshopOverviewContent(item) {
-        const blocks = [];
-        if (item?.intro) {
-            blocks.push(`【简介】\n${String(item.intro).trim()}`);
-        }
-        if (item?.overviewText) {
-            blocks.push(`【总览】\n${String(item.overviewText).trim()}`);
-        }
-        return blocks.filter(Boolean).join('\n\n');
+        return String(item?.overviewText || '').trim();
     }
 
     function buildWorkshopBodyContent(item) {
-        const blocks = [];
-        if (item?.intro && !item?.overviewText) {
-            blocks.push(`【简介】\n${String(item.intro).trim()}`);
-        }
-        if (item?.contentText) {
-            blocks.push(`【正文】\n${String(item.contentText).trim()}`);
-        }
-        const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
-        if (triggerWords.length) {
-            blocks.push(`【触发词】\n${triggerWords.join(' / ')}`);
-        }
-        return blocks.filter(Boolean).join('\n\n');
+        return String(item?.contentText || '').trim();
     }
 
     function buildWorkshopWorldbookEntries(item) {
@@ -3899,30 +3996,49 @@
         };
     }
 
+    function normalizeBoundaryEntryName(name) {
+        return String(name || '').trim();
+    }
+
     function ensureWorkshopBoundaryEntries(worldbook) {
         const nextWorldbook = [...worldbook];
-        let startEntry = nextWorldbook.find((entry) => entry.name === WORKSHOP_MOD_START_NAME);
-        let endEntry = nextWorldbook.find((entry) => entry.name === WORKSHOP_MOD_END_NAME);
+        const startMatches = nextWorldbook.filter((entry) => normalizeBoundaryEntryName(entry?.name) === WORKSHOP_MOD_START_NAME);
+        const endMatches = nextWorldbook.filter((entry) => normalizeBoundaryEntryName(entry?.name) === WORKSHOP_MOD_END_NAME);
+        let startEntry = startMatches[0] || null;
+        let endEntry = endMatches[0] || null;
+        const dedupedWorldbook = nextWorldbook.filter((entry) => {
+            const normalizedName = normalizeBoundaryEntryName(entry?.name);
+            if (normalizedName === WORKSHOP_MOD_START_NAME) {
+                return entry === startEntry;
+            }
+            if (normalizedName === WORKSHOP_MOD_END_NAME) {
+                return entry === endEntry;
+            }
+            return true;
+        });
         if (!startEntry) {
             startEntry = createModBoundaryEntry(WORKSHOP_MOD_START_NAME, WORKSHOP_MOD_START_ORDER);
-            nextWorldbook.push(startEntry);
+            dedupedWorldbook.push(startEntry);
         }
         if (!endEntry) {
             endEntry = createModBoundaryEntry(WORKSHOP_MOD_END_NAME, WORKSHOP_MOD_END_ORDER);
-            nextWorldbook.push(endEntry);
+            dedupedWorldbook.push(endEntry);
         }
         startEntry.position = { ...(startEntry.position || {}), type: 'after_character_definition', role: 'system', depth: 0, order: WORKSHOP_MOD_START_ORDER };
         endEntry.position = { ...(endEntry.position || {}), type: 'after_character_definition', role: 'system', depth: 0, order: WORKSHOP_MOD_END_ORDER };
         startEntry.enabled = true;
         endEntry.enabled = true;
-        return nextWorldbook;
+        startEntry.name = WORKSHOP_MOD_START_NAME;
+        endEntry.name = WORKSHOP_MOD_END_NAME;
+        return dedupedWorldbook;
     }
 
     function reorderWorkshopManagedEntries(worldbook) {
         const nextWorldbook = ensureWorkshopBoundaryEntries(worldbook);
         const managedEntries = nextWorldbook
             .filter((entry) => {
-                if (entry.name === WORKSHOP_MOD_START_NAME || entry.name === WORKSHOP_MOD_END_NAME) {
+                const normalizedName = normalizeBoundaryEntryName(entry?.name);
+                if (normalizedName === WORKSHOP_MOD_START_NAME || normalizedName === WORKSHOP_MOD_END_NAME) {
                     return false;
                 }
                 const meta = getWorldbookEntrySourceMeta(entry);
@@ -4177,6 +4293,21 @@
                 visible: false,
                 message: '上传内容前需要先登录 Discord，登录后会自动绑定作者昵称与头像。',
             });
+            const actionDialog = reactive({
+                visible: false,
+                tone: 'success',
+                icon: 'ri-information-line',
+                title: '',
+                message: '',
+                confirmLabel: '知道了',
+                confirmIcon: 'ri-check-line',
+                cancelLabel: '取消',
+                showCancel: false,
+                showInput: false,
+                inputPlaceholder: '',
+            });
+            const actionDialogHandler = ref(null);
+            const actionDialogInput = ref('');
             const publishButtonLabel = computed(() => {
                 if (publishSubmitting.value) {
                     return editingBuildId.value ? '正在保存…' : '正在发布…';
@@ -4483,32 +4614,40 @@
                     if (section.deletingIds.includes(item.id)) {
                         return;
                     }
-                    if (!window.confirm(`确认删除“${item.name}”吗？`)) {
-                        return;
-                    }
-                    try {
-                        section.deletingIds = [...section.deletingIds, item.id];
-                        section.status = `正在删除${contentSectionConfig[type].title}：${item.name}，请稍候…`;
-                        await apiRequest(`/content/${encodeURIComponent(item.id)}`, {
-                            method: 'DELETE',
-                            body: {
-                                owner_discord_id: discordUser.value.id,
-                            },
-                        });
-                        section.items = section.items.filter((entry) => entry.id !== item.id);
-                        if (selectedContent.value?.id === item.id) {
-                            selectedContent.value = null;
-                        }
-                        if (section.editingId === item.id) {
-                            section.resetForm();
-                        }
-                        section.status = `已删除${contentSectionConfig[type].title}：${item.name}`;
-                    } catch (error) {
-                        console.warn(`Delete ${type} failed:`, error);
-                        section.status = `删除${contentSectionConfig[type].title}失败：${error instanceof Error ? error.message : String(error)}`;
-                    } finally {
-                        section.deletingIds = section.deletingIds.filter((entryId) => entryId !== item.id);
-                    }
+                    openActionDialog({
+                        tone: 'danger',
+                        icon: 'ri-delete-bin-line',
+                        title: `删除${contentSectionConfig[type].title}`,
+                        message: `确认删除“${item.name}”吗？`,
+                        confirmLabel: '确认删除',
+                        confirmIcon: 'ri-delete-bin-line',
+                        showCancel: true,
+                        onConfirm: async () => {
+                            try {
+                                section.deletingIds = [...section.deletingIds, item.id];
+                                section.status = `正在删除${contentSectionConfig[type].title}：${item.name}，请稍候…`;
+                                await apiRequest(`/content/${encodeURIComponent(item.id)}`, {
+                                    method: 'DELETE',
+                                    body: {
+                                        owner_discord_id: discordUser.value.id,
+                                    },
+                                });
+                                section.items = section.items.filter((entry) => entry.id !== item.id);
+                                if (selectedContent.value?.id === item.id) {
+                                    selectedContent.value = null;
+                                }
+                                if (section.editingId === item.id) {
+                                    section.resetForm();
+                                }
+                                section.status = `已删除${contentSectionConfig[type].title}：${item.name}`;
+                            } catch (error) {
+                                console.warn(`Delete ${type} failed:`, error);
+                                section.status = `删除${contentSectionConfig[type].title}失败：${error instanceof Error ? error.message : String(error)}`;
+                            } finally {
+                                section.deletingIds = section.deletingIds.filter((entryId) => entryId !== item.id);
+                            }
+                        },
+                    });
                 };
                 section.publish = async () => {
                     if (section.submitting) {
@@ -4900,27 +5039,8 @@
                 }
             }
 
-            async function deleteWorldbookEntry(entry) {
-                if (!worldbookDriver || !worldbookState.selectedWorldbook) {
-                    return;
-                }
-                if (!window.confirm(`确认删除世界书条目「${entry.name || `UID ${entry.uid}`}」吗？`)) {
-                    return;
-                }
-                worldbookState.saving = true;
-                try {
-                    await worldbookDriver.deleteEntries(worldbookState.selectedWorldbook, [entry.uid]);
-                    if (worldbookEditor.entry?.uid === entry.uid) {
-                        closeWorldbookEditor();
-                    }
-                    worldbookState.status = `已删除条目：${entry.name || `UID ${entry.uid}`}`;
-                    await refreshWorldbookEntries();
-                } catch (error) {
-                    console.warn('Delete worldbook entry failed:', error);
-                    worldbookState.status = `删除条目失败：${error instanceof Error ? error.message : String(error)}`;
-                } finally {
-                    worldbookState.saving = false;
-                }
+            async function deleteWorldbookEntryLegacy(entry) {
+                return deleteWorldbookEntry(entry);
             }
 
             async function deleteWorldbookEntry(entry) {
@@ -4933,25 +5053,33 @@
                 const confirmLabel = groupedEntries.length
                     ? `确认卸载「${sourceMeta?.sourceTitle || entry.name || `UID ${entry.uid}`}」并清理 ${groupedEntries.length} 条关联条目吗？`
                     : `确认删除世界书条目「${entry.name || `UID ${entry.uid}`}」吗？`;
-                if (!window.confirm(confirmLabel)) {
-                    return;
-                }
-                worldbookState.saving = true;
-                try {
-                    await worldbookDriver.deleteEntries(worldbookState.selectedWorldbook, targetEntries.map((item) => item.uid));
-                    if (targetEntries.some((item) => worldbookEditor.entry?.uid === item.uid)) {
-                        closeWorldbookEditor();
-                    }
-                    worldbookState.status = groupedEntries.length
-                        ? `已卸载 ${sourceMeta?.sourceTitle || entry.name || `UID ${entry.uid}`}`
-                        : `已删除条目：${entry.name || `UID ${entry.uid}`}`;
-                    await refreshWorldbookEntries();
-                } catch (error) {
-                    console.warn('Delete worldbook entry failed:', error);
-                    worldbookState.status = `删除条目失败：${error instanceof Error ? error.message : String(error)}`;
-                } finally {
-                    worldbookState.saving = false;
-                }
+                openActionDialog({
+                    tone: 'danger',
+                    icon: 'ri-delete-bin-line',
+                    title: groupedEntries.length ? '卸载工坊条目' : '删除世界书条目',
+                    message: confirmLabel,
+                    confirmLabel: groupedEntries.length ? '确认卸载' : '确认删除',
+                    confirmIcon: groupedEntries.length ? 'ri-delete-bin-5-line' : 'ri-delete-bin-line',
+                    showCancel: true,
+                    onConfirm: async () => {
+                        worldbookState.saving = true;
+                        try {
+                            await worldbookDriver.deleteEntries(worldbookState.selectedWorldbook, targetEntries.map((item) => item.uid));
+                            if (targetEntries.some((item) => worldbookEditor.entry?.uid === item.uid)) {
+                                closeWorldbookEditor();
+                            }
+                            worldbookState.status = groupedEntries.length
+                                ? `已卸载 ${sourceMeta?.sourceTitle || entry.name || `UID ${entry.uid}`}`
+                                : `已删除条目：${entry.name || `UID ${entry.uid}`}`;
+                            await refreshWorldbookEntries();
+                        } catch (error) {
+                            console.warn('Delete worldbook entry failed:', error);
+                            worldbookState.status = `删除条目失败：${error instanceof Error ? error.message : String(error)}`;
+                        } finally {
+                            worldbookState.saving = false;
+                        }
+                    },
+                });
             }
 
             async function createBlankWorldbookEntry() {
@@ -4980,23 +5108,37 @@
                 if (!worldbookDriver || !worldbookState.canCreateWorldbook) {
                     return;
                 }
-                const name = String(window.prompt('请输入新世界书名称') || '').trim();
-                if (!name) {
-                    return;
-                }
-                worldbookState.saving = true;
-                try {
-                    await worldbookDriver.createWorldbook(name);
-                    worldbookState.status = `已创建世界书：${name}`;
-                    await refreshWorldbookEnvironment(true);
-                    worldbookState.selectedWorldbook = name;
-                    await refreshWorldbookEntries();
-                } catch (error) {
-                    console.warn('Create worldbook failed:', error);
-                    worldbookState.status = `创建世界书失败：${error instanceof Error ? error.message : String(error)}`;
-                } finally {
-                    worldbookState.saving = false;
-                }
+                openActionDialog({
+                    tone: 'success',
+                    icon: 'ri-book-3-line',
+                    title: '新建世界书',
+                    message: '请输入新的世界书名称。',
+                    confirmLabel: '创建',
+                    confirmIcon: 'ri-check-line',
+                    showCancel: true,
+                    showInput: true,
+                    inputPlaceholder: '例如：我的工坊世界书',
+                    onConfirm: async (inputValue) => {
+                        const name = String(inputValue || '').trim();
+                        if (!name) {
+                            worldbookState.status = '世界书名称不能为空';
+                            return;
+                        }
+                        worldbookState.saving = true;
+                        try {
+                            await worldbookDriver.createWorldbook(name);
+                            worldbookState.status = `已创建世界书：${name}`;
+                            await refreshWorldbookEnvironment(true);
+                            worldbookState.selectedWorldbook = name;
+                            await refreshWorldbookEntries();
+                        } catch (error) {
+                            console.warn('Create worldbook failed:', error);
+                            worldbookState.status = `创建世界书失败：${error instanceof Error ? error.message : String(error)}`;
+                        } finally {
+                            worldbookState.saving = false;
+                        }
+                    },
+                });
             }
 
             function getContentInstallDisabledReason(item) {
@@ -5027,6 +5169,15 @@
                     await worldbookDriver.upsertWorkshopEntries(worldbookState.selectedWorldbook, sourceMeta, entries);
                     worldbookState.status = `已将「${item.name}」写入 ${worldbookState.selectedWorldbook}`;
                     await refreshWorldbookEntries();
+                    openActionDialog({
+                        tone: 'success',
+                        icon: 'ri-checkbox-circle-line',
+                        title: '写入成功',
+                        message: `已将「${item.name}」写入世界书「${worldbookState.selectedWorldbook}」。`,
+                        confirmLabel: '知道了',
+                        confirmIcon: 'ri-check-line',
+                        showCancel: false,
+                    });
                     activeTab.value = 'worldbook';
                 } catch (error) {
                     console.warn('Install workshop content to worldbook failed:', error);
@@ -5298,6 +5449,39 @@
                 startDiscordLogin();
             }
 
+            function openActionDialog(options = {}) {
+                actionDialog.tone = options.tone || 'success';
+                actionDialog.icon = options.icon || (actionDialog.tone === 'danger' ? 'ri-error-warning-line' : 'ri-information-line');
+                actionDialog.title = String(options.title || '提示');
+                actionDialog.message = String(options.message || '');
+                actionDialog.confirmLabel = String(options.confirmLabel || '知道了');
+                actionDialog.confirmIcon = String(options.confirmIcon || 'ri-check-line');
+                actionDialog.cancelLabel = String(options.cancelLabel || '取消');
+                actionDialog.showCancel = !!options.showCancel;
+                actionDialog.showInput = !!options.showInput;
+                actionDialog.inputPlaceholder = String(options.inputPlaceholder || '');
+                actionDialogInput.value = String(options.inputValue || '');
+                actionDialogHandler.value = typeof options.onConfirm === 'function' ? options.onConfirm : null;
+                actionDialog.visible = true;
+            }
+
+            function closeActionDialog() {
+                actionDialog.visible = false;
+                actionDialogHandler.value = null;
+                actionDialogInput.value = '';
+            }
+
+            function confirmActionDialog() {
+                const handler = actionDialogHandler.value;
+                actionDialog.visible = false;
+                actionDialogHandler.value = null;
+                const inputValue = actionDialogInput.value;
+                actionDialogInput.value = '';
+                if (typeof handler === 'function') {
+                    handler(inputValue);
+                }
+            }
+
             async function editOwnedContent(item) {
                 if (!item?.type) {
                     return;
@@ -5557,33 +5741,41 @@
                 if (deletingBuildIds.value.includes(build.id)) {
                     return;
                 }
-                if (!window.confirm(`确认删除预设“${build.name}”吗？`)) {
-                    return;
-                }
-                try {
-                    deletingBuildIds.value = [...deletingBuildIds.value, build.id];
-                    buildDataStatus.value = `正在删除预设：${build.name}，请稍候…`;
-                    await apiRequest(`/presets/${encodeURIComponent(build.id)}`, {
-                        method: 'DELETE',
-                        body: {
-                            owner_discord_id: discordUser.value.id,
-                        },
-                    });
-                    builds.value = builds.value.filter((item) => item.id !== build.id);
-                    persistPublishedBuilds();
-                    if (selectedBuild.value?.id === build.id) {
-                        selectedBuild.value = null;
-                    }
-                    if (editingBuildId.value === build.id) {
-                        resetPublishForm();
-                    }
-                    buildDataStatus.value = `已删除预设：${build.name}`;
-                } catch (error) {
-                    console.warn('Delete preset failed:', error);
-                    buildDataStatus.value = `删除失败：${error instanceof Error ? error.message : String(error)}`;
-                } finally {
-                    deletingBuildIds.value = deletingBuildIds.value.filter((itemId) => itemId !== build.id);
-                }
+                openActionDialog({
+                    tone: 'danger',
+                    icon: 'ri-delete-bin-line',
+                    title: '删除预设',
+                    message: `确认删除预设“${build.name}”吗？`,
+                    confirmLabel: '确认删除',
+                    confirmIcon: 'ri-delete-bin-line',
+                    showCancel: true,
+                    onConfirm: async () => {
+                        try {
+                            deletingBuildIds.value = [...deletingBuildIds.value, build.id];
+                            buildDataStatus.value = `正在删除预设：${build.name}，请稍候…`;
+                            await apiRequest(`/presets/${encodeURIComponent(build.id)}`, {
+                                method: 'DELETE',
+                                body: {
+                                    owner_discord_id: discordUser.value.id,
+                                },
+                            });
+                            builds.value = builds.value.filter((item) => item.id !== build.id);
+                            persistPublishedBuilds();
+                            if (selectedBuild.value?.id === build.id) {
+                                selectedBuild.value = null;
+                            }
+                            if (editingBuildId.value === build.id) {
+                                resetPublishForm();
+                            }
+                            buildDataStatus.value = `已删除预设：${build.name}`;
+                        } catch (error) {
+                            console.warn('Delete preset failed:', error);
+                            buildDataStatus.value = `删除失败：${error instanceof Error ? error.message : String(error)}`;
+                        } finally {
+                            deletingBuildIds.value = deletingBuildIds.value.filter((itemId) => itemId !== build.id);
+                        }
+                    },
+                });
             }
 
             function isBuildDeleting(build) {
@@ -5746,9 +5938,15 @@
                 a.download = build.name + '.json';
                 a.click();
                 buildDataStatus.value = '下载完成后，请回到开局页面，在“预设管理”中导入刚下载的 JSON 文件。';
-                window.setTimeout(() => {
-                    window.alert('下载完成后，请回到开局页面，在“预设管理”中导入刚下载的 JSON 文件。');
-                }, 50);
+                openActionDialog({
+                    tone: 'success',
+                    icon: 'ri-download-2-line',
+                    title: '下载已开始',
+                    message: '下载完成后，请回到开局页面，在“预设管理”中导入刚下载的 JSON 文件。',
+                    confirmLabel: '知道了',
+                    confirmIcon: 'ri-check-line',
+                    showCancel: false,
+                });
 
                 try {
                     const response = await apiRequest(`/presets/${encodeURIComponent(build.id)}/download`, {
@@ -5798,6 +5996,7 @@
                 currentBuildPage, buildTotalPages, goToPrevPage, goToNextPage,
                 discordUser, startDiscordLogin, logoutDiscord,
                 loginPrompt, closeLoginPrompt, confirmLoginPrompt,
+                actionDialog, closeActionDialog, confirmActionDialog,
                 selectedBuild, selectedContent, skillDetail, traitDetail, companionDetail,
                 publishForm, presetTagOptions, buildDataStatus, publishSubmitting, publishButtonLabel,
                 characterSection, extensionSection, activeContentSection, activeContentConfig,
