@@ -545,12 +545,56 @@
             min-height: 120px;
         }
         .content-detail-text {
-            background: white;
-            border-radius: var(--radius-md);
-            padding: 22px;
-            border: 1px solid rgba(0,0,0,0.05);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.98), rgba(252,251,247,0.98));
+            border-radius: 18px;
+            padding: 28px 34px;
+            border: 1px solid rgba(199, 190, 174, 0.28);
             color: var(--primary);
-            font-size: 0.95rem;
+            font-size: 1rem;
+            line-height: 2;
+            box-shadow: 0 12px 30px rgba(45, 52, 54, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+        .content-detail-text::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 6px;
+            background: linear-gradient(180deg, rgba(45,106,79,0.85), rgba(212,168,83,0.42));
+        }
+        .content-detail-text.reading {
+            font-family: var(--font-main);
+            letter-spacing: 0.02em;
+        }
+        .content-detail-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+        .content-copy-btn {
+            border: 1px solid rgba(45,106,79,0.16);
+            background: rgba(255,255,255,0.88);
+            color: var(--accent);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 20px rgba(45,106,79,0.08);
+        }
+        .content-copy-btn:hover {
+            background: rgba(45,106,79,0.08);
+            border-color: rgba(45,106,79,0.22);
+        }
+        .content-copy-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
         }
         .content-detail-meta {
             display: flex;
@@ -1651,6 +1695,7 @@
             .detail-action-bar { align-items: stretch; }
             .detail-action-group, .detail-action-bar .btn-row { width: 100%; }
             .detail-action-group .btn, .detail-action-bar .btn-row .btn { justify-content: center; flex: 1 1 160px; }
+            .content-detail-text { padding: 22px 20px; }
             .worldbook-summary-grid { grid-template-columns: 1fr; }
             .worldbook-entry-list { grid-template-columns: 1fr; }
             .worldbook-editor-grid { grid-template-columns: 1fr; }
@@ -2361,7 +2406,6 @@
                                 <div class="race-class">{{ getContentTypeLabel(selectedContent.type) }}</div>
                                 <div class="content-detail-meta">
                                     <span><i class="ri-user-3-line"></i> {{ selectedContent.author }}</span>
-                                    <span><i class="ri-time-line"></i> {{ formatDateLabel(selectedContent.updatedAt || selectedContent.createdAt) }}</span>
                                 </div>
                                 <div class="detail-tag-row" v-if="selectedContent.tags && selectedContent.tags.length">
                                     <span class="detail-tag" v-for="tag in selectedContent.tags" :key="tag">
@@ -2378,14 +2422,19 @@
                         <div class="section-heading">
                             <i class="ri-lightbulb-flash-line"></i> 总览区
                         </div>
-                        <div class="content-detail-text">{{ selectedContent.overviewText }}</div>
+                        <div class="content-detail-text reading">{{ selectedContent.overviewText }}</div>
                     </div>
 
                     <div class="detail-section">
                         <div class="section-heading">
                             <i class="ri-file-text-line"></i> 正文内容
                         </div>
-                        <div class="content-detail-text">{{ selectedContent.contentText || '暂无正文内容。' }}</div>
+                        <div class="content-detail-toolbar">
+                            <button class="content-copy-btn" :disabled="!selectedContent.contentText" @click="copyContentText(selectedContent)">
+                                <i class="ri-file-copy-line"></i> 一键复制
+                            </button>
+                        </div>
+                        <div class="content-detail-text reading">{{ selectedContent.contentText || '暂无正文内容。' }}</div>
                     </div>
                 </div>
 
@@ -2393,12 +2442,6 @@
                     <div class="detail-action-group">
                         <button class="btn btn-ghost btn-compact" @click="selectedContent = null">
                             <i class="ri-close-line"></i> 关闭
-                        </button>
-                        <button
-                            v-if="selectedContent && (selectedContent.type === 'character' || selectedContent.type === 'extension')"
-                            class="btn btn-outline btn-compact"
-                            @click="openWorldbookTab(true)">
-                            <i class="ri-book-open-line"></i> 世界书
                         </button>
                     </div>
                     <div class="btn-row">
@@ -5496,6 +5539,45 @@
                 await getContentSectionByType(item.type).deleteOwnedItem(item);
             }
 
+            async function copyContentText(item) {
+                const text = String(item?.contentText || '').trim();
+                if (!text) {
+                    openActionDialog({
+                        tone: 'danger',
+                        icon: 'ri-error-warning-line',
+                        title: '没有可复制的内容',
+                        message: '当前正文为空，无法复制。',
+                        confirmLabel: '知道了',
+                        confirmIcon: 'ri-check-line',
+                        showCancel: false,
+                    });
+                    return;
+                }
+                try {
+                    await navigator.clipboard.writeText(text);
+                    openActionDialog({
+                        tone: 'success',
+                        icon: 'ri-file-copy-line',
+                        title: '复制成功',
+                        message: '正文内容已复制到剪贴板。',
+                        confirmLabel: '知道了',
+                        confirmIcon: 'ri-check-line',
+                        showCancel: false,
+                    });
+                } catch (error) {
+                    console.warn('Copy content text failed:', error);
+                    openActionDialog({
+                        tone: 'danger',
+                        icon: 'ri-error-warning-line',
+                        title: '复制失败',
+                        message: error instanceof Error ? error.message : String(error),
+                        confirmLabel: '知道了',
+                        confirmIcon: 'ri-check-line',
+                        showCancel: false,
+                    });
+                }
+            }
+
             async function ensureDiscordUserSynced() {
                 if (!discordUser.value) {
                     return;
@@ -6008,7 +6090,7 @@
                 getImportedClassName, getImportedRaceName, publishPresetBuild,
                 getSkillTypeColor, getAttributeIcon, getContentTypeLabel, getContentTypeIcon, getContentPreview, formatDateLabel,
                 isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
-                isContentOwnedByCurrentUser, editOwnedContent, deleteOwnedContent, isBuildDeleting, isContentDeleting,
+                isContentOwnedByCurrentUser, editOwnedContent, deleteOwnedContent, copyContentText, isBuildDeleting, isContentDeleting,
                 toggleBuildLike, toggleContentLike, downloadBuild,
                 refreshWorldbookEnvironment, refreshWorldbookEntries, promptCreateWorldbook, createBlankWorldbookEntry,
                 getWorldbookEntrySourceMeta, getWorldbookEntrySourceLabel, getWorldbookEntryPreview, isCreativeWorkshopEntry,
