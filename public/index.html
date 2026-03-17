@@ -987,7 +987,8 @@
             flex-shrink: 0;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             overflow: hidden;
-            background: #dfe6e9;
+            background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(239,243,246,0.96));
+            border: 1px solid rgba(0,0,0,0.06);
         }
         .race-icon-lg img {
             width: 100%;
@@ -2402,7 +2403,7 @@
                             <i class="ri-book-2-line"></i> 基本信息
                         </div>
                         <div class="race-info-card">
-                            <div class="race-icon-lg" style="background: rgba(45,106,79,0.12);">
+                            <div class="race-icon-lg">
                                 <img v-if="selectedContent.coverUrl" :src="selectedContent.coverUrl" :alt="selectedContent.name + ' 封面'">
                                 <i v-else :class="getContentTypeIcon(selectedContent.type)" style="font-size:2rem;color:var(--accent);"></i>
                             </div>
@@ -2600,7 +2601,7 @@
                             <i class="ri-user-star-line"></i> 基本信息
                         </div>
                         <div class="race-info-card">
-                            <div class="race-icon-lg" :style="{ background: selectedBuild.badgeColor }">
+                            <div class="race-icon-lg">
                                 <img :src="selectedBuild.coverUrl" :alt="selectedBuild.name + ' 封面'">
                             </div>
                             <div class="race-meta">
