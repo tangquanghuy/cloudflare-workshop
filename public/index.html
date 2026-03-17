@@ -4720,9 +4720,14 @@
                 try {
                     const entries = await worldbookDriver.getEntries(worldbookState.selectedWorldbook);
                     worldbookState.entries = Array.isArray(entries)
-                        ? [...entries].sort((a, b) => Number(a.uid || 0) - Number(b.uid || 0))
+                        ? entries
+                            .filter((entry) => {
+                                const meta = getWorldbookEntrySourceMeta(entry);
+                                return !!meta && meta.sourceType !== 'anchor';
+                            })
+                            .sort((a, b) => Number(a.uid || 0) - Number(b.uid || 0))
                         : [];
-                    worldbookState.status = `已读取 ${worldbookState.selectedWorldbook}，共 ${worldbookState.entries.length} 个条目`;
+                    worldbookState.status = `已读取 ${worldbookState.selectedWorldbook} 中由创意工坊管理的 ${worldbookState.entries.length} 个条目`;
                 } catch (error) {
                     console.warn('Load worldbook entries failed:', error);
                     worldbookState.entries = [];
