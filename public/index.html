@@ -2093,7 +2093,7 @@
                                         </div>
                                         <span class="field-hint">最多 5 个，可自定义输入；单个标签最多 12 个字符，已选 {{ activeContentSection.form.tags.length }}/5</span>
                                     </div>
-                                    <div class="form-field" v-if="activeContentConfig.requiresTriggerWords">
+                                    <div class="form-field" v-if="activeContentConfig.showTriggerWords">
                                         <label>触发词</label>
                                         <div class="trigger-word-list">
                                             <div class="trigger-word-row" v-for="(word, index) in activeContentSection.form.triggerWords" :key="`${activeContentSection.type}-trigger-${index}`">
@@ -4143,6 +4143,8 @@
                     contentLabel: '人设正文',
                     contentPlaceholder: '填写完整的人设正文，例如背景、经历、口癖、关系、设定细节等。',
                     tagOptions: characterTagOptions,
+                    showTriggerWords: true,
+                    triggerWordsHint: '可选填写。写入世界书时，总览会作为蓝灯；正文有触发词则写成绿灯，没有触发词则正文也按蓝灯写入。',
                     requiresTriggerWords: false,
                 },
                 extension: {
@@ -4159,6 +4161,8 @@
                     contentLabel: '拓展正文',
                     contentPlaceholder: '填写完整拓展内容，例如规则改动、世界观补充、剧情说明、使用方式等。',
                     tagOptions: extensionTagOptions,
+                    showTriggerWords: true,
+                    triggerWordsHint: '拓展至少填写 1 个触发词，保存时会按英文逗号拼接；写入世界书时正文会作为绿灯使用这些触发词。',
                     requiresTriggerWords: true,
                 },
             };
@@ -4235,7 +4239,7 @@
                 coverUrl: '',
                 coverFileName: '',
                 tags: [],
-                triggerWords: contentSectionConfig[type]?.requiresTriggerWords ? [''] : [],
+                triggerWords: contentSectionConfig[type]?.showTriggerWords ? [''] : [],
                 customTagInput: '',
                 contentText: '',
             });
@@ -4460,7 +4464,7 @@
                             coverUrl: editable.coverUrl || '',
                             coverFileName: '',
                             tags: [...(editable.tags || [])],
-                            triggerWords: normalizeTriggerWords(editable.triggerWords || [], contentSectionConfig[type].requiresTriggerWords),
+                            triggerWords: normalizeTriggerWords(editable.triggerWords || [], contentSectionConfig[type].showTriggerWords),
                             customTagInput: '',
                             contentText: editable.contentText || '',
                         };
@@ -5741,6 +5745,10 @@
                 a.href = downloadUrl;
                 a.download = build.name + '.json';
                 a.click();
+                buildDataStatus.value = '下载完成后，请回到开局页面，在“预设管理”中导入刚下载的 JSON 文件。';
+                window.setTimeout(() => {
+                    window.alert('下载完成后，请回到开局页面，在“预设管理”中导入刚下载的 JSON 文件。');
+                }, 50);
 
                 try {
                     const response = await apiRequest(`/presets/${encodeURIComponent(build.id)}/download`, {
