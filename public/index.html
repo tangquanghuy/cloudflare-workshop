@@ -971,7 +971,7 @@
             background: white;
             border-radius: var(--radius-md);
             padding: 24px;
-            display: flex; gap: 20px; align-items: flex-start;
+            display: flex; gap: 20px; flex-direction: column; align-items: stretch;
             box-shadow: 0 2px 12px rgba(0,0,0,0.04);
         }
         .race-meta {
@@ -979,8 +979,10 @@
             min-width: 0;
         }
         .race-icon-lg {
-            width: 64px; height: 64px;
-            border-radius: 16px;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            min-height: 220px;
+            border-radius: 18px;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -1703,6 +1705,7 @@
             .worldbook-entry-list { grid-template-columns: 1fr; }
             .worldbook-editor-grid { grid-template-columns: 1fr; }
             .race-info-card { flex-direction: column; }
+            .race-icon-lg { min-height: 160px; }
             .companion-card { flex-direction: column; }
             .sub-detail-panel { width: 95%; }
         }
@@ -2598,7 +2601,7 @@
                         </div>
                         <div class="race-info-card">
                             <div class="race-icon-lg" :style="{ background: selectedBuild.badgeColor }">
-                                <img :src="selectedBuild.coverUrl" :alt="selectedBuild.name + ' 头像'">
+                                <img :src="selectedBuild.coverUrl" :alt="selectedBuild.name + ' 封面'">
                             </div>
                             <div class="race-meta">
                                 <h3>{{ selectedBuild.name }}</h3>
