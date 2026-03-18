@@ -6101,16 +6101,17 @@
                         action: data?.action,
                         origin: event.origin,
                         hasHash: !!data?.hash,
-                        source: event.source === window.parent ? 'parent' : 'other'
+                        isInIframe: window.self !== window.top
                     });
                     
                     if (!data || data.channel !== 'creative-workshop:auth') {
                         return;
                     }
                     
-                    // 验证消息来源是父窗口
-                    if (event.source !== window.parent && event.source !== window.top) {
-                        console.warn('[Discord Login] 消息不是来自父窗口，忽略');
+                    // 只在 iframe 环境中处理登录完成消息
+                    const isInIframe = window.self !== window.top;
+                    if (!isInIframe) {
+                        console.log('[Discord Login] 不在 iframe 中，忽略消息');
                         return;
                     }
                     
