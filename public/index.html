@@ -2238,9 +2238,13 @@
                                             <option value="at_depth">按深度插入</option>
                                         </select>
                                     </div>
-                                    <div class="form-field" v-if="activeContentConfig.showWorldbookSettings">
+                                    <div class="form-field" v-if="activeContentConfig.showWorldbookSettings && activeContentSection.form.worldbookPositionType === 'at_depth'">
                                         <label>世界书深度</label>
                                         <input type="number" v-model="activeContentSection.form.worldbookDepth" min="0" step="1" placeholder="0">
+                                    </div>
+                                    <div class="form-field" v-if="activeContentConfig.showWorldbookSettings">
+                                        <label>世界书顺序</label>
+                                        <input type="number" v-model="activeContentSection.form.worldbookOrder" step="1" placeholder="401">
                                         <span class="field-hint">{{ activeContentConfig.worldbookHint }}</span>
                                     </div>
                                     <div class="form-field">
@@ -2436,8 +2440,11 @@
                                     <span class="worldbook-meta-chip workshop">
                                         <i class="ri-login-box-line"></i> {{ formatWorldbookPositionTypeLabel(selectedContent.worldbookPositionType) }}
                                     </span>
-                                    <span class="worldbook-meta-chip">
+                                    <span class="worldbook-meta-chip" v-if="selectedContent.worldbookPositionType === 'at_depth'">
                                         <i class="ri-sort-number-asc"></i> 深度 {{ selectedContent.worldbookDepth }}
+                                    </span>
+                                    <span class="worldbook-meta-chip">
+                                        <i class="ri-list-ordered-2"></i> 顺序 {{ selectedContent.worldbookOrder }}
                                     </span>
                                 </div>
                                 <p class="detail-intro">{{ selectedContent.intro || '暂无简介。' }}</p>
@@ -3549,6 +3556,17 @@
                 ?? item?.worldbook_depth
                 ?? nested?.depth
             ),
+            order: Number.isFinite(Number(
+                item?.worldbookOrder
+                ?? item?.worldbook_order
+                ?? nested?.order
+            ))
+                ? Number(
+                    item?.worldbookOrder
+                    ?? item?.worldbook_order
+                    ?? nested?.order
+                )
+                : (WORKSHOP_MOD_START_ORDER + 1),
         };
     }
 
@@ -3712,6 +3730,7 @@
             contentText: rawItem.contentText || '',
             worldbookPositionType: worldbookSettings.positionType,
             worldbookDepth: worldbookSettings.depth,
+            worldbookOrder: worldbookSettings.order,
             status: rawItem.status || 'published',
             createdAt: rawItem.createdAt || '',
             updatedAt: rawItem.updatedAt || '',
@@ -3917,7 +3936,7 @@
             && (!sourceMeta.sourceType || String(meta.sourceType || '') === String(sourceMeta.sourceType));
     }
 
-    function createWorkshopManagedEntry({ item, slot, nameSuffix, content, strategyType, keys = [], positionType, depth }) {
+    function createWorkshopManagedEntry({ item, slot, nameSuffix, content, strategyType, keys = [], positionType, depth, order }) {
         return {
             name: `${WORKSHOP_WORLDBOOK_VISIBLE_PREFIX}${item?.name || '未命名内容'}${nameSuffix}`,
             enabled: true,
@@ -3931,7 +3950,7 @@
                 type: positionType,
                 role: 'system',
                 depth,
-                order: WORKSHOP_MOD_START_ORDER + 1,
+                order,
             }, WORKSHOP_MOD_START_ORDER + 1),
             content,
             probability: 100,
@@ -3969,6 +3988,7 @@
     function buildWorkshopWorldbookEntries(item) {
         const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
         const worldbookSettings = getWorkshopContentWorldbookSettings(item);
+        const baseOrder = Number(worldbookSettings.order);
         const overviewContent = buildWorkshopOverviewContent(item);
         const bodyContent = buildWorkshopBodyContent(item);
         const bodyStrategyType = triggerWords.length ? 'selective' : 'constant';
@@ -3983,6 +4003,7 @@
                 keys: [],
                 positionType: worldbookSettings.positionType,
                 depth: worldbookSettings.depth,
+                order: baseOrder,
             }));
         }
         if (bodyContent) {
@@ -3995,6 +4016,7 @@
                 keys: bodyStrategyType === 'selective' ? triggerWords : [],
                 positionType: worldbookSettings.positionType,
                 depth: worldbookSettings.depth,
+                order: overviewContent ? (baseOrder + 1) : baseOrder,
             }));
         }
         return entries;
@@ -4097,10 +4119,7 @@
                 return String(a?.name || '').localeCompare(String(b?.name || ''));
             });
         managedEntries.forEach((entry, index) => {
-            entry.position = normalizeWorkshopManagedPosition({
-                ...(entry.position || {}),
-                order: WORKSHOP_MOD_START_ORDER + 1 + index,
-            }, WORKSHOP_MOD_START_ORDER + 1 + index);
+            entry.position = normalizeWorkshopManagedPosition(entry.position || {}, WORKSHOP_MOD_START_ORDER + 1 + index);
         });
         return nextWorldbook;
     }
@@ -4322,7 +4341,7 @@
                     triggerWordsHint: '拓展至少填写 1 个触发词，保存时会按英文逗号拼接；写入世界书时正文会作为绿灯使用这些触发词。',
                     requiresTriggerWords: true,
                     showWorldbookSettings: true,
-                    worldbookHint: '写入世界书时，总览和正文会共用这组插入位置与深度设置。',
+                    worldbookHint: '顺序数值越小越靠前；总览和正文会共用位置设置，正文会紧跟在总览后面。',
                 },
             };
             const discordAuth = ref(loadStoredDiscordAuth());
@@ -4418,6 +4437,7 @@
                 contentText: '',
                 worldbookPositionType: 'after_character_definition',
                 worldbookDepth: '0',
+                worldbookOrder: String(WORKSHOP_MOD_START_ORDER + 1),
             });
 
             function createContentSection(type) {
@@ -4645,6 +4665,7 @@
                             contentText: editable.contentText || '',
                             worldbookPositionType: getWorkshopContentWorldbookSettings(editable).positionType,
                             worldbookDepth: String(getWorkshopContentWorldbookSettings(editable).depth),
+                            worldbookOrder: String(getWorkshopContentWorldbookSettings(editable).order),
                         };
                         section.view = 'publish';
                         selectedContent.value = null;
@@ -4752,9 +4773,11 @@
                         if (contentSectionConfig[type].showWorldbookSettings) {
                             requestBody.worldbook_position_type = worldbookSettings.positionType;
                             requestBody.worldbook_depth = worldbookSettings.depth;
+                            requestBody.worldbook_order = worldbookSettings.order;
                             requestBody.worldbook_settings = {
                                 position_type: worldbookSettings.positionType,
                                 depth: worldbookSettings.depth,
+                                order: worldbookSettings.order,
                             };
                         }
                         const response = await apiRequest(

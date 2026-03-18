@@ -451,6 +451,7 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
         e.trigger_words,
         e.worldbook_position_type,
         e.worldbook_depth,
+        e.worldbook_order,
         e.cover_url,
         e.cover_object_key,
         e.tags_json,
@@ -548,6 +549,7 @@ async function handleWorkshopContentCreate(request, env) {
         trigger_words,
         worldbook_position_type,
         worldbook_depth,
+        worldbook_order,
         cover_url,
         cover_object_key,
         tags_json,
@@ -568,6 +570,7 @@ async function handleWorkshopContentCreate(request, env) {
       payload.triggerWordsText,
       payload.worldbookPositionType,
       payload.worldbookDepth,
+      payload.worldbookOrder,
       coverResult.sourceUrl,
       coverResult.objectKey,
       stringifyJson(payload.tags),
@@ -610,6 +613,9 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
   const hasWorldbookDepthInput = Object.prototype.hasOwnProperty.call(body, 'worldbook_depth')
     || Object.prototype.hasOwnProperty.call(body, 'worldbookDepth')
     || Object.prototype.hasOwnProperty.call(body, 'worldbook_settings');
+  const hasWorldbookOrderInput = Object.prototype.hasOwnProperty.call(body, 'worldbook_order')
+    || Object.prototype.hasOwnProperty.call(body, 'worldbookOrder')
+    || Object.prototype.hasOwnProperty.call(body, 'worldbook_settings');
   if (nextOverviewText.length > 500) {
     return jsonResponse({ ok: false, error: '总览区不能超过 500 字。' }, 400);
   }
@@ -651,6 +657,7 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
         trigger_words = ?,
         worldbook_position_type = ?,
         worldbook_depth = ?,
+        worldbook_order = ?,
         cover_url = ?,
         cover_object_key = ?,
         tags_json = ?,
@@ -671,6 +678,9 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
       hasWorldbookDepthInput
         ? payload.worldbookDepth
         : normalizeWorldbookDepthValue(existingRow.worldbook_depth),
+      hasWorldbookOrderInput
+        ? payload.worldbookOrder
+        : normalizeWorldbookOrderValue(existingRow.worldbook_order),
       coverResult.sourceUrl,
       coverResult.objectKey,
       stringifyJson(hasTagsInput ? payload.tags : safeJsonParse(existingRow.tags_json, [])),
@@ -925,6 +935,7 @@ async function getWorkshopEntryRow(db, entryId, viewerDiscordId = '') {
         e.trigger_words,
         e.worldbook_position_type,
         e.worldbook_depth,
+        e.worldbook_order,
         e.cover_url,
         e.cover_object_key,
         e.tags_json,
@@ -1073,6 +1084,11 @@ function normalizeWorkshopEntryPayload(body) {
       ?? body.worldbookDepth
       ?? worldbookSettings.depth
     ),
+    worldbookOrder: normalizeWorldbookOrderValue(
+      body.worldbook_order
+      ?? body.worldbookOrder
+      ?? worldbookSettings.order
+    ),
     status: readString(body.status) || 'published',
     tags,
     triggerWords,
@@ -1143,6 +1159,7 @@ function mapWorkshopEntryRow(row, options = {}) {
     triggerWords: parseCommaList(row.trigger_words),
     worldbookPositionType: normalizeWorldbookPositionType(row.worldbook_position_type),
     worldbookDepth: normalizeWorldbookDepthValue(row.worldbook_depth),
+    worldbookOrder: normalizeWorldbookOrderValue(row.worldbook_order),
     likes: Number(row.like_count || 0),
     liked: Boolean(Number(row.liked || 0)),
     contentText: options.includeContentText ? (row.content_text || '') : '',
@@ -1229,6 +1246,14 @@ function normalizeWorldbookDepthValue(value) {
     return 0;
   }
   return Math.max(0, Math.floor(nextValue));
+}
+
+function normalizeWorldbookOrderValue(value) {
+  const nextValue = Number(value);
+  if (!Number.isFinite(nextValue)) {
+    return 401;
+  }
+  return Math.floor(nextValue);
 }
 
 function isValidWorkshopEntryType(value) {
