@@ -5575,7 +5575,7 @@
                     // 显示提示信息
                     buildDataStatus.value = "登录成功！窗口即将关闭...";
                     
-                    // 关闭弹出窗口
+                    // 立即关闭弹出窗口（减少延迟）
                     setTimeout(() => {
                         console.log('[Discord Login] 关闭弹出窗口');
                         try {
@@ -5584,7 +5584,7 @@
                             console.error('[Discord Login] 无法关闭窗口:', e);
                             buildDataStatus.value = "登录成功！请手动关闭此窗口";
                         }
-                    }, 500);
+                    }, 100);
                     return;
                 }
 
@@ -5648,14 +5648,18 @@
                 if (isInIframe && window.parent) {
                     // 在 iframe 中，通知父页面打开新窗口
                     try {
+                        // 立即显示加载状态
+                        discordLoading.value = true;
+                        buildDataStatus.value = "正在打开 Discord 登录窗口...";
+                        
                         window.parent.postMessage({
                             channel: 'creative-workshop:auth',
                             action: 'openDiscordLogin',
                             url: authorizeUrl,
                         }, '*');
-                        buildDataStatus.value = "正在打开 Discord 登录窗口...";
                     } catch (error) {
                         console.warn('Failed to notify parent window:', error);
+                        discordLoading.value = false;
                         // 降级方案：尝试在新窗口打开
                         window.open(authorizeUrl, '_blank', 'width=600,height=800,scrollbars=yes');
                         buildDataStatus.value = "已在新窗口打开 Discord 登录，请完成登录后刷新页面";
@@ -6112,6 +6116,11 @@
                     
                     if (data.action === 'discordLoginComplete' && data.hash) {
                         console.log('[Discord Login] iframe 处理登录完成消息，hash:', data.hash);
+                        
+                        // 立即显示处理状态
+                        discordLoading.value = true;
+                        buildDataStatus.value = "正在处理登录信息...";
+                        
                         // 父页面通知登录完成，手动解析 hash
                         const params = new URLSearchParams(data.hash.replace(/^#/, ''));
                         const accessToken = params.get('access_token');
@@ -6129,11 +6138,14 @@
                         if (error) {
                             buildDataStatus.value = `Discord 授权失败：${params.get('error_description') || error}`;
                             clearStoredDiscordAuth();
+                            discordLoading.value = false;
                             return;
                         }
                         
                         if (!accessToken) {
                             console.warn('[Discord Login] 缺少 access_token');
+                            buildDataStatus.value = "登录失败：缺少访问令牌";
+                            discordLoading.value = false;
                             return;
                         }
                         
@@ -6142,11 +6154,13 @@
                             console.error('[Discord Login] state 校验失败');
                             buildDataStatus.value = "Discord 授权状态校验失败，请重试";
                             clearStoredDiscordAuth();
+                            discordLoading.value = false;
                             return;
                         }
                         
                         console.log('[Discord Login] 开始获取用户信息');
-                        discordLoading.value = true;
+                        buildDataStatus.value = "正在获取用户信息...";
+                        
                         try {
                             const user = await fetchDiscordIdentity(accessToken);
                             console.log('[Discord Login] 用户信息获取成功:', user.username);
