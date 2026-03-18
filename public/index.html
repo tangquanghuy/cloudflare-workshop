@@ -6096,15 +6096,22 @@
                         channel: data?.channel,
                         action: data?.action,
                         origin: event.origin,
-                        hasHash: !!data?.hash
+                        hasHash: !!data?.hash,
+                        source: event.source === window.parent ? 'parent' : 'other'
                     });
                     
                     if (!data || data.channel !== 'creative-workshop:auth') {
                         return;
                     }
                     
+                    // 验证消息来源是父窗口
+                    if (event.source !== window.parent && event.source !== window.top) {
+                        console.warn('[Discord Login] 消息不是来自父窗口，忽略');
+                        return;
+                    }
+                    
                     if (data.action === 'discordLoginComplete' && data.hash) {
-                        console.log('[Discord Login] iframe 处理登录完成消息');
+                        console.log('[Discord Login] iframe 处理登录完成消息，hash:', data.hash);
                         // 父页面通知登录完成，手动解析 hash
                         const params = new URLSearchParams(data.hash.replace(/^#/, ''));
                         const accessToken = params.get('access_token');
