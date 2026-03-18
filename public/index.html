@@ -2230,6 +2230,19 @@
                                         </div>
                                         <span class="field-hint">拓展至少填写 1 个触发词，保存时会按英文逗号拼接。</span>
                                     </div>
+                                    <div class="form-field" v-if="activeContentConfig.showWorldbookSettings">
+                                        <label>世界书插入位置</label>
+                                        <select v-model="activeContentSection.form.worldbookPositionType">
+                                            <option value="after_character_definition">角色定义后</option>
+                                            <option value="before_character_definition">角色定义前</option>
+                                            <option value="at_depth">按深度插入</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field" v-if="activeContentConfig.showWorldbookSettings">
+                                        <label>世界书深度</label>
+                                        <input type="number" v-model="activeContentSection.form.worldbookDepth" min="0" step="1" placeholder="0">
+                                        <span class="field-hint">{{ activeContentConfig.worldbookHint }}</span>
+                                    </div>
                                     <div class="form-field">
                                         <label>{{ activeContentConfig.contentLabel }}</label>
                                         <textarea class="content-textarea" v-model="activeContentSection.form.contentText" :placeholder="activeContentConfig.contentPlaceholder"></textarea>
@@ -2419,6 +2432,14 @@
                                         {{ tag }}
                                     </span>
                                 </div>
+                                <div class="worldbook-meta-row" v-if="selectedContent.type === 'extension'">
+                                    <span class="worldbook-meta-chip workshop">
+                                        <i class="ri-login-box-line"></i> {{ formatWorldbookPositionTypeLabel(selectedContent.worldbookPositionType) }}
+                                    </span>
+                                    <span class="worldbook-meta-chip">
+                                        <i class="ri-sort-number-asc"></i> 深度 {{ selectedContent.worldbookDepth }}
+                                    </span>
+                                </div>
                                 <p class="detail-intro">{{ selectedContent.intro || '暂无简介。' }}</p>
                             </div>
                         </div>
@@ -2503,14 +2524,14 @@
                         <div class="form-field">
                             <label>激活类型</label>
                             <select v-model="worldbookEditor.form.strategyType">
-                                <option value="constant">constant</option>
-                                <option value="selective">selective</option>
-                                <option value="vectorized">vectorized</option>
+                                <option value="constant">常驻激活</option>
+                                <option value="selective">关键词触发</option>
+                                <option value="vectorized">向量检索</option>
                             </select>
                         </div>
                         <div class="form-field">
                             <label>扫描深度</label>
-                            <input type="text" v-model="worldbookEditor.form.scanDepth" placeholder="same_as_global 或数字">
+                            <input type="text" v-model="worldbookEditor.form.scanDepth" placeholder="跟随全局设置或输入数字">
                         </div>
                         <div class="form-field">
                             <label>主触发词</label>
@@ -2519,10 +2540,10 @@
                         <div class="form-field">
                             <label>次级触发词逻辑</label>
                             <select v-model="worldbookEditor.form.secondaryLogic">
-                                <option value="and_any">and_any</option>
-                                <option value="and_all">and_all</option>
-                                <option value="not_all">not_all</option>
-                                <option value="not_any">not_any</option>
+                                <option value="and_any">任一命中</option>
+                                <option value="and_all">全部命中</option>
+                                <option value="not_all">不全命中</option>
+                                <option value="not_any">全部不命中</option>
                             </select>
                         </div>
                         <div class="form-field">
@@ -2532,22 +2553,22 @@
                         <div class="form-field">
                             <label>插入位置</label>
                             <select v-model="worldbookEditor.form.positionType">
-                                <option value="before_character_definition">before_character_definition</option>
-                                <option value="after_character_definition">after_character_definition</option>
-                                <option value="before_example_messages">before_example_messages</option>
-                                <option value="after_example_messages">after_example_messages</option>
-                                <option value="before_author_note">before_author_note</option>
-                                <option value="after_author_note">after_author_note</option>
-                                <option value="at_depth">at_depth</option>
-                                <option value="outlet">outlet</option>
+                                <option value="before_character_definition">角色定义前</option>
+                                <option value="after_character_definition">角色定义后</option>
+                                <option value="before_example_messages">示例消息前</option>
+                                <option value="after_example_messages">示例消息后</option>
+                                <option value="before_author_note">作者注释前</option>
+                                <option value="after_author_note">作者注释后</option>
+                                <option value="at_depth">按深度插入</option>
+                                <option value="outlet">输出通道</option>
                             </select>
                         </div>
                         <div class="form-field">
                             <label>消息角色</label>
                             <select v-model="worldbookEditor.form.role">
-                                <option value="system">system</option>
-                                <option value="assistant">assistant</option>
-                                <option value="user">user</option>
+                                <option value="system">系统</option>
+                                <option value="assistant">助手</option>
+                                <option value="user">用户</option>
                             </select>
                         </div>
                         <div class="form-field">
@@ -3498,6 +3519,39 @@
         return normalizeTriggerWords(values).join(',');
     }
 
+    function normalizeWorkshopPositionType(value) {
+        const normalized = String(value || '').trim();
+        if (normalized === 'before_character_definition' || normalized === 'after_character_definition' || normalized === 'at_depth') {
+            return normalized;
+        }
+        return 'after_character_definition';
+    }
+
+    function normalizeWorkshopDepthValue(value) {
+        const nextValue = Number(value);
+        if (!Number.isFinite(nextValue)) {
+            return 0;
+        }
+        return Math.max(0, Math.floor(nextValue));
+    }
+
+    function getWorkshopContentWorldbookSettings(item = {}) {
+        const nested = item?.worldbookSettings || item?.worldbook_settings || {};
+        return {
+            positionType: normalizeWorkshopPositionType(
+                item?.worldbookPositionType
+                ?? item?.worldbook_position_type
+                ?? nested?.positionType
+                ?? nested?.position_type
+            ),
+            depth: normalizeWorkshopDepthValue(
+                item?.worldbookDepth
+                ?? item?.worldbook_depth
+                ?? nested?.depth
+            ),
+        };
+    }
+
 
     function createStoredBuildEntry(rawItem) {
         if (!rawItem?.presetData) {
@@ -3638,6 +3692,7 @@
         const tags = Array.isArray(rawItem.tags)
             ? rawItem.tags.map((item) => typeof item === 'string' ? item : item?.text).filter(Boolean)
             : [];
+        const worldbookSettings = getWorkshopContentWorldbookSettings(rawItem);
         return {
             id: rawItem.id,
             type: rawItem.type || '',
@@ -3655,6 +3710,8 @@
             likes: Number(rawItem.likes || 0),
             liked: !!rawItem.liked,
             contentText: rawItem.contentText || '',
+            worldbookPositionType: worldbookSettings.positionType,
+            worldbookDepth: worldbookSettings.depth,
             status: rawItem.status || 'published',
             createdAt: rawItem.createdAt || '',
             updatedAt: rawItem.updatedAt || '',
@@ -3805,6 +3862,29 @@
     const WORKSHOP_MOD_START_ORDER = 400;
     const WORKSHOP_MOD_END_ORDER = 500;
 
+    function normalizeWorkshopManagedPosition(position = {}, fallbackOrder = WORKSHOP_MOD_START_ORDER + 1) {
+        const nextOrder = Number(position?.order);
+        return {
+            ...(position || {}),
+            type: normalizeWorkshopPositionType(position?.type),
+            role: position?.role || 'system',
+            depth: normalizeWorkshopDepthValue(position?.depth),
+            order: Number.isFinite(nextOrder) ? nextOrder : fallbackOrder,
+        };
+    }
+
+    function formatWorldbookPositionTypeLabel(value) {
+        switch (normalizeWorkshopPositionType(value)) {
+            case 'before_character_definition':
+                return '角色定义前';
+            case 'at_depth':
+                return '按深度插入';
+            case 'after_character_definition':
+            default:
+                return '角色定义后';
+        }
+    }
+
     function hasWorkshopWorldbookPrefix(entryName) {
         return String(entryName || '').trim().startsWith(WORKSHOP_WORLDBOOK_VISIBLE_PREFIX);
     }
@@ -3837,7 +3917,7 @@
             && (!sourceMeta.sourceType || String(meta.sourceType || '') === String(sourceMeta.sourceType));
     }
 
-    function createWorkshopManagedEntry({ item, slot, nameSuffix, content, strategyType, keys = [] }) {
+    function createWorkshopManagedEntry({ item, slot, nameSuffix, content, strategyType, keys = [], positionType, depth }) {
         return {
             name: `${WORKSHOP_WORLDBOOK_VISIBLE_PREFIX}${item?.name || '未命名内容'}${nameSuffix}`,
             enabled: true,
@@ -3847,12 +3927,12 @@
                 keys_secondary: { logic: 'and_any', keys: [] },
                 scan_depth: 'same_as_global',
             },
-            position: {
-                type: 'after_character_definition',
+            position: normalizeWorkshopManagedPosition({
+                type: positionType,
                 role: 'system',
-                depth: 0,
+                depth,
                 order: WORKSHOP_MOD_START_ORDER + 1,
-            },
+            }, WORKSHOP_MOD_START_ORDER + 1),
             content,
             probability: 100,
             recursion: {
@@ -3888,6 +3968,7 @@
 
     function buildWorkshopWorldbookEntries(item) {
         const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
+        const worldbookSettings = getWorkshopContentWorldbookSettings(item);
         const overviewContent = buildWorkshopOverviewContent(item);
         const bodyContent = buildWorkshopBodyContent(item);
         const bodyStrategyType = triggerWords.length ? 'selective' : 'constant';
@@ -3900,6 +3981,8 @@
                 content: overviewContent,
                 strategyType: 'constant',
                 keys: [],
+                positionType: worldbookSettings.positionType,
+                depth: worldbookSettings.depth,
             }));
         }
         if (bodyContent) {
@@ -3910,6 +3993,8 @@
                 content: bodyContent,
                 strategyType: bodyStrategyType,
                 keys: bodyStrategyType === 'selective' ? triggerWords : [],
+                positionType: worldbookSettings.positionType,
+                depth: worldbookSettings.depth,
             }));
         }
         return entries;
@@ -4012,13 +4097,10 @@
                 return String(a?.name || '').localeCompare(String(b?.name || ''));
             });
         managedEntries.forEach((entry, index) => {
-            entry.position = {
+            entry.position = normalizeWorkshopManagedPosition({
                 ...(entry.position || {}),
-                type: 'after_character_definition',
-                role: 'system',
-                depth: 0,
                 order: WORKSHOP_MOD_START_ORDER + 1 + index,
-            };
+            }, WORKSHOP_MOD_START_ORDER + 1 + index);
         });
         return nextWorldbook;
     }
@@ -4239,6 +4321,8 @@
                     showTriggerWords: true,
                     triggerWordsHint: '拓展至少填写 1 个触发词，保存时会按英文逗号拼接；写入世界书时正文会作为绿灯使用这些触发词。',
                     requiresTriggerWords: true,
+                    showWorldbookSettings: true,
+                    worldbookHint: '写入世界书时，总览和正文会共用这组插入位置与深度设置。',
                 },
             };
             const discordAuth = ref(loadStoredDiscordAuth());
@@ -4332,6 +4416,8 @@
                 triggerWords: contentSectionConfig[type]?.showTriggerWords ? [''] : [],
                 customTagInput: '',
                 contentText: '',
+                worldbookPositionType: 'after_character_definition',
+                worldbookDepth: '0',
             });
 
             function createContentSection(type) {
@@ -4557,6 +4643,8 @@
                             triggerWords: normalizeTriggerWords(editable.triggerWords || [], contentSectionConfig[type].showTriggerWords),
                             customTagInput: '',
                             contentText: editable.contentText || '',
+                            worldbookPositionType: getWorkshopContentWorldbookSettings(editable).positionType,
+                            worldbookDepth: String(getWorkshopContentWorldbookSettings(editable).depth),
                         };
                         section.view = 'publish';
                         selectedContent.value = null;
@@ -4646,26 +4734,36 @@
                         : `正在发布${contentSectionConfig[type].title}，请稍候…`;
 
                     try {
+                        const worldbookSettings = getWorkshopContentWorldbookSettings(section.form);
+                        const requestBody = {
+                            id: section.editingId || undefined,
+                            entry_type: type,
+                            owner_discord_id: discordUser.value.id,
+                            username: discordUser.value.username,
+                            avatar_url: discordUser.value.avatarUrl || '',
+                            title: name,
+                            intro: String(section.form.intro || '').trim(),
+                            overview_text: String(section.form.overviewText || '').trim(),
+                            cover_url: String(section.form.coverUrl || '').trim(),
+                            tags: section.form.tags,
+                            trigger_words: triggerWordsText,
+                            content_text: String(section.form.contentText || '').trim(),
+                        };
+                        if (contentSectionConfig[type].showWorldbookSettings) {
+                            requestBody.worldbook_position_type = worldbookSettings.positionType;
+                            requestBody.worldbook_depth = worldbookSettings.depth;
+                            requestBody.worldbook_settings = {
+                                position_type: worldbookSettings.positionType,
+                                depth: worldbookSettings.depth,
+                            };
+                        }
                         const response = await apiRequest(
                             section.editingId
                                 ? `/content/${encodeURIComponent(section.editingId)}`
                                 : '/content',
                             {
                                 method: section.editingId ? 'PUT' : 'POST',
-                                body: {
-                                    id: section.editingId || undefined,
-                                    entry_type: type,
-                                    owner_discord_id: discordUser.value.id,
-                                    username: discordUser.value.username,
-                                    avatar_url: discordUser.value.avatarUrl || '',
-                                    title: name,
-                                    intro: String(section.form.intro || '').trim(),
-                                    overview_text: String(section.form.overviewText || '').trim(),
-                                    cover_url: String(section.form.coverUrl || '').trim(),
-                                    tags: section.form.tags,
-                                    trigger_words: triggerWordsText,
-                                    content_text: String(section.form.contentText || '').trim(),
-                                },
+                                body: requestBody,
                             }
                         );
 
@@ -6217,7 +6315,7 @@
                 openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, triggerCoverImageImport, handleCoverImageImport, clearCoverImage, togglePublishTag,
                 addCustomPublishTag, removePublishTag,
                 getImportedClassName, getImportedRaceName, publishPresetBuild,
-                getSkillTypeColor, getAttributeIcon, getContentTypeLabel, getContentTypeIcon, getContentPreview, formatDateLabel,
+                getSkillTypeColor, getAttributeIcon, getContentTypeLabel, getContentTypeIcon, getContentPreview, formatDateLabel, formatWorldbookPositionTypeLabel,
                 isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
                 isContentOwnedByCurrentUser, editOwnedContent, deleteOwnedContent, copyContentText, isBuildDeleting, isContentDeleting,
                 toggleBuildLike, toggleContentLike, downloadBuild,

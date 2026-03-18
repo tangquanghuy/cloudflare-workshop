@@ -43,6 +43,15 @@
       }
     }
   </script>
+  <script>
+    (() => {
+      const VALID_THEMES = new Set(['warm-white', 'dark', 'green', 'classic-dark']);
+      const savedTheme = localStorage.getItem('kivotos-theme') || localStorage.getItem('theme') || 'warm-white';
+      const initialTheme = VALID_THEMES.has(savedTheme) ? savedTheme : 'warm-white';
+      window.__initialTheme = initialTheme;
+      document.documentElement.style.colorScheme = (initialTheme === 'dark' || initialTheme === 'classic-dark') ? 'dark' : 'light';
+    })();
+  </script>
   <style>
     /* CSS Variables & Light/Dark Theme */
     :root,
@@ -117,6 +126,37 @@
       -moz-osx-font-smoothing: grayscale;
       min-height: 100vh;
       transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.theme-preload *,
+    body.theme-preload *::before,
+    body.theme-preload *::after {
+      transition: none !important;
+    }
+
+    body.render-pending .reading-content {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    body.render-ready .reading-content {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.24s ease, transform 0.24s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html:focus-within {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
 
     /* Scrollbar */
@@ -207,7 +247,7 @@
       color: var(--text-main);
       display: block;
       line-height: 1;
-      transition: all 0.3s ease;
+      transition: color 0.3s ease, text-shadow 0.3s ease, opacity 0.3s ease;
       position: relative;
       white-space: nowrap;
     }
@@ -333,7 +373,7 @@
       background: rgba(0, 0, 0, 0.03);
       border-radius: 8px;
       margin-bottom: 10px;
-      transition: all 0.2s ease
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease
     }
 
     body[data-theme="dark"] .settings-option {
@@ -367,7 +407,7 @@
       background: rgba(0, 0, 0, 0.2);
       border-radius: 13px;
       cursor: pointer;
-      transition: all 0.3s ease
+      transition: background-color 0.3s ease, box-shadow 0.3s ease
     }
 
     .toggle-switch.active {
@@ -382,7 +422,7 @@
       height: 20px;
       background: white;
       border-radius: 50%;
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
     }
 
@@ -430,7 +470,7 @@
       border: none;
       color: var(--text-muted);
       font-family: inherit;
-      transition: all 0.2s;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
     .custom-char-tab.active {
@@ -544,7 +584,7 @@
       cursor: pointer;
       font-size: 10px;
       font-family: inherit;
-      transition: all 0.2s;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
       flex-shrink: 0;
       white-space: nowrap;
     }
@@ -632,7 +672,7 @@
       cursor: pointer;
       font-size: 12px;
       font-family: inherit;
-      transition: all 0.2s;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
     .custom-char-upload-btn:hover {
@@ -675,7 +715,7 @@
       font-size: 12px;
       font-family: inherit;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
     .custom-char-btn-confirm {
@@ -707,7 +747,7 @@
       cursor: pointer;
       font-size: 12px;
       font-family: inherit;
-      transition: all 0.2s;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
       text-align: center;
     }
 
@@ -733,7 +773,9 @@
       overflow: visible;
       min-height: auto !important;
       height: auto !important;
-      contain: layout style;
+      contain: layout style paint;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 1200px;
       font-size: 18px
     }
 
@@ -1268,7 +1310,7 @@
       background: transparent;
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       letter-spacing: 1px;
     }
 
@@ -1628,7 +1670,7 @@
       font-weight: bold;
       font-family: var(--font-main);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       letter-spacing: 4px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     }
@@ -1718,7 +1760,7 @@
       font-size: 12px;
       padding: 4px 10px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
       font-family: inherit;
       display: inline-flex;
       align-items: center;
@@ -1788,7 +1830,7 @@
       font-weight: 700;
       padding: 5px 12px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
       white-space: nowrap;
       flex-shrink: 0;
       font-family: inherit;
@@ -1839,7 +1881,7 @@
       font-weight: 600;
       font-size: 13px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .merch-action-btn:hover {
@@ -2059,7 +2101,7 @@
       justify-content: center;
       font-size: 11px;
       line-height: 1;
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
       background: rgba(0, 0, 0, 0.08);
       color: inherit;
       padding: 0;
@@ -2154,7 +2196,7 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.8em;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
       box-shadow: none;
     }
 
@@ -2264,7 +2306,7 @@
       font-size: 40px;
       color: white;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
       z-index: 10000;
       width: 50px;
       height: 50px;
@@ -3812,7 +3854,10 @@
   </style>
 </head>
 
-<body data-theme="dark">
+<body class="theme-preload render-pending">
+  <script>
+    document.body.setAttribute('data-theme', window.__initialTheme || 'warm-white');
+  </script>
 
   <div class="header">
     <div class="logo-container">
@@ -3824,10 +3869,10 @@
       </div>
     </div>
     <div class="theme-controls">
-      <button class="control-btn" onclick="setTheme('warm-white')" title="日间">日</button>
-      <button class="control-btn" onclick="setTheme('dark')" title="夜间">夜</button>
-      <button class="control-btn" onclick="setTheme('green')" title="抹茶">茶</button>
-      <button class="control-btn" onclick="setTheme('classic-dark')" title="经典夜间">旧</button>
+      <button class="control-btn" data-theme-key="warm-white" onclick="setTheme('warm-white')" title="日间">日</button>
+      <button class="control-btn" data-theme-key="dark" onclick="setTheme('dark')" title="夜间">夜</button>
+      <button class="control-btn" data-theme-key="green" onclick="setTheme('green')" title="抹茶">茶</button>
+      <button class="control-btn" data-theme-key="classic-dark" onclick="setTheme('classic-dark')" title="经典夜间">旧</button>
       <div style="width:1px; background:var(--border-color); margin:0 5px;"></div>
       <button class="control-btn" id="settingsBtn" title="设置">⚙</button>
     </div>
@@ -6679,11 +6724,18 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
 
     function processTextContent() {
       const contentDiv = document.getElementById('readingContent');
-      if (!contentDiv.innerHTML.trim()) return;
+      if (!contentDiv) return;
+
+      const initialHtml = contentDiv.innerHTML.trim();
+      if (!initialHtml) return;
+
+      const workDiv = document.createElement('div');
+      workDiv.innerHTML = initialHtml;
+      contentDiv.setAttribute('aria-busy', 'true');
 
       // === Phase 1: DOM操作 - 提取HTML块(style+div)，保留原始DOM元素 ===
       const preservedBlocks = [];
-      const styleEls = Array.from(contentDiv.querySelectorAll(':scope > style'));
+      const styleEls = Array.from(workDiv.querySelectorAll(':scope > style'));
       for (let si = 0; si < styleEls.length; si++) {
         const styleEl = styleEls[si];
         const scopeId = 'shb-' + Math.random().toString(36).substr(2, 6);
@@ -6699,13 +6751,13 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
         wrapper.className = 'scoped-html-block';
         // 插入占位符文本
         const ph = '\n___HTMLBLOCK_' + si + '___\n';
-        contentDiv.insertBefore(document.createTextNode(ph), styleEl);
+        workDiv.insertBefore(document.createTextNode(ph), styleEl);
         // 清理style和div之间的空白/BR
         let cur = styleEl.nextSibling;
         while (cur && cur !== nextEl) {
           const nx = cur.nextSibling;
           if ((cur.nodeType === 3 && !cur.textContent.trim()) || (cur.nodeType === 1 && cur.tagName === 'BR'))
-            contentDiv.removeChild(cur);
+            workDiv.removeChild(cur);
           cur = nx;
         }
         wrapper.appendChild(styleEl);
@@ -6715,8 +6767,11 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
       }
 
       // === Phase 2: 读取innerHTML（HTML块已被替换为文本占位符）===
-      let rawText = contentDiv.innerHTML.trim();
-      if (!rawText) return;
+      let rawText = workDiv.innerHTML.trim();
+      if (!rawText) {
+        contentDiv.removeAttribute('aria-busy');
+        return;
+      }
 
       // 解码HTML实体，使转义标签（如 &lt;img&gt;）可被后续逻辑识别
       rawText = decodeHtmlEntities(rawText);
@@ -6778,11 +6833,11 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
       });
       const remainingText = rawText.substring(lastIndex);
       if (remainingText.trim()) htmlParts.push(processParagraphs(remainingText));
-      contentDiv.innerHTML = htmlParts.join('');
+      workDiv.innerHTML = htmlParts.join('');
 
       // === Phase 3: 恢复保存的HTML块 - 将占位符替换为原始DOM元素 ===
       if (preservedBlocks.length > 0) {
-        const walker = document.createTreeWalker(contentDiv, NodeFilter.SHOW_TEXT, null, false);
+        const walker = document.createTreeWalker(workDiv, NodeFilter.SHOW_TEXT, null, false);
         const textNodes = [];
         let node;
         while ((node = walker.nextNode())) textNodes.push(node);
@@ -6810,13 +6865,15 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
       }
 
       // 为敌人卡片注入SVG图标
-      document.querySelectorAll('.monster-icon-frame[data-rank]').forEach(frame => {
+      workDiv.querySelectorAll('.monster-icon-frame[data-rank]').forEach(frame => {
         const svg = getRankSvg(frame.dataset.rank);
         if (svg) frame.innerHTML = svg;
       });
 
       // 过滤全文中的 ** 符号
-      removeAsterisks(contentDiv);
+      removeAsterisks(workDiv);
+      contentDiv.replaceChildren(...Array.from(workDiv.childNodes));
+      contentDiv.removeAttribute('aria-busy');
     }
 
     // 递归遍历文本节点，移除 ** 符号
@@ -7133,11 +7190,11 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
     let imageSize = 70; // 默认70%
 
     document.addEventListener('DOMContentLoaded', () => {
-      // 初始化自定义角色：从MVU和缓存加载到CHARACTER_CONFIG
-      loadCustomCharsIntoConfig();
-      processTextContent();
+      initThemeSwitcher(true);
       requestAnimationFrame(() => {
-        initThemeSwitcher();
+        // 初始化自定义角色：从MVU和缓存加载到CHARACTER_CONFIG
+        loadCustomCharsIntoConfig();
+        processTextContent();
         initSettings();
         initAvatarUpload();
         renderCustomCharList();
@@ -7150,6 +7207,10 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
         applyImageSize();
         initMerchantTradeUi();
         initAnimationObserver();
+        requestAnimationFrame(() => {
+          document.body.classList.remove('render-pending', 'theme-preload');
+          document.body.classList.add('render-ready');
+        });
       });
     });
 
@@ -7216,21 +7277,39 @@ body[data-theme="dark"] .name-initial-${CSS.escape(name)} { color: ${darkColor};
     }
 
     // Theme setter helper
-    const applyTheme = (theme) => {
-      document.body.setAttribute('data-theme', theme);
+    const VALID_THEMES = new Set(['warm-white', 'dark', 'green', 'classic-dark']);
+
+    const updateThemeButtons = (theme) => {
       localStorage.setItem('kivotos-theme', theme);
       localStorage.setItem('theme', theme); // compatible backup
-      document.querySelectorAll('.control-btn[onclick^="setTheme"]').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${theme}'`));
+      document.documentElement.style.colorScheme = (theme === 'dark' || theme === 'classic-dark') ? 'dark' : 'light';
+      document.querySelectorAll('.control-btn[data-theme-key]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.themeKey === theme);
       });
+    };
+
+    const commitTheme = (theme) => {
+      document.body.setAttribute('data-theme', theme);
+      updateThemeButtons(theme);
+    };
+
+    const applyTheme = (theme, skipAnimation = false) => {
+      const normalizedTheme = VALID_THEMES.has(theme) ? theme : 'warm-white';
+
+      if (!skipAnimation && document.startViewTransition) {
+        document.startViewTransition(() => commitTheme(normalizedTheme));
+        return;
+      }
+
+      commitTheme(normalizedTheme);
     };
 
     // Expose for HTML onclick
     window.setTheme = applyTheme;
 
-    function initThemeSwitcher() {
-      const savedTheme = localStorage.getItem('kivotos-theme') || 'warm-white';
-      applyTheme(savedTheme);
+    function initThemeSwitcher(skipAnimation = false) {
+      const savedTheme = window.__initialTheme || localStorage.getItem('kivotos-theme') || localStorage.getItem('theme') || 'warm-white';
+      applyTheme(savedTheme, skipAnimation);
     }
 
     function adjustReadingFontSize(delta) {

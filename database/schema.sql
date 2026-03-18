@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS workshop_entries (
   intro TEXT,
   overview_text TEXT NOT NULL DEFAULT '',
   trigger_words TEXT NOT NULL DEFAULT '',
+  worldbook_position_type TEXT NOT NULL DEFAULT 'after_character_definition',
+  worldbook_depth INTEGER NOT NULL DEFAULT 0,
   cover_url TEXT,
   cover_object_key TEXT,
   tags_json TEXT NOT NULL DEFAULT '[]',

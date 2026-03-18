@@ -449,6 +449,8 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
         e.intro,
         e.overview_text,
         e.trigger_words,
+        e.worldbook_position_type,
+        e.worldbook_depth,
         e.cover_url,
         e.cover_object_key,
         e.tags_json,
@@ -544,6 +546,8 @@ async function handleWorkshopContentCreate(request, env) {
         intro,
         overview_text,
         trigger_words,
+        worldbook_position_type,
+        worldbook_depth,
         cover_url,
         cover_object_key,
         tags_json,
@@ -562,6 +566,8 @@ async function handleWorkshopContentCreate(request, env) {
       payload.intro || '',
       payload.overviewText,
       payload.triggerWordsText,
+      payload.worldbookPositionType,
+      payload.worldbookDepth,
       coverResult.sourceUrl,
       coverResult.objectKey,
       stringifyJson(payload.tags),
@@ -598,6 +604,12 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
   const nextOverviewText = Object.prototype.hasOwnProperty.call(body, 'overview_text') || Object.prototype.hasOwnProperty.call(body, 'overviewText')
     ? payload.overviewText
     : (existingRow.overview_text || '');
+  const hasWorldbookPositionInput = Object.prototype.hasOwnProperty.call(body, 'worldbook_position_type')
+    || Object.prototype.hasOwnProperty.call(body, 'worldbookPositionType')
+    || Object.prototype.hasOwnProperty.call(body, 'worldbook_settings');
+  const hasWorldbookDepthInput = Object.prototype.hasOwnProperty.call(body, 'worldbook_depth')
+    || Object.prototype.hasOwnProperty.call(body, 'worldbookDepth')
+    || Object.prototype.hasOwnProperty.call(body, 'worldbook_settings');
   if (nextOverviewText.length > 500) {
     return jsonResponse({ ok: false, error: '总览区不能超过 500 字。' }, 400);
   }
@@ -637,6 +649,8 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
         intro = ?,
         overview_text = ?,
         trigger_words = ?,
+        worldbook_position_type = ?,
+        worldbook_depth = ?,
         cover_url = ?,
         cover_object_key = ?,
         tags_json = ?,
@@ -651,6 +665,12 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
       payload.intro || '',
       nextOverviewText,
       joinCommaList(nextTriggerWords),
+      hasWorldbookPositionInput
+        ? payload.worldbookPositionType
+        : normalizeWorldbookPositionType(existingRow.worldbook_position_type),
+      hasWorldbookDepthInput
+        ? payload.worldbookDepth
+        : normalizeWorldbookDepthValue(existingRow.worldbook_depth),
       coverResult.sourceUrl,
       coverResult.objectKey,
       stringifyJson(hasTagsInput ? payload.tags : safeJsonParse(existingRow.tags_json, [])),
@@ -903,6 +923,8 @@ async function getWorkshopEntryRow(db, entryId, viewerDiscordId = '') {
         e.intro,
         e.overview_text,
         e.trigger_words,
+        e.worldbook_position_type,
+        e.worldbook_depth,
         e.cover_url,
         e.cover_object_key,
         e.tags_json,
@@ -1024,6 +1046,7 @@ function normalizeWorkshopEntryPayload(body) {
     ? body.tags.map((item) => readString(typeof item === 'string' ? item : item?.text)).filter(Boolean)
     : [];
   const triggerWords = normalizeCommaList(body.trigger_words ?? body.triggerWords);
+  const worldbookSettings = body.worldbook_settings && typeof body.worldbook_settings === 'object' ? body.worldbook_settings : {};
 
   return {
     id: readString(body.id),
@@ -1039,6 +1062,17 @@ function normalizeWorkshopEntryPayload(body) {
     contentText: typeof body.content_text === 'string'
       ? body.content_text.trim()
       : readString(body.contentText || body.content),
+    worldbookPositionType: normalizeWorldbookPositionType(
+      body.worldbook_position_type
+      ?? body.worldbookPositionType
+      ?? worldbookSettings.position_type
+      ?? worldbookSettings.positionType
+    ),
+    worldbookDepth: normalizeWorldbookDepthValue(
+      body.worldbook_depth
+      ?? body.worldbookDepth
+      ?? worldbookSettings.depth
+    ),
     status: readString(body.status) || 'published',
     tags,
     triggerWords,
@@ -1107,6 +1141,8 @@ function mapWorkshopEntryRow(row, options = {}) {
     coverUrl: readString(row.cover_object_key) ? `/api/content/${encodeURIComponent(row.id)}/cover` : (row.cover_url || ''),
     tags: Array.isArray(tags) ? tags : [],
     triggerWords: parseCommaList(row.trigger_words),
+    worldbookPositionType: normalizeWorldbookPositionType(row.worldbook_position_type),
+    worldbookDepth: normalizeWorldbookDepthValue(row.worldbook_depth),
     likes: Number(row.like_count || 0),
     liked: Boolean(Number(row.liked || 0)),
     contentText: options.includeContentText ? (row.content_text || '') : '',
@@ -1177,6 +1213,22 @@ async function syncCoverAsset({ bucket, coverUrl, assetId, existingCoverObjectKe
 
   const persistedSourceUrl = cleanedUrl.startsWith('data:image/') ? '' : cleanedUrl;
   return { sourceUrl: persistedSourceUrl, objectKey };
+}
+
+function normalizeWorldbookPositionType(value) {
+  const normalized = readString(value);
+  if (normalized === 'before_character_definition' || normalized === 'after_character_definition' || normalized === 'at_depth') {
+    return normalized;
+  }
+  return 'after_character_definition';
+}
+
+function normalizeWorldbookDepthValue(value) {
+  const nextValue = Number(value);
+  if (!Number.isFinite(nextValue)) {
+    return 0;
+  }
+  return Math.max(0, Math.floor(nextValue));
 }
 
 function isValidWorkshopEntryType(value) {
