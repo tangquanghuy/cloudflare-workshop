@@ -3828,6 +3828,15 @@
         return null;
     }
 
+    function matchesCreativeWorkshopEntry(entry, sourceMeta) {
+        const meta = getWorldbookEntrySourceMeta(entry);
+        if (!meta || !sourceMeta?.sourceId) {
+            return false;
+        }
+        return String(meta.sourceId) === String(sourceMeta.sourceId)
+            && (!sourceMeta.sourceType || String(meta.sourceType || '') === String(sourceMeta.sourceType));
+    }
+
     function createWorkshopManagedEntry({ item, slot, nameSuffix, content, strategyType, keys = [] }) {
         return {
             name: `${WORKSHOP_WORLDBOOK_VISIBLE_PREFIX}${item?.name || '未命名内容'}${nameSuffix}`,
