@@ -3730,7 +3730,6 @@
     }
 
     const WORLDBOOK_BRIDGE_CHANNEL = 'creative-workshop:worldbook';
-    const WORKSHOP_WORLDBOOK_PREFIX = '🧩mod ';
 
     function normalizeCharWorldbooks(value) {
         return {
@@ -3758,100 +3757,6 @@
 
     function stringifyWorldbookKeywordList(values) {
         return normalizeWorldbookKeywordList(values).join(', ');
-    }
-
-    function hasWorkshopWorldbookPrefix(entryName) {
-        return String(entryName || '').trim().startsWith(WORKSHOP_WORLDBOOK_PREFIX);
-    }
-
-    function getWorldbookEntrySourceMeta(entry) {
-        const meta = entry?.extra?.creativeWorkshop || null;
-        if (meta) {
-            return meta;
-        }
-        if (hasWorkshopWorldbookPrefix(entry?.name)) {
-            return {
-                sourceId: '',
-                sourceType: 'prefix',
-                sourceTitle: String(entry?.name || '').replace(WORKSHOP_WORLDBOOK_PREFIX, '').trim(),
-                sourceUpdatedAt: '',
-                installedAt: '',
-                slot: 'prefix_only',
-                fallback: true,
-            };
-        }
-        return null;
-    }
-
-    function matchesCreativeWorkshopEntry(entry, sourceMeta) {
-        const meta = getWorldbookEntrySourceMeta(entry);
-        if (!meta || !sourceMeta?.sourceId) {
-            return false;
-        }
-        return String(meta.sourceId) === String(sourceMeta.sourceId)
-            && (!sourceMeta.sourceType || String(meta.sourceType || '') === String(sourceMeta.sourceType));
-    }
-
-    function buildWorkshopWorldbookContent(item) {
-        const blocks = [];
-        const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
-        if (item?.intro) {
-            blocks.push(`【简介】\n${String(item.intro).trim()}`);
-        }
-        if (item?.overviewText) {
-            blocks.push(`【总览】\n${String(item.overviewText).trim()}`);
-        }
-        if (item?.contentText) {
-            blocks.push(`【正文】\n${String(item.contentText).trim()}`);
-        }
-        if (triggerWords.length) {
-            blocks.push(`【触发词】\n${triggerWords.join(' / ')}`);
-        }
-        return blocks.filter(Boolean).join('\n\n');
-    }
-
-    function buildWorkshopWorldbookEntries(item) {
-        const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
-        const sourceType = item?.type === 'character' ? 'character' : 'extension';
-        const strategyType = sourceType === 'extension' && triggerWords.length ? 'selective' : 'constant';
-        return [{
-            name: `${WORKSHOP_WORLDBOOK_PREFIX}${item?.name || '未命名内容'}`,
-            enabled: true,
-            strategy: {
-                type: strategyType,
-                keys: strategyType === 'selective' ? triggerWords : [],
-                keys_secondary: { logic: 'and_any', keys: [] },
-                scan_depth: 'same_as_global',
-            },
-            position: {
-                type: 'before_character_definition',
-                role: 'system',
-                depth: 0,
-                order: 100,
-            },
-            content: buildWorkshopWorldbookContent(item),
-            probability: 100,
-            recursion: {
-                prevent_incoming: false,
-                prevent_outgoing: false,
-                delay_until: null,
-            },
-            effect: {
-                sticky: null,
-                cooldown: null,
-                delay: null,
-            },
-            extra: {
-                creativeWorkshop: {
-                    sourceId: item?.id || '',
-                    sourceType,
-                    sourceTitle: item?.name || item?.title || '',
-                    sourceUpdatedAt: item?.updatedAt || item?.createdAt || '',
-                    installedAt: new Date().toISOString(),
-                    slot: 'main',
-                },
-            },
-        }];
     }
 
     function createBlankWorldbookEntryPayload() {
@@ -4885,8 +4790,24 @@
                     && !!worldbookState.selectedWorldbook;
             });
 
+            function getMergedWorldbookNames(context) {
+                const names = [];
+                const pushName = (value) => {
+                    const normalized = String(value || '').trim();
+                    if (normalized && !names.includes(normalized)) {
+                        names.push(normalized);
+                    }
+                };
+                (Array.isArray(context?.worldbookNames) ? context.worldbookNames : []).forEach(pushName);
+                pushName(context?.charWorldbooks?.primary);
+                (Array.isArray(context?.charWorldbooks?.additional) ? context.charWorldbooks.additional : []).forEach(pushName);
+                pushName(context?.chatWorldbook);
+                (Array.isArray(context?.globalWorldbooks) ? context.globalWorldbooks : []).forEach(pushName);
+                return names;
+            }
+
             function getPreferredWorldbookName(context, currentValue = '') {
-                const names = Array.isArray(context?.worldbookNames) ? context.worldbookNames.filter(Boolean) : [];
+                const names = getMergedWorldbookNames(context);
                 if (currentValue && names.includes(currentValue)) {
                     return currentValue;
                 }
@@ -4947,7 +4868,7 @@
                     worldbookState.driverLabel = worldbookDriver.label;
                     worldbookState.available = true;
                     worldbookState.canCreateWorldbook = !!context?.canCreateWorldbook;
-                    worldbookState.worldbookNames = Array.isArray(context?.worldbookNames) ? context.worldbookNames.filter(Boolean) : [];
+                    worldbookState.worldbookNames = getMergedWorldbookNames(context);
                     worldbookState.charWorldbooks = normalizeCharWorldbooks(context?.charWorldbooks);
                     worldbookState.globalWorldbooks = Array.isArray(context?.globalWorldbooks) ? context.globalWorldbooks.filter(Boolean) : [];
                     worldbookState.chatWorldbook = context?.chatWorldbook || '';
@@ -5643,7 +5564,31 @@
                 try {
                     localStorage.setItem(DISCORD_OAUTH_STATE_KEY, state);
                 } catch (error) {}
-                window.location.href = buildDiscordAuthorizeUrl(state);
+                
+                const authorizeUrl = buildDiscordAuthorizeUrl(state);
+                
+                // 检测是否在 iframe 中
+                const isInIframe = window.self !== window.top;
+                
+                if (isInIframe && window.parent) {
+                    // 在 iframe 中，通知父页面打开新窗口
+                    try {
+                        window.parent.postMessage({
+                            channel: 'creative-workshop:auth',
+                            action: 'openDiscordLogin',
+                            url: authorizeUrl,
+                        }, '*');
+                        buildDataStatus.value = "正在打开 Discord 登录窗口...";
+                    } catch (error) {
+                        console.warn('Failed to notify parent window:', error);
+                        // 降级方案：尝试在新窗口打开
+                        window.open(authorizeUrl, '_blank', 'width=600,height=800,scrollbars=yes');
+                        buildDataStatus.value = "已在新窗口打开 Discord 登录，请完成登录后刷新页面";
+                    }
+                } else {
+                    // 不在 iframe 中，直接跳转
+                    window.location.href = authorizeUrl;
+                }
             }
 
             function logoutDiscord() {
@@ -6067,6 +6012,61 @@
                     extensionSection.loadItems(),
                 ]);
                 await refreshWorldbookEnvironment();
+                
+                // 监听来自父页面的 Discord 登录完成消息
+                window.addEventListener('message', async (event) => {
+                    const data = event.data;
+                    if (!data || data.channel !== 'creative-workshop:auth') {
+                        return;
+                    }
+                    
+                    if (data.action === 'discordLoginComplete' && data.hash) {
+                        // 父页面通知登录完成，手动解析 hash
+                        const params = new URLSearchParams(data.hash.replace(/^#/, ''));
+                        const accessToken = params.get('access_token');
+                        const expiresIn = Number(params.get('expires_in') || 0);
+                        const state = params.get('state');
+                        const error = params.get('error');
+                        
+                        if (error) {
+                            buildDataStatus.value = `Discord 授权失败：${params.get('error_description') || error}`;
+                            clearStoredDiscordAuth();
+                            return;
+                        }
+                        
+                        if (!accessToken) {
+                            return;
+                        }
+                        
+                        const expectedState = localStorage.getItem(DISCORD_OAUTH_STATE_KEY) || "";
+                        if (expectedState && state !== expectedState) {
+                            buildDataStatus.value = "Discord 授权状态校验失败，请重试";
+                            clearStoredDiscordAuth();
+                            return;
+                        }
+                        
+                        discordLoading.value = true;
+                        try {
+                            const user = await fetchDiscordIdentity(accessToken);
+                            const authData = {
+                                accessToken,
+                                expiresAt: Date.now() + Math.max(expiresIn - 60, 60) * 1000,
+                                user,
+                            };
+                            discordAuth.value = authData;
+                            saveStoredDiscordAuth(authData);
+                            await syncDiscordUserToApi(user);
+                            buildDataStatus.value = "Discord 登录成功";
+                            syncPublishAuthorFromDiscord();
+                        } catch (error) {
+                            console.warn("Discord identity fetch failed:", error);
+                            buildDataStatus.value = "Discord 登录成功，但读取用户信息失败";
+                            clearStoredDiscordAuth();
+                        } finally {
+                            discordLoading.value = false;
+                        }
+                    }
+                });
             });
 
             watch(() => activeTab.value, (tab) => {
