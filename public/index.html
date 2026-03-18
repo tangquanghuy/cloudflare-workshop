@@ -2159,10 +2159,9 @@
                                         <label>总览区</label>
                                         <textarea
                                             rows="5"
-                                            maxlength="500"
                                             v-model="activeContentSection.form.overviewText"
                                             :placeholder="activeContentConfig.overviewPlaceholder"></textarea>
-                                        <span class="field-hint">{{ activeContentConfig.overviewHint }} 已填写 {{ (activeContentSection.form.overviewText || '').length }}/500</span>
+                                        <span class="field-hint">{{ activeContentConfig.overviewHint }} 已填写 {{ (activeContentSection.form.overviewText || '').length }} 字</span>
                                     </div>
                                     <div class="form-field">
                                         <label>封面图片</label>
