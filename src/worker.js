@@ -504,14 +504,14 @@ async function handleWorkshopContentCreate(request, env) {
   if (!payload.title) {
     return jsonResponse({ ok: false, error: 'title is required.' }, 400);
   }
-  if (!payload.contentText) {
+  if (payload.entryType !== 'extension' && !payload.contentText) {
     return jsonResponse({ ok: false, error: 'content_text is required.' }, 400);
-  }
-  if (payload.overviewText.length > 500) {
-    return jsonResponse({ ok: false, error: '总览区不能超过 500 字。' }, 400);
   }
   if (payload.entryType === 'extension' && !payload.triggerWords.length) {
     return jsonResponse({ ok: false, error: '请至少填写 1 个拓展触发词。' }, 400);
+  }
+  if (payload.entryType === 'extension' && !payload.overviewText && !payload.contentText) {
+    return jsonResponse({ ok: false, error: '请至少填写拓展总览区或拓展正文。' }, 400);
   }
 
   const duplicateEntry = await findWorkshopEntryByOwnerAndTitle(env.ngnl_build, payload.entryType, payload.ownerDiscordId, payload.title);
@@ -616,11 +616,20 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
   const hasWorldbookOrderInput = Object.prototype.hasOwnProperty.call(body, 'worldbook_order')
     || Object.prototype.hasOwnProperty.call(body, 'worldbookOrder')
     || Object.prototype.hasOwnProperty.call(body, 'worldbook_settings');
-  if (nextOverviewText.length > 500) {
-    return jsonResponse({ ok: false, error: '总览区不能超过 500 字。' }, 400);
-  }
+  const hasContentInput = Object.prototype.hasOwnProperty.call(body, 'content_text')
+    || Object.prototype.hasOwnProperty.call(body, 'contentText')
+    || Object.prototype.hasOwnProperty.call(body, 'content');
+  const nextContentText = hasContentInput
+    ? payload.contentText
+    : (existingRow.content_text || '');
   if (nextEntryType === 'extension' && !nextTriggerWords.length) {
     return jsonResponse({ ok: false, error: '请至少填写 1 个拓展触发词。' }, 400);
+  }
+  if (nextEntryType !== 'extension' && !nextContentText) {
+    return jsonResponse({ ok: false, error: 'content_text is required.' }, 400);
+  }
+  if (nextEntryType === 'extension' && !nextOverviewText && !nextContentText) {
+    return jsonResponse({ ok: false, error: '请至少填写拓展总览区或拓展正文。' }, 400);
   }
   const duplicateEntry = await findWorkshopEntryByOwnerAndTitle(env.ngnl_build, nextEntryType, ownerDiscordId, nextTitle, entryId);
   if (duplicateEntry) {
@@ -684,7 +693,7 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
       coverResult.sourceUrl,
       coverResult.objectKey,
       stringifyJson(hasTagsInput ? payload.tags : safeJsonParse(existingRow.tags_json, [])),
-      payload.contentText || existingRow.content_text || '',
+      nextContentText,
       payload.status || existingRow.status || 'published',
       entryId,
       ownerDiscordId,

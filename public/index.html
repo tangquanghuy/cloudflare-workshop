@@ -4726,16 +4726,18 @@
                         return;
                     }
                     const name = String(section.form.name || '').trim();
+                    const overviewText = String(section.form.overviewText || '').trim();
+                    const contentText = String(section.form.contentText || '').trim();
                     if (!name) {
                         section.status = `请填写${contentSectionConfig[type].title}名称`;
                         return;
                     }
-                    if (!String(section.form.contentText || '').trim()) {
+                    if (type !== 'extension' && !contentText) {
                         section.status = `请填写${contentSectionConfig[type].title}正文`;
                         return;
                     }
-                    if (String(section.form.overviewText || '').trim().length > 500) {
-                        section.status = '总览区不能超过 500 字';
+                    if (type === 'extension' && !overviewText && !contentText) {
+                        section.status = '请至少填写拓展总览区或拓展正文';
                         return;
                     }
                     const triggerWordsText = buildTriggerWordsText(section.form.triggerWords || []);
@@ -4764,11 +4766,11 @@
                             avatar_url: discordUser.value.avatarUrl || '',
                             title: name,
                             intro: String(section.form.intro || '').trim(),
-                            overview_text: String(section.form.overviewText || '').trim(),
+                            overview_text: overviewText,
                             cover_url: String(section.form.coverUrl || '').trim(),
                             tags: section.form.tags,
                             trigger_words: triggerWordsText,
-                            content_text: String(section.form.contentText || '').trim(),
+                            content_text: contentText,
                         };
                         if (contentSectionConfig[type].showWorldbookSettings) {
                             requestBody.worldbook_position_type = worldbookSettings.positionType;
