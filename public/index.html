@@ -5514,6 +5514,48 @@
                     return;
                 }
 
+                // 检测是否是弹出窗口（从父页面打开的登录窗口）
+                const isPopupWindow = window.opener && window.opener !== window;
+                
+                if (isPopupWindow) {
+                    // 这是登录弹出窗口，通知 opener 并关闭
+                    console.log('[Discord Login] 检测到弹出窗口，通知 opener');
+                    
+                    if (callback.error) {
+                        // 登录失败，通知 opener
+                        try {
+                            window.opener.postMessage({
+                                channel: 'creative-workshop:auth',
+                                action: 'discordLoginError',
+                                error: callback.error,
+                                errorDescription: callback.errorDescription,
+                            }, '*');
+                        } catch (e) {
+                            console.warn('[Discord Login] 无法通知 opener:', e);
+                        }
+                        // 延迟关闭，让用户看到错误信息
+                        setTimeout(() => window.close(), 2000);
+                        return;
+                    }
+                    
+                    // 登录成功，通知 opener
+                    try {
+                        window.opener.postMessage({
+                            channel: 'creative-workshop:auth',
+                            action: 'discordLoginSuccess',
+                            hash: window.location.hash.replace(/^#/, ''),
+                        }, '*');
+                        console.log('[Discord Login] 已通知 opener 登录成功');
+                    } catch (e) {
+                        console.warn('[Discord Login] 无法通知 opener:', e);
+                    }
+                    
+                    // 关闭弹出窗口
+                    setTimeout(() => window.close(), 500);
+                    return;
+                }
+
+                // 不是弹出窗口，正常处理登录流程
                 history.replaceState(null, document.title, `${window.location.pathname}${window.location.search}`);
 
                 if (callback.error) {
