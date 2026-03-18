@@ -5509,20 +5509,36 @@
             }
 
             async function completeDiscordLoginFromCallback() {
+                // 先检测是否是弹出窗口（从父页面打开的登录窗口）
+                // 必须在解析 callback 之前检测，因为即使没有 callback，弹出窗口也应该关闭
+                const isPopupWindow = !!(window.opener && window.opener !== window);
+                
+                console.log('[Discord Login] 页面加载检测:', {
+                    isPopupWindow,
+                    hasOpener: !!window.opener,
+                    hasHash: !!window.location.hash,
+                    hash: window.location.hash
+                });
+                
                 const callback = parseDiscordCallbackHash();
                 if (!callback) {
+                    console.log('[Discord Login] 未检测到 Discord 回调参数');
                     return;
                 }
 
-                // 检测是否是弹出窗口（从父页面打开的登录窗口）
-                const isPopupWindow = window.opener && window.opener !== window;
+                console.log('[Discord Login] 检测到 Discord 回调:', {
+                    hasError: !!callback.error,
+                    hasAccessToken: !!callback.accessToken,
+                    isPopupWindow
+                });
                 
                 if (isPopupWindow) {
                     // 这是登录弹出窗口，通知 opener 并关闭
-                    console.log('[Discord Login] 检测到弹出窗口，通知 opener');
+                    console.log('[Discord Login] 这是弹出窗口，准备通知 opener 并关闭');
                     
                     if (callback.error) {
                         // 登录失败，通知 opener
+                        console.error('[Discord Login] 登录失败:', callback.error, callback.errorDescription);
                         try {
                             window.opener.postMessage({
                                 channel: 'creative-workshop:auth',
@@ -5530,28 +5546,45 @@
                                 error: callback.error,
                                 errorDescription: callback.errorDescription,
                             }, '*');
+                            console.log('[Discord Login] 已通知 opener 登录失败');
                         } catch (e) {
-                            console.warn('[Discord Login] 无法通知 opener:', e);
+                            console.error('[Discord Login] 无法通知 opener:', e);
                         }
                         // 延迟关闭，让用户看到错误信息
-                        setTimeout(() => window.close(), 2000);
+                        setTimeout(() => {
+                            console.log('[Discord Login] 关闭弹出窗口');
+                            window.close();
+                        }, 2000);
                         return;
                     }
                     
                     // 登录成功，通知 opener
                     try {
+                        const hash = window.location.hash.replace(/^#/, '');
+                        console.log('[Discord Login] 准备发送成功消息，hash:', hash);
                         window.opener.postMessage({
                             channel: 'creative-workshop:auth',
                             action: 'discordLoginSuccess',
-                            hash: window.location.hash.replace(/^#/, ''),
+                            hash: hash,
                         }, '*');
                         console.log('[Discord Login] 已通知 opener 登录成功');
                     } catch (e) {
-                        console.warn('[Discord Login] 无法通知 opener:', e);
+                        console.error('[Discord Login] 无法通知 opener:', e);
                     }
                     
+                    // 显示提示信息
+                    buildDataStatus.value = "登录成功！窗口即将关闭...";
+                    
                     // 关闭弹出窗口
-                    setTimeout(() => window.close(), 500);
+                    setTimeout(() => {
+                        console.log('[Discord Login] 关闭弹出窗口');
+                        try {
+                            window.close();
+                        } catch (e) {
+                            console.error('[Discord Login] 无法关闭窗口:', e);
+                            buildDataStatus.value = "登录成功！请手动关闭此窗口";
+                        }
+                    }, 500);
                     return;
                 }
 
@@ -6058,17 +6091,33 @@
                 // 监听来自父页面的 Discord 登录完成消息
                 window.addEventListener('message', async (event) => {
                     const data = event.data;
+                    
+                    console.log('[Discord Login] iframe 收到消息:', {
+                        channel: data?.channel,
+                        action: data?.action,
+                        origin: event.origin,
+                        hasHash: !!data?.hash
+                    });
+                    
                     if (!data || data.channel !== 'creative-workshop:auth') {
                         return;
                     }
                     
                     if (data.action === 'discordLoginComplete' && data.hash) {
+                        console.log('[Discord Login] iframe 处理登录完成消息');
                         // 父页面通知登录完成，手动解析 hash
                         const params = new URLSearchParams(data.hash.replace(/^#/, ''));
                         const accessToken = params.get('access_token');
                         const expiresIn = Number(params.get('expires_in') || 0);
                         const state = params.get('state');
                         const error = params.get('error');
+                        
+                        console.log('[Discord Login] 解析参数:', {
+                            hasAccessToken: !!accessToken,
+                            expiresIn,
+                            hasState: !!state,
+                            hasError: !!error
+                        });
                         
                         if (error) {
                             buildDataStatus.value = `Discord 授权失败：${params.get('error_description') || error}`;
@@ -6077,19 +6126,23 @@
                         }
                         
                         if (!accessToken) {
+                            console.warn('[Discord Login] 缺少 access_token');
                             return;
                         }
                         
                         const expectedState = localStorage.getItem(DISCORD_OAUTH_STATE_KEY) || "";
                         if (expectedState && state !== expectedState) {
+                            console.error('[Discord Login] state 校验失败');
                             buildDataStatus.value = "Discord 授权状态校验失败，请重试";
                             clearStoredDiscordAuth();
                             return;
                         }
                         
+                        console.log('[Discord Login] 开始获取用户信息');
                         discordLoading.value = true;
                         try {
                             const user = await fetchDiscordIdentity(accessToken);
+                            console.log('[Discord Login] 用户信息获取成功:', user.username);
                             const authData = {
                                 accessToken,
                                 expiresAt: Date.now() + Math.max(expiresIn - 60, 60) * 1000,
@@ -6100,8 +6153,9 @@
                             await syncDiscordUserToApi(user);
                             buildDataStatus.value = "Discord 登录成功";
                             syncPublishAuthorFromDiscord();
+                            console.log('[Discord Login] 登录流程完成');
                         } catch (error) {
-                            console.warn("Discord identity fetch failed:", error);
+                            console.error('[Discord Login] 获取用户信息失败:', error);
                             buildDataStatus.value = "Discord 登录成功，但读取用户信息失败";
                             clearStoredDiscordAuth();
                         } finally {
