@@ -425,6 +425,51 @@
         .trigger-word-actions {
             margin-top: 10px;
         }
+        .content-section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .content-section-heading label {
+            margin-bottom: 0;
+        }
+        .content-section-actions,
+        .content-section-card-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .content-section-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .content-section-card {
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+        }
+        .content-section-card.detail {
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            background: transparent;
+        }
+        .content-section-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .btn-compact.danger {
+            color: var(--danger);
+        }
         .publish-preview {
             background: linear-gradient(180deg, rgba(45,106,79,0.05), rgba(45,52,54,0.02));
             border: 1px solid rgba(0,0,0,0.05);
@@ -2155,13 +2200,59 @@
                                         <label>简介</label>
                                         <textarea rows="4" v-model="activeContentSection.form.intro" :placeholder="activeContentConfig.introPlaceholder"></textarea>
                                     </div>
-                                    <div class="form-field">
-                                        <label>总览区</label>
-                                        <textarea
-                                            rows="5"
-                                            v-model="activeContentSection.form.overviewText"
-                                            :placeholder="activeContentConfig.overviewPlaceholder"></textarea>
-                                        <span class="field-hint">{{ activeContentConfig.overviewHint }} 已填写 {{ (activeContentSection.form.overviewText || '').length }} 字</span>
+                                    <div class="form-field full-width">
+                                        <div class="content-section-heading">
+                                            <label>世界书条目安排</label>
+                                            <div class="content-section-actions">
+                                                <button type="button" class="btn btn-outline btn-compact" @click="activeContentSection.addOverviewSection()">
+                                                    <i class="ri-lightbulb-flash-line"></i> 添加总览
+                                                </button>
+                                                <button type="button" class="btn btn-outline btn-compact" @click="activeContentSection.addBodySection()">
+                                                    <i class="ri-file-text-line"></i> 添加正文
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="content-section-list">
+                                            <article class="content-section-card" v-for="(sectionItem, sectionIndex) in activeContentSection.form.contentSections" :key="sectionItem.id || `${activeContentSection.type}-section-${sectionIndex}`">
+                                                <div class="content-section-card-header">
+                                                    <span class="worldbook-meta-chip" :class="{ workshop: sectionItem.kind === 'overview' }">
+                                                        <i :class="sectionItem.kind === 'overview' ? 'ri-lightbulb-flash-line' : 'ri-file-text-line'"></i>
+                                                        {{ sectionItem.kind === 'overview' ? `总览段 ${sectionIndex + 1}` : `正文段 ${sectionIndex + 1}` }}
+                                                    </span>
+                                                    <div class="content-section-card-actions">
+                                                        <button type="button" class="btn btn-ghost btn-compact" :disabled="sectionIndex === 0" @click="activeContentSection.moveContentSection(sectionIndex, -1)">
+                                                            <i class="ri-arrow-up-line"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-ghost btn-compact" :disabled="sectionIndex === activeContentSection.form.contentSections.length - 1" @click="activeContentSection.moveContentSection(sectionIndex, 1)">
+                                                            <i class="ri-arrow-down-line"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-ghost btn-compact danger" @click="activeContentSection.removeContentSection(sectionIndex)">
+                                                            <i class="ri-delete-bin-line"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <textarea
+                                                    class="content-textarea"
+                                                    :rows="sectionItem.kind === 'overview' ? 5 : 8"
+                                                    v-model="sectionItem.content"
+                                                    :placeholder="sectionItem.kind === 'overview' ? activeContentConfig.overviewPlaceholder : activeContentConfig.contentPlaceholder"></textarea>
+                                                <span class="field-hint" v-if="sectionItem.kind === 'overview'">{{ activeContentConfig.overviewHint }} 已填写 {{ (sectionItem.content || '').length }} 字</span>
+                                                <template v-else>
+                                                    <div class="trigger-word-list" style="margin-top:12px;">
+                                                        <div class="trigger-word-row" v-for="(word, wordIndex) in sectionItem.triggerWords" :key="`${sectionItem.id || sectionIndex}-trigger-${wordIndex}`">
+                                                            <input type="text" v-model="sectionItem.triggerWords[wordIndex]" :placeholder="`触发词 ${wordIndex + 1}`">
+                                                            <button type="button" class="trigger-word-remove" @click="activeContentSection.removeSectionTriggerWord(sectionIndex, wordIndex)">
+                                                                <i class="ri-close-line"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="trigger-word-actions">
+                                                        <button type="button" class="tag-custom-add" @click="activeContentSection.addSectionTriggerWord(sectionIndex)">添加触发词</button>
+                                                    </div>
+                                                    <span class="field-hint">{{ activeContentConfig.triggerWordsHint }}</span>
+                                                </template>
+                                            </article>
+                                        </div>
                                     </div>
                                     <div class="form-field">
                                         <label>封面图片</label>
@@ -2214,21 +2305,6 @@
                                         </div>
                                         <span class="field-hint">最多 5 个，可自定义输入；单个标签最多 12 个字符，已选 {{ activeContentSection.form.tags.length }}/5</span>
                                     </div>
-                                    <div class="form-field" v-if="activeContentConfig.showTriggerWords">
-                                        <label>触发词</label>
-                                        <div class="trigger-word-list">
-                                            <div class="trigger-word-row" v-for="(word, index) in activeContentSection.form.triggerWords" :key="`${activeContentSection.type}-trigger-${index}`">
-                                                <input type="text" v-model="activeContentSection.form.triggerWords[index]" :placeholder="`触发词 ${index + 1}`">
-                                                <button v-if="activeContentSection.form.triggerWords.length > 1" type="button" class="trigger-word-remove" @click="activeContentSection.removeTriggerWord(index)">
-                                                    <i class="ri-close-line"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="trigger-word-actions">
-                                            <button type="button" class="tag-custom-add" @click="activeContentSection.addTriggerWord">添加触发词</button>
-                                        </div>
-                                        <span class="field-hint">拓展至少填写 1 个触发词，保存时会按英文逗号拼接。</span>
-                                    </div>
                                     <div class="form-field" v-if="activeContentConfig.showWorldbookSettings">
                                         <label>世界书插入位置</label>
                                         <select v-model="activeContentSection.form.worldbookPositionType">
@@ -2245,10 +2321,6 @@
                                         <label>世界书顺序</label>
                                         <input type="number" v-model="activeContentSection.form.worldbookOrder" step="1" placeholder="401">
                                         <span class="field-hint">{{ activeContentConfig.worldbookHint }}</span>
-                                    </div>
-                                    <div class="form-field">
-                                        <label>{{ activeContentConfig.contentLabel }}</label>
-                                        <textarea class="content-textarea" v-model="activeContentSection.form.contentText" :placeholder="activeContentConfig.contentPlaceholder"></textarea>
                                     </div>
                             </div>
                         </div>
@@ -2451,11 +2523,20 @@
                         </div>
                     </div>
 
-                    <div class="detail-section" v-if="selectedContent.overviewText">
+                    <div class="detail-section" v-if="getWorkshopOverviewSections(selectedContent).length">
                         <div class="section-heading">
                             <i class="ri-lightbulb-flash-line"></i> 总览区
                         </div>
-                        <div class="content-detail-text reading">{{ selectedContent.overviewText }}</div>
+                        <div class="content-section-list">
+                            <article class="content-section-card detail" v-for="(sectionItem, sectionIndex) in getWorkshopOverviewSections(selectedContent)" :key="sectionItem.id || `overview-${sectionIndex}`">
+                                <div class="content-section-card-header">
+                                    <span class="worldbook-meta-chip workshop">
+                                        <i class="ri-lightbulb-flash-line"></i> 总览 {{ sectionIndex + 1 }}
+                                    </span>
+                                </div>
+                                <div class="content-detail-text reading">{{ sectionItem.content }}</div>
+                            </article>
+                        </div>
                     </div>
 
                     <div class="detail-section">
@@ -2467,7 +2548,23 @@
                                 <i class="ri-file-copy-line"></i> 一键复制
                             </button>
                         </div>
-                        <div class="content-detail-text reading">{{ selectedContent.contentText || '暂无正文内容。' }}</div>
+                        <div class="content-section-list" v-if="getWorkshopBodySections(selectedContent).length">
+                            <article class="content-section-card detail" v-for="(sectionItem, sectionIndex) in getWorkshopBodySections(selectedContent)" :key="sectionItem.id || `content-${sectionIndex}`">
+                                <div class="content-section-card-header">
+                                    <span class="worldbook-meta-chip">
+                                        <i class="ri-file-text-line"></i> 正文 {{ sectionIndex + 1 }}
+                                    </span>
+                                    <div class="detail-tag-row" v-if="sectionItem.triggerWords && sectionItem.triggerWords.length">
+                                        <span class="detail-tag" v-for="word in sectionItem.triggerWords" :key="word">
+                                            <i class="ri-flashlight-line"></i>
+                                            {{ word }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="content-detail-text reading">{{ sectionItem.content }}</div>
+                            </article>
+                        </div>
+                        <div class="content-detail-text reading" v-else>暂无正文内容。</div>
                     </div>
                 </div>
 
@@ -3525,6 +3622,110 @@
         return normalizeTriggerWords(values).join(',');
     }
 
+    let workshopContentSectionSeq = 0;
+
+    function createWorkshopContentSection(kind = 'content', content = '', triggerWords = []) {
+        const normalizedKind = String(kind || '').trim() === 'overview' ? 'overview' : 'content';
+        return {
+            id: `cw-section-${Date.now()}-${++workshopContentSectionSeq}`,
+            kind: normalizedKind,
+            content: String(content || ''),
+            triggerWords: normalizedKind === 'content' ? normalizeTriggerWords(triggerWords || [], false) : [],
+        };
+    }
+
+    function createInitialWorkshopContentSections(entryType = 'character') {
+        if (entryType === 'extension') {
+            const bodySection = createWorkshopContentSection('content');
+            bodySection.triggerWords = [''];
+            return [createWorkshopContentSection('overview'), bodySection];
+        }
+        return [createWorkshopContentSection('content')];
+    }
+
+    function buildWorkshopContentSectionsFromLegacy(item = {}) {
+        const output = [];
+        const overviewText = String(item?.overviewText || item?.overview_text || '').trim();
+        const contentText = String(item?.contentText || item?.content_text || '').trim();
+        const triggerWords = normalizeTriggerWords(item?.triggerWords || item?.trigger_words || [], false);
+        if (overviewText) {
+            output.push({
+                id: 'legacy-overview-1',
+                kind: 'overview',
+                content: overviewText,
+                triggerWords: [],
+            });
+        }
+        if (contentText) {
+            output.push({
+                id: 'legacy-content-1',
+                kind: 'content',
+                content: contentText,
+                triggerWords,
+            });
+        }
+        return output;
+    }
+
+    function normalizeWorkshopContentSections(value, { entryType = 'character', fallbackItem = null, ensureDefault = false } = {}) {
+        const source = Array.isArray(value) && value.length ? value : buildWorkshopContentSectionsFromLegacy(fallbackItem || {});
+        const output = [];
+        source.forEach((item, index) => {
+            const kind = String(item?.kind || item?.type || item?.sectionType || '').trim() === 'overview' ? 'overview' : 'content';
+            const content = String(item?.content || item?.contentText || item?.content_text || '').trim();
+            if (!content) {
+                return;
+            }
+            output.push({
+                id: String(item?.id || '').trim() || `cw-section-${kind}-${index + 1}-${++workshopContentSectionSeq}`,
+                kind,
+                content,
+                triggerWords: kind === 'content' ? normalizeTriggerWords(item?.triggerWords || item?.trigger_words || [], false) : [],
+            });
+        });
+        if (!output.length && ensureDefault) {
+            return createInitialWorkshopContentSections(entryType);
+        }
+        return output;
+    }
+
+    function buildWorkshopContentSectionProjection(contentSections) {
+        const sections = normalizeWorkshopContentSections(contentSections);
+        const overviewText = sections
+            .filter((section) => section.kind === 'overview')
+            .map((section) => section.content)
+            .join('\n\n');
+        const contentText = sections
+            .filter((section) => section.kind === 'content')
+            .map((section) => section.content)
+            .join('\n\n\n');
+        const triggerWords = normalizeTriggerWords(sections.flatMap((section) => (
+            section.kind === 'content' ? section.triggerWords || [] : []
+        )), false);
+        return {
+            overviewText,
+            contentText,
+            triggerWords,
+            triggerWordsText: buildTriggerWordsText(triggerWords),
+        };
+    }
+
+    function getWorkshopContentSections(item = {}, entryType = item?.type || 'character', ensureDefault = false) {
+        return normalizeWorkshopContentSections(item?.contentSections || item?.content_sections || [], {
+            entryType,
+            fallbackItem: item,
+            ensureDefault,
+        });
+    }
+
+    function getWorkshopOverviewSections(item = {}, entryType = item?.type || 'character') {
+        return getWorkshopContentSections(item, entryType, false).filter((section) => section.kind === 'overview');
+    }
+
+    function getWorkshopBodySections(item = {}, entryType = item?.type || 'character') {
+        return getWorkshopContentSections(item, entryType, false).filter((section) => section.kind === 'content');
+    }
+
     function normalizeWorkshopPositionType(value) {
         const normalized = String(value || '').trim();
         if (normalized === 'before_character_definition' || normalized === 'after_character_definition' || normalized === 'at_depth') {
@@ -3710,6 +3911,9 @@
             ? rawItem.tags.map((item) => typeof item === 'string' ? item : item?.text).filter(Boolean)
             : [];
         const worldbookSettings = getWorkshopContentWorldbookSettings(rawItem);
+        const entryType = rawItem.type || 'character';
+        const contentSections = getWorkshopContentSections(rawItem, entryType, false);
+        const projection = buildWorkshopContentSectionProjection(contentSections);
         return {
             id: rawItem.id,
             type: rawItem.type || '',
@@ -3720,13 +3924,14 @@
             name: rawItem.name || rawItem.title || '',
             title: rawItem.title || rawItem.name || '',
             intro: rawItem.intro || '',
-            overviewText: rawItem.overviewText || '',
+            overviewText: projection.overviewText,
             coverUrl: rawItem.coverUrl || '',
             tags,
-            triggerWords: normalizeTriggerWords(rawItem.triggerWords || [], false),
+            triggerWords: projection.triggerWords,
             likes: Number(rawItem.likes || 0),
             liked: !!rawItem.liked,
-            contentText: rawItem.contentText || '',
+            contentText: projection.contentText,
+            contentSections,
             worldbookPositionType: worldbookSettings.positionType,
             worldbookDepth: worldbookSettings.depth,
             worldbookOrder: worldbookSettings.order,
@@ -3834,6 +4039,15 @@
         return normalizeWorldbookKeywordList(values).join(', ');
     }
 
+    function createDefaultWorldbookRecursion(recursion = {}) {
+        return {
+            ...(recursion || {}),
+            prevent_incoming: recursion?.prevent_incoming ?? true,
+            prevent_outgoing: recursion?.prevent_outgoing ?? true,
+            delay_until: recursion?.delay_until ?? null,
+        };
+    }
+
     function createBlankWorldbookEntryPayload() {
         return {
             name: '新条目',
@@ -3852,11 +4066,7 @@
             },
             content: '',
             probability: 100,
-            recursion: {
-                prevent_incoming: false,
-                prevent_outgoing: false,
-                delay_until: null,
-            },
+            recursion: createDefaultWorldbookRecursion(),
             effect: {
                 sticky: null,
                 cooldown: null,
@@ -3953,11 +4163,7 @@
             }, WORKSHOP_MOD_START_ORDER + 1),
             content,
             probability: 100,
-            recursion: {
-                prevent_incoming: false,
-                prevent_outgoing: false,
-                delay_until: null,
-            },
+            recursion: createDefaultWorldbookRecursion(),
             effect: {
                 sticky: null,
                 cooldown: null,
@@ -3977,47 +4183,45 @@
     }
 
     function buildWorkshopOverviewContent(item) {
-        return String(item?.overviewText || '').trim();
+        return getWorkshopOverviewSections(item, item?.type || 'character')
+            .map((section) => section.content)
+            .join('\n\n')
+            .trim();
     }
 
     function buildWorkshopBodyContent(item) {
-        return String(item?.contentText || '').trim();
+        return getWorkshopBodySections(item, item?.type || 'character')
+            .map((section) => section.content)
+            .join('\n\n\n')
+            .trim();
     }
 
     function buildWorkshopWorldbookEntries(item) {
-        const triggerWords = normalizeTriggerWords(item?.triggerWords || [], false);
         const worldbookSettings = getWorkshopContentWorldbookSettings(item);
         const baseOrder = Number(worldbookSettings.order);
-        const overviewContent = buildWorkshopOverviewContent(item);
-        const bodyContent = buildWorkshopBodyContent(item);
-        const bodyStrategyType = triggerWords.length ? 'selective' : 'constant';
+        const contentSections = getWorkshopContentSections(item, item?.type || 'character', false);
         const entries = [];
-        if (overviewContent) {
+        let overviewIndex = 0;
+        let bodyIndex = 0;
+        contentSections.forEach((section, index) => {
+            const isOverview = section.kind === 'overview';
+            const triggerWords = normalizeTriggerWords(section.triggerWords || [], false);
+            const strategyType = isOverview
+                ? 'constant'
+                : (triggerWords.length ? 'selective' : 'constant');
+            const displayIndex = isOverview ? (++overviewIndex) : (++bodyIndex);
             entries.push(createWorkshopManagedEntry({
                 item,
-                slot: 'overview',
-                nameSuffix: ' [总览]',
-                content: overviewContent,
-                strategyType: 'constant',
-                keys: [],
+                slot: `${section.kind}:${section.id || index}`,
+                nameSuffix: isOverview ? ` [总览 ${displayIndex}]` : ` [正文 ${displayIndex}]`,
+                content: section.content,
+                strategyType,
+                keys: strategyType === 'selective' ? triggerWords : [],
                 positionType: worldbookSettings.positionType,
                 depth: worldbookSettings.depth,
-                order: baseOrder,
+                order: baseOrder + index,
             }));
-        }
-        if (bodyContent) {
-            entries.push(createWorkshopManagedEntry({
-                item,
-                slot: 'content',
-                nameSuffix: overviewContent ? ' [正文]' : '',
-                content: bodyContent,
-                strategyType: bodyStrategyType,
-                keys: bodyStrategyType === 'selective' ? triggerWords : [],
-                positionType: worldbookSettings.positionType,
-                depth: worldbookSettings.depth,
-                order: overviewContent ? (baseOrder + 1) : baseOrder,
-            }));
-        }
+        });
         return entries;
     }
 
@@ -4039,11 +4243,7 @@
             },
             content: '',
             probability: 100,
-            recursion: {
-                prevent_incoming: false,
-                prevent_outgoing: false,
-                delay_until: null,
-            },
+            recursion: createDefaultWorldbookRecursion(),
             effect: {
                 sticky: null,
                 cooldown: null,
@@ -4426,14 +4626,12 @@
             const createInitialContentForm = (type = 'character') => ({
                 name: '',
                 intro: '',
-                overviewText: '',
                 author: discordUser.value?.username || '',
                 coverUrl: '',
                 coverFileName: '',
                 tags: [],
-                triggerWords: contentSectionConfig[type]?.showTriggerWords ? [''] : [],
                 customTagInput: '',
-                contentText: '',
+                contentSections: createInitialWorkshopContentSections(type),
                 worldbookPositionType: 'after_character_definition',
                 worldbookDepth: '0',
                 worldbookOrder: String(WORKSHOP_MOD_START_ORDER + 1),
@@ -4614,13 +4812,51 @@
                 section.removeTag = (tag) => {
                     section.form.tags = section.form.tags.filter((item) => item !== tag);
                 };
-                section.addTriggerWord = () => {
-                    const currentWords = Array.isArray(section.form.triggerWords) ? [...section.form.triggerWords] : [];
-                    section.form.triggerWords = [...currentWords, ''];
+                section.addOverviewSection = () => {
+                    section.form.contentSections = [
+                        ...(Array.isArray(section.form.contentSections) ? section.form.contentSections : []),
+                        createWorkshopContentSection('overview'),
+                    ];
                 };
-                section.removeTriggerWord = (index) => {
-                    const nextWords = (section.form.triggerWords || []).filter((_, currentIndex) => currentIndex !== index);
-                    section.form.triggerWords = nextWords.length ? nextWords : [''];
+                section.addBodySection = () => {
+                    const nextSection = createWorkshopContentSection('content');
+                    if (type === 'extension') {
+                        nextSection.triggerWords = [''];
+                    }
+                    section.form.contentSections = [
+                        ...(Array.isArray(section.form.contentSections) ? section.form.contentSections : []),
+                        nextSection,
+                    ];
+                };
+                section.removeContentSection = (index) => {
+                    section.form.contentSections = (section.form.contentSections || []).filter((_, currentIndex) => currentIndex !== index);
+                };
+                section.moveContentSection = (index, direction) => {
+                    const list = Array.isArray(section.form.contentSections) ? [...section.form.contentSections] : [];
+                    const nextIndex = index + direction;
+                    if (nextIndex < 0 || nextIndex >= list.length) {
+                        return;
+                    }
+                    [list[index], list[nextIndex]] = [list[nextIndex], list[index]];
+                    section.form.contentSections = list;
+                };
+                section.addSectionTriggerWord = (sectionIndex) => {
+                    const list = Array.isArray(section.form.contentSections) ? [...section.form.contentSections] : [];
+                    const target = list[sectionIndex];
+                    if (!target || target.kind !== 'content') {
+                        return;
+                    }
+                    target.triggerWords = [...normalizeTriggerWords(target.triggerWords || [], false), ''];
+                    section.form.contentSections = list;
+                };
+                section.removeSectionTriggerWord = (sectionIndex, wordIndex) => {
+                    const list = Array.isArray(section.form.contentSections) ? [...section.form.contentSections] : [];
+                    const target = list[sectionIndex];
+                    if (!target || target.kind !== 'content') {
+                        return;
+                    }
+                    target.triggerWords = (target.triggerWords || []).filter((_, currentIndex) => currentIndex !== wordIndex);
+                    section.form.contentSections = list;
                 };
                 section.findDuplicateByName = (name) => {
                     const normalized = String(name || '').trim().toLowerCase();
@@ -4654,14 +4890,12 @@
                         section.form = {
                             name: editable.name || '',
                             intro: editable.intro || '',
-                            overviewText: editable.overviewText || '',
                             author: discordUser.value?.username || editable.author || '',
                             coverUrl: editable.coverUrl || '',
                             coverFileName: '',
                             tags: [...(editable.tags || [])],
-                            triggerWords: normalizeTriggerWords(editable.triggerWords || [], contentSectionConfig[type].showTriggerWords),
                             customTagInput: '',
-                            contentText: editable.contentText || '',
+                            contentSections: getWorkshopContentSections(editable, type, true),
                             worldbookPositionType: getWorkshopContentWorldbookSettings(editable).positionType,
                             worldbookDepth: String(getWorkshopContentWorldbookSettings(editable).depth),
                             worldbookOrder: String(getWorkshopContentWorldbookSettings(editable).order),
@@ -4725,23 +4959,27 @@
                         return;
                     }
                     const name = String(section.form.name || '').trim();
-                    const overviewText = String(section.form.overviewText || '').trim();
-                    const contentText = String(section.form.contentText || '').trim();
+                    const contentSections = normalizeWorkshopContentSections(section.form.contentSections || [], {
+                        entryType: type,
+                        ensureDefault: false,
+                    });
+                    const sectionProjection = buildWorkshopContentSectionProjection(contentSections);
+                    const overviewSections = contentSections.filter((item) => item.kind === 'overview');
+                    const bodySections = contentSections.filter((item) => item.kind === 'content');
                     if (!name) {
                         section.status = `请填写${contentSectionConfig[type].title}名称`;
                         return;
                     }
-                    if (type !== 'extension' && !contentText) {
+                    if (type !== 'extension' && !bodySections.length) {
                         section.status = `请填写${contentSectionConfig[type].title}正文`;
                         return;
                     }
-                    if (type === 'extension' && !overviewText && !contentText) {
+                    if (type === 'extension' && !overviewSections.length && !bodySections.length) {
                         section.status = '请至少填写拓展总览区或拓展正文';
                         return;
                     }
-                    const triggerWordsText = buildTriggerWordsText(section.form.triggerWords || []);
-                    if (contentSectionConfig[type].requiresTriggerWords && !triggerWordsText) {
-                        section.status = `请至少填写 1 个${contentSectionConfig[type].title}触发词`;
+                    if (type === 'extension' && bodySections.some((item) => !normalizeTriggerWords(item.triggerWords || [], false).length)) {
+                        section.status = '请为每一段拓展正文至少填写 1 个触发词';
                         return;
                     }
                     const duplicateItem = section.findDuplicateByName(name);
@@ -4765,11 +5003,12 @@
                             avatar_url: discordUser.value.avatarUrl || '',
                             title: name,
                             intro: String(section.form.intro || '').trim(),
-                            overview_text: overviewText,
+                            overview_text: sectionProjection.overviewText,
                             cover_url: String(section.form.coverUrl || '').trim(),
                             tags: section.form.tags,
-                            trigger_words: triggerWordsText,
-                            content_text: contentText,
+                            trigger_words: sectionProjection.triggerWordsText,
+                            content_text: sectionProjection.contentText,
+                            content_sections: contentSections,
                         };
                         if (contentSectionConfig[type].showWorldbookSettings) {
                             requestBody.worldbook_position_type = worldbookSettings.positionType;
@@ -5103,6 +5342,7 @@
                             depth: Math.max(0, Number(worldbookEditor.form.depth || 0)),
                             order: Number(worldbookEditor.form.order || 0),
                         },
+                        recursion: createDefaultWorldbookRecursion(worldbookEditor.entry?.recursion),
                     };
                     await worldbookDriver.updateEntry(worldbookState.selectedWorldbook, worldbookEditor.entry.uid, nextEntry);
                     worldbookState.status = `已保存条目：${name}`;
@@ -6340,6 +6580,7 @@
                 addCustomPublishTag, removePublishTag,
                 getImportedClassName, getImportedRaceName, publishPresetBuild,
                 getSkillTypeColor, getAttributeIcon, getContentTypeLabel, getContentTypeIcon, getContentPreview, formatDateLabel, formatWorldbookPositionTypeLabel,
+                getWorkshopOverviewSections, getWorkshopBodySections,
                 isBuildOwnedByCurrentUser, editOwnedBuild, deleteOwnedBuild,
                 isContentOwnedByCurrentUser, editOwnedContent, deleteOwnedContent, copyContentText, isBuildDeleting, isContentDeleting,
                 toggleBuildLike, toggleContentLike, downloadBuild,

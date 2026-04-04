@@ -448,6 +448,7 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
         e.title,
         e.intro,
         e.overview_text,
+        e.content_sections_json,
         e.trigger_words,
         e.worldbook_position_type,
         e.worldbook_depth,
@@ -504,14 +505,21 @@ async function handleWorkshopContentCreate(request, env) {
   if (!payload.title) {
     return jsonResponse({ ok: false, error: 'title is required.' }, 400);
   }
-  if (payload.entryType !== 'extension' && !payload.contentText) {
-    return jsonResponse({ ok: false, error: 'content_text is required.' }, 400);
-  }
-  if (payload.entryType === 'extension' && !payload.triggerWords.length) {
-    return jsonResponse({ ok: false, error: '请至少填写 1 个拓展触发词。' }, 400);
-  }
-  if (payload.entryType === 'extension' && !payload.overviewText && !payload.contentText) {
-    return jsonResponse({ ok: false, error: '请至少填写拓展总览区或拓展正文。' }, 400);
+  if (payload.hasContentSectionsInput) {
+    const sectionError = validateWorkshopStructuredSections(payload.entryType, payload.contentSections);
+    if (sectionError) {
+      return jsonResponse({ ok: false, error: sectionError }, 400);
+    }
+  } else {
+    if (payload.entryType !== 'extension' && !payload.contentText) {
+      return jsonResponse({ ok: false, error: 'content_text is required.' }, 400);
+    }
+    if (payload.entryType === 'extension' && !payload.triggerWords.length) {
+      return jsonResponse({ ok: false, error: '请至少填写 1 个拓展触发词。' }, 400);
+    }
+    if (payload.entryType === 'extension' && !payload.overviewText && !payload.contentText) {
+      return jsonResponse({ ok: false, error: '请至少填写拓展总览区或拓展正文。' }, 400);
+    }
   }
 
   const duplicateEntry = await findWorkshopEntryByOwnerAndTitle(env.ngnl_build, payload.entryType, payload.ownerDiscordId, payload.title);
@@ -546,6 +554,7 @@ async function handleWorkshopContentCreate(request, env) {
         title,
         intro,
         overview_text,
+        content_sections_json,
         trigger_words,
         worldbook_position_type,
         worldbook_depth,
@@ -558,7 +567,7 @@ async function handleWorkshopContentCreate(request, env) {
         status,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `)
     .bind(
       entryId,
@@ -567,6 +576,7 @@ async function handleWorkshopContentCreate(request, env) {
       payload.title,
       payload.intro || '',
       payload.overviewText,
+      payload.hasContentSectionsInput ? stringifyJson(payload.contentSections) : null,
       payload.triggerWordsText,
       payload.worldbookPositionType,
       payload.worldbookDepth,
@@ -603,6 +613,8 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
   }
 
   const nextTitle = payload.title || existingRow.title;
+  const existingStructuredSections = normalizeWorkshopContentSections(safeJsonParse(existingRow.content_sections_json, []));
+  const preserveLegacyContentFields = payload.hasContentSectionsInput || existingStructuredSections.length > 0;
   const nextTriggerWords = payload.triggerWords.length ? payload.triggerWords : parseCommaList(existingRow.trigger_words);
   const nextOverviewText = Object.prototype.hasOwnProperty.call(body, 'overview_text') || Object.prototype.hasOwnProperty.call(body, 'overviewText')
     ? payload.overviewText
@@ -622,14 +634,26 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
   const nextContentText = hasContentInput
     ? payload.contentText
     : (existingRow.content_text || '');
-  if (nextEntryType === 'extension' && !nextTriggerWords.length) {
-    return jsonResponse({ ok: false, error: '请至少填写 1 个拓展触发词。' }, 400);
-  }
-  if (nextEntryType !== 'extension' && !nextContentText) {
-    return jsonResponse({ ok: false, error: 'content_text is required.' }, 400);
-  }
-  if (nextEntryType === 'extension' && !nextOverviewText && !nextContentText) {
-    return jsonResponse({ ok: false, error: '请至少填写拓展总览区或拓展正文。' }, 400);
+  if (payload.hasContentSectionsInput) {
+    const sectionError = validateWorkshopStructuredSections(nextEntryType, payload.contentSections);
+    if (sectionError) {
+      return jsonResponse({ ok: false, error: sectionError }, 400);
+    }
+  } else if (existingStructuredSections.length) {
+    const sectionError = validateWorkshopStructuredSections(nextEntryType, existingStructuredSections);
+    if (sectionError) {
+      return jsonResponse({ ok: false, error: sectionError }, 400);
+    }
+  } else {
+    if (nextEntryType === 'extension' && !nextTriggerWords.length) {
+      return jsonResponse({ ok: false, error: '请至少填写 1 个拓展触发词。' }, 400);
+    }
+    if (nextEntryType !== 'extension' && !nextContentText) {
+      return jsonResponse({ ok: false, error: 'content_text is required.' }, 400);
+    }
+    if (nextEntryType === 'extension' && !nextOverviewText && !nextContentText) {
+      return jsonResponse({ ok: false, error: '请至少填写拓展总览区或拓展正文。' }, 400);
+    }
   }
   const duplicateEntry = await findWorkshopEntryByOwnerAndTitle(env.ngnl_build, nextEntryType, ownerDiscordId, nextTitle, entryId);
   if (duplicateEntry) {
@@ -663,6 +687,7 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
         title = ?,
         intro = ?,
         overview_text = ?,
+        content_sections_json = ?,
         trigger_words = ?,
         worldbook_position_type = ?,
         worldbook_depth = ?,
@@ -679,8 +704,11 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
       nextEntryType,
       nextTitle,
       payload.intro || '',
-      nextOverviewText,
-      joinCommaList(nextTriggerWords),
+      preserveLegacyContentFields ? existingRow.overview_text : nextOverviewText,
+      payload.hasContentSectionsInput
+        ? stringifyJson(payload.contentSections)
+        : existingRow.content_sections_json,
+      preserveLegacyContentFields ? existingRow.trigger_words : joinCommaList(nextTriggerWords),
       hasWorldbookPositionInput
         ? payload.worldbookPositionType
         : normalizeWorldbookPositionType(existingRow.worldbook_position_type),
@@ -693,7 +721,7 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
       coverResult.sourceUrl,
       coverResult.objectKey,
       stringifyJson(hasTagsInput ? payload.tags : safeJsonParse(existingRow.tags_json, [])),
-      nextContentText,
+      preserveLegacyContentFields ? existingRow.content_text : nextContentText,
       payload.status || existingRow.status || 'published',
       entryId,
       ownerDiscordId,
@@ -941,6 +969,7 @@ async function getWorkshopEntryRow(db, entryId, viewerDiscordId = '') {
         e.title,
         e.intro,
         e.overview_text,
+        e.content_sections_json,
         e.trigger_words,
         e.worldbook_position_type,
         e.worldbook_depth,
@@ -1067,6 +1096,9 @@ function normalizeWorkshopEntryPayload(body) {
     : [];
   const triggerWords = normalizeCommaList(body.trigger_words ?? body.triggerWords);
   const worldbookSettings = body.worldbook_settings && typeof body.worldbook_settings === 'object' ? body.worldbook_settings : {};
+  const rawContentSections = Array.isArray(body.content_sections)
+    ? body.content_sections
+    : (Array.isArray(body.contentSections) ? body.contentSections : null);
 
   return {
     id: readString(body.id),
@@ -1102,7 +1134,117 @@ function normalizeWorkshopEntryPayload(body) {
     tags,
     triggerWords,
     triggerWordsText: joinCommaList(triggerWords),
+    hasContentSectionsInput: Array.isArray(rawContentSections),
+    contentSections: normalizeWorkshopContentSections(rawContentSections || []),
   };
+}
+
+function normalizeWorkshopSectionKind(value) {
+  return readString(value) === 'overview' ? 'overview' : 'content';
+}
+
+function normalizeWorkshopContentSections(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const output = [];
+  for (const [index, item] of value.entries()) {
+    if (!item || typeof item !== 'object') {
+      continue;
+    }
+    const kind = normalizeWorkshopSectionKind(item.kind ?? item.type ?? item.section_type);
+    const content = typeof item.content_text === 'string'
+      ? item.content_text.trim()
+      : readString(item.contentText ?? item.content);
+    if (!content) {
+      continue;
+    }
+    output.push({
+      id: readString(item.id) || `${kind}-${index + 1}-${crypto.randomUUID()}`,
+      kind,
+      content,
+      triggerWords: kind === 'content' ? normalizeCommaList(item.trigger_words ?? item.triggerWords) : [],
+    });
+  }
+  return output;
+}
+
+function buildWorkshopContentSectionsFromLegacy(value = {}) {
+  const overviewText = readString(value.overviewText ?? value.overview_text);
+  const contentText = typeof value.content_text === 'string'
+    ? value.content_text.trim()
+    : readString(value.contentText ?? value.content_text ?? value.content);
+  const triggerWords = normalizeCommaList(value.triggerWords ?? value.trigger_words);
+  const output = [];
+  if (overviewText) {
+    output.push({
+      id: 'legacy-overview-1',
+      kind: 'overview',
+      content: overviewText,
+      triggerWords: [],
+    });
+  }
+  if (contentText) {
+    output.push({
+      id: 'legacy-content-1',
+      kind: 'content',
+      content: contentText,
+      triggerWords,
+    });
+  }
+  return output;
+}
+
+function buildWorkshopSectionProjection(contentSections) {
+  const sections = normalizeWorkshopContentSections(contentSections);
+  const overviewText = sections
+    .filter((section) => section.kind === 'overview')
+    .map((section) => section.content)
+    .join('\n\n');
+  const contentText = sections
+    .filter((section) => section.kind === 'content')
+    .map((section) => section.content)
+    .join('\n\n\n');
+  const triggerWords = dedupeList(sections.flatMap((section) => (
+    section.kind === 'content' ? normalizeCommaList(section.triggerWords) : []
+  )));
+
+  return {
+    overviewText,
+    contentText,
+    triggerWords,
+    triggerWordsText: joinCommaList(triggerWords),
+  };
+}
+
+function getWorkshopSectionsFromRow(row) {
+  const storedSections = normalizeWorkshopContentSections(safeJsonParse(row?.content_sections_json, []));
+  if (storedSections.length) {
+    return storedSections;
+  }
+  return buildWorkshopContentSectionsFromLegacy({
+    overview_text: row?.overview_text,
+    content_text: row?.content_text,
+    trigger_words: row?.trigger_words,
+  });
+}
+
+function validateWorkshopStructuredSections(entryType, contentSections) {
+  const sections = normalizeWorkshopContentSections(contentSections);
+  const overviewCount = sections.filter((section) => section.kind === 'overview').length;
+  const bodySections = sections.filter((section) => section.kind === 'content');
+
+  if (entryType !== 'extension' && !bodySections.length) {
+    return 'content_text is required.';
+  }
+  if (entryType === 'extension' && !overviewCount && !bodySections.length) {
+    return '请至少填写拓展总览区或拓展正文。';
+  }
+  if (entryType === 'extension' && bodySections.some((section) => !normalizeCommaList(section.triggerWords).length)) {
+    return '请为每个拓展正文填写至少 1 个触发词。';
+  }
+  return '';
 }
 
 function buildPreviewPresetData(presetData) {
@@ -1152,6 +1294,9 @@ function mapPresetRow(row) {
 
 function mapWorkshopEntryRow(row, options = {}) {
   const tags = safeJsonParse(row.tags_json, []);
+  const contentSections = getWorkshopSectionsFromRow(row);
+  const sectionProjection = buildWorkshopSectionProjection(contentSections);
+  const hasStructuredSections = normalizeWorkshopContentSections(safeJsonParse(row.content_sections_json, [])).length > 0;
   return {
     id: row.id,
     type: row.entry_type,
@@ -1162,16 +1307,19 @@ function mapWorkshopEntryRow(row, options = {}) {
     name: row.title,
     title: row.title,
     intro: row.intro || '',
-    overviewText: row.overview_text || '',
+    overviewText: hasStructuredSections ? sectionProjection.overviewText : (row.overview_text || ''),
     coverUrl: readString(row.cover_object_key) ? `/api/content/${encodeURIComponent(row.id)}/cover` : (row.cover_url || ''),
     tags: Array.isArray(tags) ? tags : [],
-    triggerWords: parseCommaList(row.trigger_words),
+    triggerWords: hasStructuredSections ? sectionProjection.triggerWords : parseCommaList(row.trigger_words),
+    contentSections,
     worldbookPositionType: normalizeWorldbookPositionType(row.worldbook_position_type),
     worldbookDepth: normalizeWorldbookDepthValue(row.worldbook_depth),
     worldbookOrder: normalizeWorldbookOrderValue(row.worldbook_order),
     likes: Number(row.like_count || 0),
     liked: Boolean(Number(row.liked || 0)),
-    contentText: options.includeContentText ? (row.content_text || '') : '',
+    contentText: hasStructuredSections
+      ? sectionProjection.contentText
+      : (options.includeContentText ? (row.content_text || '') : ''),
     status: row.status || 'published',
     createdAt: row.created_at || '',
     updatedAt: row.updated_at || '',
