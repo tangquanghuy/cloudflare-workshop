@@ -31,6 +31,10 @@ export default {
       return handleDbTest(env);
     }
 
+    if (url.pathname === '/api/site-config' && request.method === 'GET') {
+      return await handleSiteConfig(env);
+    }
+
     if (!url.pathname.startsWith('/api/')) {
       return env.ASSETS.fetch(request);
     }
@@ -142,6 +146,80 @@ async function handleUserSync(request, env) {
 
   await upsertUser(env.ngnl_build, { discordId, username, avatarUrl });
   return jsonResponse({ ok: true, user: { discord_id: discordId, username, avatar_url: avatarUrl } });
+}
+
+async function handleSiteConfig(env) {
+  const [hasFeaturedSlotsTable, hasAnnouncementsTable] = await Promise.all([
+    hasTable(env.ngnl_build, 'site_featured_slots'),
+    hasTable(env.ngnl_build, 'site_announcements'),
+  ]);
+
+  const featuredResult = hasFeaturedSlotsTable
+    ? await env.ngnl_build
+      .prepare(`
+        SELECT
+          id,
+          slot_key,
+          target_type,
+          target_id,
+          badge_text,
+          title,
+          summary,
+          status,
+          starts_at,
+          ends_at,
+          created_at,
+          updated_at
+        FROM site_featured_slots
+        WHERE status = 'active'
+          AND (starts_at IS NULL OR starts_at = '' OR datetime(starts_at) <= CURRENT_TIMESTAMP)
+          AND (ends_at IS NULL OR ends_at = '' OR datetime(ends_at) >= CURRENT_TIMESTAMP)
+        ORDER BY
+          CASE slot_key
+            WHEN 'build' THEN 0
+            WHEN 'character' THEN 1
+            WHEN 'extension' THEN 2
+            ELSE 99
+          END,
+          datetime(updated_at) DESC,
+          datetime(created_at) DESC
+      `)
+      .all()
+    : { results: [] };
+
+  const announcementResult = hasAnnouncementsTable
+    ? await env.ngnl_build
+      .prepare(`
+        SELECT
+          id,
+          title,
+          message,
+          badge_text,
+          display_mode,
+          link_label,
+          link_url,
+          dismiss_key,
+          sort_order,
+          status,
+          starts_at,
+          ends_at,
+          created_at,
+          updated_at
+        FROM site_announcements
+        WHERE status = 'active'
+          AND (starts_at IS NULL OR starts_at = '' OR datetime(starts_at) <= CURRENT_TIMESTAMP)
+          AND (ends_at IS NULL OR ends_at = '' OR datetime(ends_at) >= CURRENT_TIMESTAMP)
+        ORDER BY sort_order ASC, datetime(updated_at) DESC, datetime(created_at) DESC
+      `)
+      .all()
+    : { results: [] };
+
+  return jsonResponse({
+    ok: true,
+    featured: (featuredResult.results || []).map((row) => mapSiteFeaturedSlotRow(row)),
+    announcements: (announcementResult.results || []).map((row) => mapSiteAnnouncementRow(row)),
+    server_time: new Date().toISOString(),
+  });
 }
 
 async function handlePresetList(request, env, baseUrl = null) {
@@ -1326,6 +1404,42 @@ function mapWorkshopEntryRow(row, options = {}) {
   };
 }
 
+function mapSiteFeaturedSlotRow(row) {
+  return {
+    id: row.id,
+    slotKey: row.slot_key || '',
+    targetType: row.target_type || '',
+    targetId: row.target_id || '',
+    badgeText: row.badge_text || '每周推荐',
+    title: row.title || '',
+    summary: row.summary || '',
+    status: row.status || 'active',
+    startsAt: row.starts_at || '',
+    endsAt: row.ends_at || '',
+    createdAt: row.created_at || '',
+    updatedAt: row.updated_at || '',
+  };
+}
+
+function mapSiteAnnouncementRow(row) {
+  return {
+    id: row.id,
+    title: row.title || '',
+    message: row.message || '',
+    badgeText: row.badge_text || '公告',
+    displayMode: row.display_mode || 'modal',
+    linkLabel: row.link_label || '',
+    linkUrl: row.link_url || '',
+    dismissKey: row.dismiss_key || '',
+    sortOrder: Number(row.sort_order || 100),
+    status: row.status || 'active',
+    startsAt: row.starts_at || '',
+    endsAt: row.ends_at || '',
+    createdAt: row.created_at || '',
+    updatedAt: row.updated_at || '',
+  };
+}
+
 async function syncCoverAsset({ bucket, coverUrl, assetId, existingCoverObjectKey, allowReuseApiPath, coverApiPath = '', objectKeyPrefix = COVER_PREFIX }) {
   const cleanedUrl = readString(coverUrl);
   if (!cleanedUrl) {
@@ -1549,6 +1663,20 @@ async function upsertUser(db, user) {
     `)
     .bind(user.discordId, user.username, user.avatarUrl || null)
     .run();
+}
+
+async function hasTable(db, tableName) {
+  const row = await db
+    .prepare(`
+      SELECT name
+      FROM sqlite_master
+      WHERE type = 'table' AND name = ?
+      LIMIT 1
+    `)
+    .bind(readString(tableName))
+    .first();
+
+  return !!row?.name;
 }
 
 async function readJsonBody(request) {

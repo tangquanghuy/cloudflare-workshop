@@ -837,6 +837,203 @@
             align-items: center;
             gap: 8px;
         }
+        .build-card.featured {
+            border-color: rgba(212,168,83,0.45);
+            background:
+                linear-gradient(180deg, rgba(255,252,244,0.98), rgba(255,255,255,0.98));
+            box-shadow: 0 18px 48px rgba(45, 52, 54, 0.12);
+        }
+        .build-card.featured:hover {
+            border-color: rgba(212,168,83,0.72);
+            box-shadow: 0 24px 60px rgba(45, 52, 54, 0.16);
+        }
+        .build-card.featured::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                linear-gradient(135deg, rgba(212,168,83,0.15), transparent 38%, transparent 62%, rgba(45,106,79,0.08));
+        }
+        .featured-callout {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(212,168,83,0.16), rgba(45,106,79,0.1));
+            border: 1px solid rgba(212,168,83,0.28);
+        }
+        .featured-callout-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(45,52,54,0.88);
+            color: #fff7db;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .featured-callout-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .featured-callout-copy strong {
+            font-family: var(--font-main);
+            font-size: 1rem;
+            color: var(--primary);
+        }
+        .featured-callout-copy span {
+            font-size: 0.84rem;
+            line-height: 1.7;
+            color: #4f5b60;
+        }
+        .notice-banner {
+            margin: 20px 32px 0;
+            padding: 14px 18px;
+            border-radius: 18px;
+            border: 1px solid rgba(45,106,79,0.12);
+            background:
+                linear-gradient(135deg, rgba(45,106,79,0.1), rgba(255,255,255,0.96) 42%, rgba(212,168,83,0.14));
+            box-shadow: 0 16px 36px rgba(45, 52, 54, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            overflow: hidden;
+        }
+        .notice-banner-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(45,106,79,0.14);
+            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .notice-banner-marquee {
+            min-width: 0;
+            flex: 1;
+            overflow: hidden;
+        }
+        .notice-banner-track {
+            display: inline-flex;
+            align-items: center;
+            gap: 20px;
+            min-width: max-content;
+            animation: noticeMarquee 28s linear infinite;
+        }
+        .notice-banner:hover .notice-banner-track {
+            animation-play-state: paused;
+        }
+        .notice-banner-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            font-size: 0.92rem;
+            color: #1f2d31;
+        }
+        .notice-banner-item strong {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .notice-banner-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(212,168,83,0.18);
+            color: #8b5e00;
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
+        .notice-banner-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .notice-banner-link:hover {
+            color: var(--accent-hover);
+        }
+        .notice-banner-separator {
+            color: rgba(45,52,54,0.34);
+        }
+        .announcement-modal-card {
+            width: min(92vw, 560px);
+            background: linear-gradient(180deg, #fffef9, #faf8f1);
+            border: 1px solid rgba(212,168,83,0.24);
+            border-radius: 26px;
+            box-shadow: 0 28px 84px rgba(15, 23, 42, 0.28);
+            padding: 28px;
+            animation: modalSlide 0.24s ease;
+        }
+        .announcement-modal-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .announcement-modal-icon {
+            width: 62px;
+            height: 62px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(212,168,83,0.2), rgba(45,106,79,0.18));
+            color: #9a6a12;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+        .announcement-modal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(45,52,54,0.92);
+            color: #fff7dd;
+            font-size: 0.76rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .announcement-modal-meta {
+            margin-top: 14px;
+            color: var(--secondary);
+            font-size: 0.82rem;
+        }
+        @keyframes noticeMarquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        @media (min-width: 960px) {
+            .build-card.featured {
+                grid-column: span 2;
+                display: grid;
+                grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+            }
+            .build-card.featured .build-cover {
+                aspect-ratio: auto;
+                min-height: 100%;
+            }
+            .build-card.featured .build-body {
+                padding: 22px 22px 20px;
+            }
+            .build-card.featured .build-desc {
+                line-clamp: 3;
+                -webkit-line-clamp: 3;
+            }
+        }
         .management-strip {
             display: flex;
             align-items: center;
@@ -1740,6 +1937,23 @@
             .publish-actions { flex-direction: column; align-items: stretch; }
             .publish-actions .btn-row { width: 100%; }
             .publish-actions .btn { justify-content: center; width: 100%; }
+            .notice-banner {
+                margin: 16px 16px 0;
+                padding: 12px 14px;
+                align-items: flex-start;
+            }
+            .notice-banner-icon {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                font-size: 1rem;
+            }
+            .notice-banner-item {
+                font-size: 0.86rem;
+            }
+            .announcement-modal-card {
+                padding: 24px 22px;
+            }
             .build-grid { grid-template-columns: 1fr; }
             .modal-panel { width: 95%; max-height: 92vh; }
             .modal-body { padding: 20px; }
@@ -1774,6 +1988,15 @@
                 max-width: min(56vw, 220px);
                 padding: 8px 10px;
                 align-items: center;
+            }
+            .notice-banner {
+                margin: 14px 14px 0;
+            }
+            .featured-callout {
+                padding: 12px 13px;
+            }
+            .announcement-modal-card {
+                padding: 22px 18px;
             }
             .discord-meta {
                 flex: 1;
@@ -1840,6 +2063,30 @@
             </div>
         </nav>
 
+        <section class="notice-banner" v-if="bannerAnnouncementsLoop.length">
+            <div class="notice-banner-icon">
+                <i class="ri-megaphone-line"></i>
+            </div>
+            <div class="notice-banner-marquee">
+                <div class="notice-banner-track">
+                    <div class="notice-banner-item" v-for="(notice, index) in bannerAnnouncementsLoop" :key="`${notice.id}-${index}`">
+                        <span class="notice-banner-badge">{{ notice.badgeText }}</span>
+                        <strong v-if="notice.title">{{ notice.title }}</strong>
+                        <span>{{ notice.message }}</span>
+                        <a
+                            v-if="notice.linkUrl"
+                            class="notice-banner-link"
+                            :href="notice.linkUrl"
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {{ notice.linkLabel || '查看详情' }}
+                        </a>
+                        <span class="notice-banner-separator" v-if="index !== bannerAnnouncementsLoop.length - 1">•</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Main Content -->
         <main class="workshop-main">
 
@@ -1866,7 +2113,7 @@
 
                     <div class="build-grid">
                         <!-- Build Cards -->
-                        <div class="build-card" v-for="(build, idx) in paginatedBuilds" :key="idx" @click="openDetail(build)">
+                        <div class="build-card" :class="{ featured: isWeeklyFeatured('build', build) }" v-for="(build, idx) in paginatedBuilds" :key="idx" @click="openDetail(build)">
                             <div class="build-cover">
                                 <img class="cover-image" :src="build.coverUrl" :alt="build.name + ' 封面'">
                                 <div class="cover-overlay">
@@ -1875,6 +2122,15 @@
                             </div>
                             <div class="build-body">
                                 <div class="build-title">{{ build.name }}</div>
+                                <div class="featured-callout" v-if="isWeeklyFeatured('build', build)">
+                                    <span class="featured-callout-label">
+                                        <i class="ri-fire-line"></i> {{ getFeaturedBadgeText('build', build) }}
+                                    </span>
+                                    <div class="featured-callout-copy">
+                                        <strong>{{ getFeaturedTitle('build', build) }}</strong>
+                                        <span>{{ getFeaturedSummary('build', build) }}</span>
+                                    </div>
+                                </div>
                                 <div class="build-author-row">
                                     <img v-if="build.authorAvatar" class="author-avatar" :src="build.authorAvatar" :alt="build.author">
                                     <span v-else class="author-avatar placeholder"><i class="ri-user-3-line"></i></span>
@@ -2093,7 +2349,7 @@
                     </div>
 
                     <div class="build-grid">
-                        <div class="build-card" v-for="item in activeContentSection.paginatedItems" :key="item.id" @click="activeContentSection.openDetail(item)">
+                        <div class="build-card" :class="{ featured: isWeeklyFeatured(activeContentSection.type, item) }" v-for="item in activeContentSection.paginatedItems" :key="item.id" @click="activeContentSection.openDetail(item)">
                             <div class="build-cover">
                                 <img v-if="item.coverUrl" class="cover-image" :src="item.coverUrl" :alt="item.name + ' 封面'">
                                 <div v-else class="cover-placeholder">
@@ -2105,6 +2361,15 @@
                             </div>
                             <div class="build-body">
                                 <div class="build-title">{{ item.name }}</div>
+                                <div class="featured-callout" v-if="isWeeklyFeatured(activeContentSection.type, item)">
+                                    <span class="featured-callout-label">
+                                        <i class="ri-fire-line"></i> {{ getFeaturedBadgeText(activeContentSection.type, item) }}
+                                    </span>
+                                    <div class="featured-callout-copy">
+                                        <strong>{{ getFeaturedTitle(activeContentSection.type, item) }}</strong>
+                                        <span>{{ getFeaturedSummary(activeContentSection.type, item) }}</span>
+                                    </div>
+                                </div>
                                 <div class="build-author-row">
                                     <img v-if="item.authorAvatar" class="author-avatar" :src="item.authorAvatar" :alt="item.author">
                                     <span v-else class="author-avatar placeholder"><i class="ri-user-3-line"></i></span>
@@ -2962,6 +3227,41 @@
             </div>
         </div>
 
+        <div class="login-prompt-overlay" v-if="currentModalAnnouncement" @click.self="dismissAnnouncementModal(currentModalAnnouncement)">
+            <div class="announcement-modal-card">
+                <div class="announcement-modal-head">
+                    <div class="announcement-modal-icon">
+                        <i class="ri-notification-3-line"></i>
+                    </div>
+                    <button type="button" class="modal-close" @click="dismissAnnouncementModal(currentModalAnnouncement)">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="announcement-modal-badge">
+                    <i class="ri-volume-up-line"></i> {{ currentModalAnnouncement.badgeText || '公告' }}
+                </div>
+                <div class="login-prompt-title">{{ currentModalAnnouncement.title || '站内公告' }}</div>
+                <div class="login-prompt-text">{{ currentModalAnnouncement.message }}</div>
+                <div class="announcement-modal-meta" v-if="currentModalAnnouncement.updatedAt || currentModalAnnouncement.startsAt">
+                    {{ formatDateLabel(currentModalAnnouncement.updatedAt || currentModalAnnouncement.startsAt) }}
+                </div>
+                <div class="login-prompt-actions">
+                    <a
+                        v-if="currentModalAnnouncement.linkUrl"
+                        class="btn btn-outline"
+                        :href="currentModalAnnouncement.linkUrl"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        @click="dismissAnnouncementModal(currentModalAnnouncement)">
+                        <i class="ri-external-link-line"></i> {{ currentModalAnnouncement.linkLabel || '查看详情' }}
+                    </a>
+                    <button type="button" class="btn btn-primary" @click="dismissAnnouncementModal(currentModalAnnouncement)">
+                        <i class="ri-check-line"></i> 我知道了
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="login-prompt-overlay" v-if="loginPrompt.visible" @click.self="closeLoginPrompt()">
             <div class="login-prompt-card">
                 <div class="login-prompt-icon">
@@ -3507,6 +3807,8 @@
     const DISCORD_OAUTH_STATE_KEY = 'creative_workshop_discord_state';
     const BROWSER_VIEWER_ID_STORAGE_KEY = 'creative_workshop_browser_viewer_id';
     const PUBLISHED_BUILDS_STORAGE_KEY = 'creative_workshop_published_builds';
+    const SITE_NOTICE_READ_STORAGE_KEY = 'creative_workshop_site_notice_reads';
+    const SITE_CONFIG_REFRESH_INTERVAL_MS = 3 * 60 * 1000;
     const API_BASE = '/api';
 
     function getOrCreateBrowserViewerId() {
@@ -3595,6 +3897,39 @@
             localStorage.removeItem(DISCORD_OAUTH_STATE_KEY);
         } catch (error) {
         }
+    }
+
+    function loadStoredSiteNoticeReads() {
+        try {
+            const raw = localStorage.getItem(SITE_NOTICE_READ_STORAGE_KEY);
+            if (!raw) {
+                return {};
+            }
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    function saveStoredSiteNoticeReads(value) {
+        try {
+            localStorage.setItem(SITE_NOTICE_READ_STORAGE_KEY, JSON.stringify(value || {}));
+        } catch (error) {
+        }
+    }
+
+    function createSiteNoticeReadKey(notice) {
+        const customKey = String(notice?.dismissKey || '').trim();
+        if (customKey) {
+            return customKey;
+        }
+        const id = String(notice?.id || '').trim();
+        if (!id) {
+            return '';
+        }
+        const version = String(notice?.updatedAt || notice?.startsAt || 'v1').trim();
+        return `${id}:${version}`;
     }
 
 
@@ -3964,6 +4299,72 @@
             return '刚刚更新';
         }
         return text.replace('T', ' ').slice(0, 16);
+    }
+
+    function normalizeAnnouncementDisplayMode(value) {
+        const mode = String(value || '').trim();
+        if (mode === 'banner' || mode === 'both') {
+            return mode;
+        }
+        return 'modal';
+    }
+
+    function createSiteFeaturedEntry(rawItem) {
+        const slotKey = String(rawItem?.slotKey || rawItem?.slot_key || '').trim();
+        const targetId = String(rawItem?.targetId || rawItem?.target_id || '').trim();
+        if (!slotKey || !targetId) {
+            return null;
+        }
+        return {
+            id: String(rawItem?.id || `${slotKey}:${targetId}`).trim(),
+            slotKey,
+            targetType: String(rawItem?.targetType || rawItem?.target_type || '').trim(),
+            targetId,
+            badgeText: String(rawItem?.badgeText || rawItem?.badge_text || '每周推荐').trim() || '每周推荐',
+            title: String(rawItem?.title || '').trim(),
+            summary: String(rawItem?.summary || '').trim(),
+            status: String(rawItem?.status || 'active').trim() || 'active',
+            startsAt: String(rawItem?.startsAt || rawItem?.starts_at || '').trim(),
+            endsAt: String(rawItem?.endsAt || rawItem?.ends_at || '').trim(),
+            createdAt: String(rawItem?.createdAt || rawItem?.created_at || '').trim(),
+            updatedAt: String(rawItem?.updatedAt || rawItem?.updated_at || '').trim(),
+        };
+    }
+
+    function createSiteAnnouncementEntry(rawItem) {
+        const id = String(rawItem?.id || '').trim();
+        const message = String(rawItem?.message || '').trim();
+        if (!id || !message) {
+            return null;
+        }
+        return {
+            id,
+            title: String(rawItem?.title || '').trim(),
+            message,
+            badgeText: String(rawItem?.badgeText || rawItem?.badge_text || '公告').trim() || '公告',
+            displayMode: normalizeAnnouncementDisplayMode(rawItem?.displayMode || rawItem?.display_mode),
+            linkLabel: String(rawItem?.linkLabel || rawItem?.link_label || '').trim(),
+            linkUrl: String(rawItem?.linkUrl || rawItem?.link_url || '').trim(),
+            dismissKey: String(rawItem?.dismissKey || rawItem?.dismiss_key || '').trim(),
+            sortOrder: Number(rawItem?.sortOrder || rawItem?.sort_order || 100),
+            status: String(rawItem?.status || 'active').trim() || 'active',
+            startsAt: String(rawItem?.startsAt || rawItem?.starts_at || '').trim(),
+            endsAt: String(rawItem?.endsAt || rawItem?.ends_at || '').trim(),
+            createdAt: String(rawItem?.createdAt || rawItem?.created_at || '').trim(),
+            updatedAt: String(rawItem?.updatedAt || rawItem?.updated_at || '').trim(),
+        };
+    }
+
+    async function fetchSiteConfigFromApi() {
+        const payload = await apiRequest('/site-config');
+        return {
+            featured: Array.isArray(payload.featured)
+                ? payload.featured.map(createSiteFeaturedEntry).filter(Boolean)
+                : [],
+            announcements: Array.isArray(payload.announcements)
+                ? payload.announcements.map(createSiteAnnouncementEntry).filter(Boolean)
+                : [],
+        };
     }
 
     function getContentPreview(contentText) {
@@ -4569,6 +4970,10 @@
             });
             const actionDialogHandler = ref(null);
             const actionDialogInput = ref('');
+            const siteFeaturedSlots = ref([]);
+            const siteAnnouncements = ref([]);
+            const siteNoticeReads = ref(loadStoredSiteNoticeReads());
+            let siteConfigRefreshTimer = 0;
             const publishButtonLabel = computed(() => {
                 if (publishSubmitting.value) {
                     return editingBuildId.value ? '正在保存…' : '正在发布…';
@@ -4576,6 +4981,131 @@
                 return editingBuildId.value ? '保存修改' : '发布预设';
             });
             const viewerIdentityId = computed(() => discordUser.value?.id || getOrCreateBrowserViewerId());
+            const featuredSlotMap = computed(() => {
+                const map = new Map();
+                siteFeaturedSlots.value.forEach((entry) => {
+                    if (!entry?.slotKey || map.has(entry.slotKey)) {
+                        return;
+                    }
+                    map.set(entry.slotKey, entry);
+                });
+                return map;
+            });
+            const bannerAnnouncements = computed(() => siteAnnouncements.value.filter((item) => (
+                item.displayMode === 'banner' || item.displayMode === 'both'
+            )));
+            const bannerAnnouncementsLoop = computed(() => (
+                bannerAnnouncements.value.length
+                    ? [...bannerAnnouncements.value, ...bannerAnnouncements.value]
+                    : []
+            ));
+            const currentModalAnnouncement = computed(() => siteAnnouncements.value.find((item) => (
+                (item.displayMode === 'modal' || item.displayMode === 'both')
+                && !siteNoticeReads.value[createSiteNoticeReadKey(item)]
+            )) || null);
+
+            function getFeaturedSlot(slotKey) {
+                return featuredSlotMap.value.get(String(slotKey || '').trim()) || null;
+            }
+
+            function promoteFeaturedItems(items, slotKey, enabled = true) {
+                const list = Array.isArray(items) ? [...items] : [];
+                if (!enabled) {
+                    return list;
+                }
+                const featured = getFeaturedSlot(slotKey);
+                if (!featured?.targetId) {
+                    return list;
+                }
+                const featuredIndex = list.findIndex((item) => item?.id === featured.targetId);
+                if (featuredIndex <= 0) {
+                    return list;
+                }
+                const [featuredItem] = list.splice(featuredIndex, 1);
+                list.unshift(featuredItem);
+                return list;
+            }
+
+            function getFeaturedMeta(slotKey, item) {
+                const featured = getFeaturedSlot(slotKey);
+                if (!featured || !item?.id || featured.targetId !== item.id) {
+                    return null;
+                }
+                return featured;
+            }
+
+            function getFeaturedFallbackTitle(slotKey) {
+                if (slotKey === 'character') {
+                    return '本周人设推荐';
+                }
+                if (slotKey === 'extension') {
+                    return '本周拓展推荐';
+                }
+                return '本周 Build 推荐';
+            }
+
+            function getFeaturedFallbackSummary(slotKey) {
+                if (slotKey === 'character') {
+                    return '固定推荐位，会在本周优先展示这份人设。';
+                }
+                if (slotKey === 'extension') {
+                    return '固定推荐位，会在本周优先展示这份拓展。';
+                }
+                return '固定推荐位，会在本周优先展示这份预设。';
+            }
+
+            function isWeeklyFeatured(slotKey, item) {
+                return !!getFeaturedMeta(slotKey, item);
+            }
+
+            function getFeaturedBadgeText(slotKey, item) {
+                return getFeaturedMeta(slotKey, item)?.badgeText || '每周推荐';
+            }
+
+            function getFeaturedTitle(slotKey, item) {
+                return getFeaturedMeta(slotKey, item)?.title || getFeaturedFallbackTitle(slotKey);
+            }
+
+            function getFeaturedSummary(slotKey, item) {
+                return getFeaturedMeta(slotKey, item)?.summary || getFeaturedFallbackSummary(slotKey);
+            }
+
+            function dismissAnnouncementModal(notice) {
+                const readKey = createSiteNoticeReadKey(notice);
+                if (!readKey) {
+                    return;
+                }
+                const nextReads = {
+                    ...(siteNoticeReads.value || {}),
+                    [readKey]: new Date().toISOString(),
+                };
+                siteNoticeReads.value = nextReads;
+                saveStoredSiteNoticeReads(nextReads);
+            }
+
+            async function loadSiteConfig(options = {}) {
+                try {
+                    const config = await fetchSiteConfigFromApi();
+                    siteFeaturedSlots.value = config.featured;
+                    siteAnnouncements.value = [...config.announcements].sort((left, right) => left.sortOrder - right.sortOrder);
+                } catch (error) {
+                    console.warn('Load site config failed:', error);
+                    if (!options.silent) {
+                        siteFeaturedSlots.value = [];
+                        siteAnnouncements.value = [];
+                    }
+                }
+            }
+
+            function startSiteConfigRefreshLoop() {
+                if (siteConfigRefreshTimer) {
+                    return;
+                }
+                siteConfigRefreshTimer = window.setInterval(() => {
+                    loadSiteConfig({ silent: true });
+                }, SITE_CONFIG_REFRESH_INTERVAL_MS);
+            }
+
             const createInitialPublishForm = () => ({
                 name: '',
                 intro: '',
@@ -4604,7 +5134,7 @@
             const filteredBuilds = computed(() => {
                 const q = searchQuery.value.trim().toLowerCase();
                 const currentUserId = discordUser.value?.id;
-                return builds.value.filter((build) => {
+                const filtered = builds.value.filter((build) => {
                     if (buildScope.value === 'mine' && (!currentUserId || build.ownerId !== currentUserId)) {
                         return false;
                     }
@@ -4616,6 +5146,7 @@
                         || build.author.toLowerCase().includes(q)
                         || build.race.toLowerCase().includes(q);
                 });
+                return promoteFeaturedItems(filtered, 'build', buildScope.value === 'all');
             });
             const buildTotalPages = computed(() => Math.max(1, Math.ceil(filteredBuilds.value.length / BUILD_PAGE_SIZE)));
             const paginatedBuilds = computed(() => {
@@ -4661,7 +5192,7 @@
                 const filteredItems = computed(() => {
                     const query = section.searchQuery.trim().toLowerCase();
                     const currentUserId = discordUser.value?.id;
-                    return section.items.filter((item) => {
+                    const filtered = section.items.filter((item) => {
                         if (section.scope === 'mine' && (!currentUserId || item.ownerId !== currentUserId)) {
                             return false;
                         }
@@ -4673,6 +5204,7 @@
                             || item.intro.toLowerCase().includes(query)
                             || item.tags.some((tag) => tag.toLowerCase().includes(query));
                     });
+                    return promoteFeaturedItems(filtered, type, section.scope === 'all');
                 });
                 const totalPages = computed(() => Math.max(1, Math.ceil(filteredItems.value.length / BUILD_PAGE_SIZE)));
                 const paginatedItems = computed(() => {
@@ -6460,7 +6992,9 @@
                     loadPublishedBuilds(),
                     characterSection.loadItems(),
                     extensionSection.loadItems(),
+                    loadSiteConfig(),
                 ]);
+                startSiteConfigRefreshLoop();
                 await refreshWorldbookEnvironment();
                 
                 // 监听来自父页面的 Discord 登录完成消息
@@ -6567,6 +7101,7 @@
             return {
                 activeTab, buildView, buildScope, searchQuery, builds, filteredBuilds, paginatedBuilds, ownedBuildCount,
                 currentBuildPage, buildTotalPages, goToPrevPage, goToNextPage,
+                bannerAnnouncementsLoop, currentModalAnnouncement, dismissAnnouncementModal,
                 discordUser, startDiscordLogin, logoutDiscord,
                 loginPrompt, closeLoginPrompt, confirmLoginPrompt,
                 actionDialog, closeActionDialog, confirmActionDialog,
@@ -6575,6 +7110,7 @@
                 characterSection, extensionSection, activeContentSection, activeContentConfig,
                 worldbookState, worldbookEditor, worldbookEntryCount, workshopWorldbookEntryCount, worldbookBindingChips, filteredWorldbookEntries,
                 openDetail, openSkillDetail, openTraitDetail, openCompanionDetail,
+                isWeeklyFeatured, getFeaturedBadgeText, getFeaturedTitle, getFeaturedSummary,
                 canOpenTraitDetail,
                 openPublishPage, closePublishPage, resetPublishForm, triggerPresetJsonImport, handlePresetJsonImport, triggerCoverImageImport, handleCoverImageImport, clearCoverImage, togglePublishTag,
                 addCustomPublishTag, removePublishTag,
