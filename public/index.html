@@ -841,11 +841,11 @@
             border-color: rgba(212,168,83,0.45);
             background:
                 linear-gradient(180deg, rgba(255,252,244,0.98), rgba(255,255,255,0.98));
-            box-shadow: 0 18px 48px rgba(45, 52, 54, 0.12);
+            box-shadow: 0 12px 28px rgba(45, 52, 54, 0.08);
         }
         .build-card.featured:hover {
             border-color: rgba(212,168,83,0.72);
-            box-shadow: 0 24px 60px rgba(45, 52, 54, 0.16);
+            box-shadow: 0 16px 34px rgba(45, 52, 54, 0.1);
         }
         .build-card.featured::before {
             content: '';
@@ -859,10 +859,10 @@
         .featured-callout {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            padding: 14px 16px;
-            margin-bottom: 14px;
-            border-radius: 16px;
+            gap: 6px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
             background: linear-gradient(135deg, rgba(212,168,83,0.16), rgba(45,106,79,0.1));
             border: 1px solid rgba(212,168,83,0.28);
         }
@@ -886,12 +886,12 @@
         }
         .featured-callout-copy strong {
             font-family: var(--font-main);
-            font-size: 1rem;
+            font-size: 0.92rem;
             color: var(--primary);
         }
         .featured-callout-copy span {
-            font-size: 0.84rem;
-            line-height: 1.7;
+            font-size: 0.78rem;
+            line-height: 1.55;
             color: #4f5b60;
         }
         .notice-banner {
@@ -1018,20 +1018,19 @@
         }
         @media (min-width: 960px) {
             .build-card.featured {
-                grid-column: span 2;
-                display: grid;
-                grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+                grid-column: span 1;
+                display: block;
             }
             .build-card.featured .build-cover {
-                aspect-ratio: auto;
-                min-height: 100%;
+                aspect-ratio: 16 / 9;
+                min-height: 0;
             }
             .build-card.featured .build-body {
-                padding: 22px 22px 20px;
+                padding: 16px;
             }
             .build-card.featured .build-desc {
-                line-clamp: 3;
-                -webkit-line-clamp: 3;
+                line-clamp: 2;
+                -webkit-line-clamp: 2;
             }
         }
         .management-strip {
