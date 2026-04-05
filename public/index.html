@@ -2069,7 +2069,7 @@
             <div class="notice-banner-marquee">
                 <div class="notice-banner-track">
                     <div class="notice-banner-item" v-for="(notice, index) in bannerAnnouncementsLoop" :key="`${notice.id}-${index}`">
-                        <span class="notice-banner-badge">{{ notice.badgeText }}</span>
+                        <span class="notice-banner-badge" v-if="notice.badgeText">{{ notice.badgeText }}</span>
                         <strong v-if="notice.title">{{ notice.title }}</strong>
                         <span>{{ notice.message }}</span>
                         <a
@@ -2122,11 +2122,11 @@
                             <div class="build-body">
                                 <div class="build-title">{{ build.name }}</div>
                                 <div class="featured-callout" v-if="isWeeklyFeatured('build', build)">
-                                    <span class="featured-callout-label">
+                                    <span class="featured-callout-label" v-if="getFeaturedBadgeText('build', build)">
                                         <i class="ri-fire-line"></i> {{ getFeaturedBadgeText('build', build) }}
                                     </span>
                                     <div class="featured-callout-copy">
-                                        <strong>{{ getFeaturedTitle('build', build) }}</strong>
+                                        <strong v-if="getFeaturedTitle('build', build)">{{ getFeaturedTitle('build', build) }}</strong>
                                         <span>{{ getFeaturedSummary('build', build) }}</span>
                                     </div>
                                 </div>
@@ -2361,11 +2361,11 @@
                             <div class="build-body">
                                 <div class="build-title">{{ item.name }}</div>
                                 <div class="featured-callout" v-if="isWeeklyFeatured(activeContentSection.type, item)">
-                                    <span class="featured-callout-label">
+                                    <span class="featured-callout-label" v-if="getFeaturedBadgeText(activeContentSection.type, item)">
                                         <i class="ri-fire-line"></i> {{ getFeaturedBadgeText(activeContentSection.type, item) }}
                                     </span>
                                     <div class="featured-callout-copy">
-                                        <strong>{{ getFeaturedTitle(activeContentSection.type, item) }}</strong>
+                                        <strong v-if="getFeaturedTitle(activeContentSection.type, item)">{{ getFeaturedTitle(activeContentSection.type, item) }}</strong>
                                         <span>{{ getFeaturedSummary(activeContentSection.type, item) }}</span>
                                     </div>
                                 </div>
@@ -3236,10 +3236,10 @@
                         <i class="ri-close-line"></i>
                     </button>
                 </div>
-                <div class="announcement-modal-badge">
-                    <i class="ri-volume-up-line"></i> {{ currentModalAnnouncement.badgeText || '公告' }}
+                <div class="announcement-modal-badge" v-if="currentModalAnnouncement.badgeText">
+                    <i class="ri-volume-up-line"></i> {{ currentModalAnnouncement.badgeText }}
                 </div>
-                <div class="login-prompt-title">{{ currentModalAnnouncement.title || '站内公告' }}</div>
+                <div class="login-prompt-title" v-if="currentModalAnnouncement.title">{{ currentModalAnnouncement.title }}</div>
                 <div class="login-prompt-text">{{ currentModalAnnouncement.message }}</div>
                 <div class="announcement-modal-meta" v-if="currentModalAnnouncement.updatedAt || currentModalAnnouncement.startsAt">
                     {{ formatDateLabel(currentModalAnnouncement.updatedAt || currentModalAnnouncement.startsAt) }}
@@ -4319,7 +4319,7 @@
             slotKey,
             targetType: String(rawItem?.targetType || rawItem?.target_type || '').trim(),
             targetId,
-            badgeText: String(rawItem?.badgeText || rawItem?.badge_text || '每周推荐').trim() || '每周推荐',
+            badgeText: String(rawItem?.badgeText || rawItem?.badge_text || '').trim(),
             title: String(rawItem?.title || '').trim(),
             summary: String(rawItem?.summary || '').trim(),
             status: String(rawItem?.status || 'active').trim() || 'active',
@@ -4340,7 +4340,7 @@
             id,
             title: String(rawItem?.title || '').trim(),
             message,
-            badgeText: String(rawItem?.badgeText || rawItem?.badge_text || '公告').trim() || '公告',
+            badgeText: String(rawItem?.badgeText || rawItem?.badge_text || '').trim(),
             displayMode: normalizeAnnouncementDisplayMode(rawItem?.displayMode || rawItem?.display_mode),
             linkLabel: String(rawItem?.linkLabel || rawItem?.link_label || '').trim(),
             linkUrl: String(rawItem?.linkUrl || rawItem?.link_url || '').trim(),
@@ -5058,11 +5058,11 @@
             }
 
             function getFeaturedBadgeText(slotKey, item) {
-                return getFeaturedMeta(slotKey, item)?.badgeText || '每周推荐';
+                return getFeaturedMeta(slotKey, item)?.badgeText || '';
             }
 
             function getFeaturedTitle(slotKey, item) {
-                return getFeaturedMeta(slotKey, item)?.title || getFeaturedFallbackTitle(slotKey);
+                return getFeaturedMeta(slotKey, item)?.title || '';
             }
 
             function getFeaturedSummary(slotKey, item) {
