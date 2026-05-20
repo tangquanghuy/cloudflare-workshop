@@ -184,6 +184,39 @@
             border-radius: 10px;
         }
 
+        /* ======== Sort Toggle ======== */
+        .sort-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            background: #f4f5f6;
+            border-radius: 999px;
+            padding: 3px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .sort-option {
+            padding: 7px 14px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--secondary);
+            border: none;
+            background: transparent;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        .sort-option:hover { color: var(--primary); }
+        .sort-option.active {
+            background: white;
+            color: var(--accent);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .sort-option i { font-size: 0.9rem; }
+
         /* ======== Main ======== */
         .workshop-main { flex: 1; padding: 32px; }
 
@@ -1931,6 +1964,7 @@
             .toolbar { flex-direction: column; align-items: stretch; }
             .search-box { max-width: 100%; }
             .toolbar-actions { width: 100%; margin-left: 0; justify-content: space-between; }
+            .sort-toggle { width: 100%; justify-content: center; }
             .publish-form { grid-template-columns: 1fr; }
             .publish-header { flex-direction: column; }
             .publish-actions { flex-direction: column; align-items: stretch; }
@@ -2103,6 +2137,10 @@
                                     <button type="button" class="tag-option" :class="{ active: buildScope === 'all' }" @click="buildScope = 'all'">全部预设</button>
                                     <button type="button" class="tag-option" :class="{ active: buildScope === 'mine' }" @click="buildScope = 'mine'">我的预设 {{ ownedBuildCount }}</button>
                                 </div>
+                            </div>
+                            <div class="sort-toggle">
+                                <button type="button" class="sort-option" :class="{ active: buildSortMode === 'activity' }" @click="buildSortMode = 'activity'"><i class="ri-fire-line"></i> 最新反应</button>
+                                <button type="button" class="sort-option" :class="{ active: buildSortMode === 'created' }" @click="buildSortMode = 'created'"><i class="ri-time-line"></i> 最新发布</button>
                             </div>
                             <button class="btn btn-outline" @click="openPublishPage" style="white-space:nowrap;">
                                 <i class="ri-upload-2-line"></i> 上传预设
@@ -2340,6 +2378,10 @@
                                     <button type="button" class="tag-option" :class="{ active: activeContentSection.scope === 'all' }" @click="activeContentSection.scope = 'all'">全部{{ activeContentConfig.title }}</button>
                                     <button type="button" class="tag-option" :class="{ active: activeContentSection.scope === 'mine' }" @click="activeContentSection.scope = 'mine'">我的{{ activeContentConfig.title }} {{ activeContentSection.ownedCount }}</button>
                                 </div>
+                            </div>
+                            <div class="sort-toggle">
+                                <button type="button" class="sort-option" :class="{ active: activeContentSection.sortMode === 'activity' }" @click="activeContentSection.sortMode = 'activity'"><i class="ri-fire-line"></i> 最新反应</button>
+                                <button type="button" class="sort-option" :class="{ active: activeContentSection.sortMode === 'created' }" @click="activeContentSection.sortMode = 'created'"><i class="ri-time-line"></i> 最新发布</button>
                             </div>
                             <button class="btn btn-outline" @click="activeContentSection.openPublishPage()" style="white-space:nowrap;">
                                 <i class="ri-quill-pen-line"></i> {{ activeContentConfig.uploadLabel }}
@@ -4947,6 +4989,7 @@
             const discordUser = computed(() => discordAuth.value?.user || null);
             const discordLoading = ref(false);
             const buildScope = ref('all');
+            const buildSortMode = ref('activity');
             const editingBuildId = ref('');
             const publishSubmitting = ref(false);
             const deletingBuildIds = ref([]);
@@ -5145,6 +5188,13 @@
                         || build.author.toLowerCase().includes(q)
                         || build.race.toLowerCase().includes(q);
                 });
+                if (buildSortMode.value === 'created') {
+                    filtered.sort((a, b) => {
+                        const ta = a.createdAt || '';
+                        const tb = b.createdAt || '';
+                        return tb.localeCompare(ta);
+                    });
+                }
                 return promoteFeaturedItems(filtered, 'build', buildScope.value === 'all');
             });
             const buildTotalPages = computed(() => Math.max(1, Math.ceil(filteredBuilds.value.length / BUILD_PAGE_SIZE)));
@@ -5172,6 +5222,7 @@
                     type,
                     view: 'list',
                     scope: 'all',
+                    sortMode: 'activity',
                     searchQuery: '',
                     status: `暂无${contentSectionConfig[type].title}`,
                     items: [],
@@ -5203,6 +5254,13 @@
                             || item.intro.toLowerCase().includes(query)
                             || item.tags.some((tag) => tag.toLowerCase().includes(query));
                     });
+                    if (section.sortMode === 'created') {
+                        filtered.sort((a, b) => {
+                            const ta = a.createdAt || '';
+                            const tb = b.createdAt || '';
+                            return tb.localeCompare(ta);
+                        });
+                    }
                     return promoteFeaturedItems(filtered, type, section.scope === 'all');
                 });
                 const totalPages = computed(() => Math.max(1, Math.ceil(filteredItems.value.length / BUILD_PAGE_SIZE)));
@@ -5224,7 +5282,7 @@
                     return section.editingId ? '保存修改' : contentSectionConfig[type].uploadLabel;
                 });
 
-                watch([() => section.searchQuery, () => section.scope], () => {
+                watch([() => section.searchQuery, () => section.scope, () => section.sortMode], () => {
                     section.currentPage = 1;
                 });
                 watch(filteredItems, (items) => {
@@ -6063,7 +6121,7 @@
                 }
             }
 
-            watch([searchQuery, buildScope], () => {
+            watch([searchQuery, buildScope, buildSortMode], () => {
                 currentBuildPage.value = 1;
             });
 
@@ -7098,7 +7156,7 @@
             });
 
             return {
-                activeTab, buildView, buildScope, searchQuery, builds, filteredBuilds, paginatedBuilds, ownedBuildCount,
+                activeTab, buildView, buildScope, buildSortMode, searchQuery, builds, filteredBuilds, paginatedBuilds, ownedBuildCount,
                 currentBuildPage, buildTotalPages, goToPrevPage, goToNextPage,
                 bannerAnnouncementsLoop, currentModalAnnouncement, dismissAnnouncementModal,
                 discordUser, startDiscordLogin, logoutDiscord,
