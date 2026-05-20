@@ -2140,6 +2140,7 @@
                             </div>
                             <div class="sort-toggle">
                                 <button type="button" class="sort-option" :class="{ active: buildSortMode === 'activity' }" @click="buildSortMode = 'activity'"><i class="ri-fire-line"></i> 最新反应</button>
+                                <button type="button" class="sort-option" :class="{ active: buildSortMode === 'updated' }" @click="buildSortMode = 'updated'"><i class="ri-edit-line"></i> 最近更新</button>
                                 <button type="button" class="sort-option" :class="{ active: buildSortMode === 'created' }" @click="buildSortMode = 'created'"><i class="ri-time-line"></i> 最新发布</button>
                             </div>
                             <button class="btn btn-outline" @click="openPublishPage" style="white-space:nowrap;">
@@ -2381,6 +2382,7 @@
                             </div>
                             <div class="sort-toggle">
                                 <button type="button" class="sort-option" :class="{ active: activeContentSection.sortMode === 'activity' }" @click="activeContentSection.sortMode = 'activity'"><i class="ri-fire-line"></i> 最新反应</button>
+                                <button type="button" class="sort-option" :class="{ active: activeContentSection.sortMode === 'updated' }" @click="activeContentSection.sortMode = 'updated'"><i class="ri-edit-line"></i> 最近更新</button>
                                 <button type="button" class="sort-option" :class="{ active: activeContentSection.sortMode === 'created' }" @click="activeContentSection.sortMode = 'created'"><i class="ri-time-line"></i> 最新发布</button>
                             </div>
                             <button class="btn btn-outline" @click="activeContentSection.openPublishPage()" style="white-space:nowrap;">
@@ -4174,6 +4176,7 @@
         build.ownerName = rawItem.ownerName || '';
         build.createdAt = rawItem.createdAt || '';
         build.updatedAt = rawItem.updatedAt || '';
+        build.lastLikedAt = rawItem.lastLikedAt || '';
         build.downloadUrl = rawItem.downloadUrl || '';
         build.liked = !!rawItem.liked;
         build.status = rawItem.status || '';
@@ -4314,6 +4317,7 @@
             status: rawItem.status || 'published',
             createdAt: rawItem.createdAt || '',
             updatedAt: rawItem.updatedAt || '',
+            lastLikedAt: rawItem.lastLikedAt || '',
         };
     }
 
@@ -5188,12 +5192,10 @@
                         || build.author.toLowerCase().includes(q)
                         || build.race.toLowerCase().includes(q);
                 });
-                if (buildSortMode.value === 'created') {
-                    filtered.sort((a, b) => {
-                        const ta = a.createdAt || '';
-                        const tb = b.createdAt || '';
-                        return tb.localeCompare(ta);
-                    });
+                if (buildSortMode.value === 'updated') {
+                    filtered.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+                } else if (buildSortMode.value === 'created') {
+                    filtered.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
                 }
                 return promoteFeaturedItems(filtered, 'build', buildScope.value === 'all');
             });
@@ -5254,12 +5256,10 @@
                             || item.intro.toLowerCase().includes(query)
                             || item.tags.some((tag) => tag.toLowerCase().includes(query));
                     });
-                    if (section.sortMode === 'created') {
-                        filtered.sort((a, b) => {
-                            const ta = a.createdAt || '';
-                            const tb = b.createdAt || '';
-                            return tb.localeCompare(ta);
-                        });
+                    if (section.sortMode === 'updated') {
+                        filtered.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+                    } else if (section.sortMode === 'created') {
+                        filtered.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
                     }
                     return promoteFeaturedItems(filtered, type, section.scope === 'all');
                 });

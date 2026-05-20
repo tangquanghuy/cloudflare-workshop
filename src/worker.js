@@ -262,6 +262,7 @@ async function handlePresetList(request, env, baseUrl = null) {
         p.status,
         p.created_at,
         p.updated_at,
+        (SELECT MAX(pl2.created_at) FROM preset_likes pl2 WHERE pl2.preset_id = p.id) AS last_liked_at,
         CASE
           WHEN ? != '' AND EXISTS(
             SELECT 1 FROM preset_likes pl
@@ -274,7 +275,10 @@ async function handlePresetList(request, env, baseUrl = null) {
       FROM presets p
       LEFT JOIN users u ON u.discord_id = p.owner_discord_id
       WHERE ${whereClauses.join(' AND ')}
-      ORDER BY datetime(p.updated_at) DESC, datetime(p.created_at) DESC
+      ORDER BY datetime(COALESCE(
+        (SELECT MAX(pl3.created_at) FROM preset_likes pl3 WHERE pl3.preset_id = p.id),
+        p.updated_at
+      )) DESC, datetime(p.created_at) DESC
     `)
     .bind(viewerDiscordId, viewerDiscordId, ...params)
     .all();
@@ -538,6 +542,7 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
         e.status,
         e.created_at,
         e.updated_at,
+        (SELECT MAX(wl2.created_at) FROM workshop_entry_likes wl2 WHERE wl2.entry_id = e.id) AS last_liked_at,
         CASE
           WHEN ? != '' AND EXISTS(
             SELECT 1 FROM workshop_entry_likes wl
@@ -550,7 +555,10 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
       FROM workshop_entries e
       LEFT JOIN users u ON u.discord_id = e.owner_discord_id
       WHERE ${whereClauses.join(' AND ')}
-      ORDER BY datetime(e.updated_at) DESC, datetime(e.created_at) DESC
+      ORDER BY datetime(COALESCE(
+        (SELECT MAX(wl3.created_at) FROM workshop_entry_likes wl3 WHERE wl3.entry_id = e.id),
+        e.updated_at
+      )) DESC, datetime(e.created_at) DESC
     `)
     .bind(viewerDiscordId, viewerDiscordId, ...params)
     .all();
@@ -858,12 +866,12 @@ async function handleWorkshopContentLikeToggle(entryId, request, env) {
   if (likeRow?.liked) {
     await env.ngnl_build.batch([
       env.ngnl_build.prepare('DELETE FROM workshop_entry_likes WHERE entry_id = ? AND user_discord_id = ?').bind(entryId, userDiscordId),
-      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = MAX(like_count - 1, 0), updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(entryId),
+      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = MAX(like_count - 1, 0) WHERE id = ?').bind(entryId),
     ]);
   } else {
     await env.ngnl_build.batch([
       env.ngnl_build.prepare('INSERT INTO workshop_entry_likes (entry_id, user_discord_id) VALUES (?, ?)').bind(entryId, userDiscordId),
-      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = like_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(entryId),
+      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = like_count + 1 WHERE id = ?').bind(entryId),
     ]);
   }
 
@@ -938,12 +946,12 @@ async function handlePresetLikeToggle(presetId, request, env) {
   if (likeRow?.liked) {
     await env.ngnl_build.batch([
       env.ngnl_build.prepare('DELETE FROM preset_likes WHERE preset_id = ? AND user_discord_id = ?').bind(presetId, userDiscordId),
-      env.ngnl_build.prepare('UPDATE presets SET like_count = MAX(like_count - 1, 0), updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(presetId),
+      env.ngnl_build.prepare('UPDATE presets SET like_count = MAX(like_count - 1, 0) WHERE id = ?').bind(presetId),
     ]);
   } else {
     await env.ngnl_build.batch([
       env.ngnl_build.prepare('INSERT INTO preset_likes (preset_id, user_discord_id) VALUES (?, ?)').bind(presetId, userDiscordId),
-      env.ngnl_build.prepare('UPDATE presets SET like_count = like_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(presetId),
+      env.ngnl_build.prepare('UPDATE presets SET like_count = like_count + 1 WHERE id = ?').bind(presetId),
     ]);
   }
 
@@ -1365,6 +1373,7 @@ function mapPresetRow(row) {
     status: row.status || 'published',
     createdAt: row.created_at || '',
     updatedAt: row.updated_at || '',
+    lastLikedAt: row.last_liked_at || '',
     presetData: safeJsonParse(row.preset_json, null),
     downloadUrl: `/api/presets/${encodeURIComponent(row.id)}/file`,
   };
@@ -1401,6 +1410,7 @@ function mapWorkshopEntryRow(row, options = {}) {
     status: row.status || 'published',
     createdAt: row.created_at || '',
     updatedAt: row.updated_at || '',
+    lastLikedAt: row.last_liked_at || '',
   };
 }
 
