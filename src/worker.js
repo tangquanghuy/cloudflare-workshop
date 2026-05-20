@@ -275,10 +275,11 @@ async function handlePresetList(request, env, baseUrl = null) {
       FROM presets p
       LEFT JOIN users u ON u.discord_id = p.owner_discord_id
       WHERE ${whereClauses.join(' AND ')}
-      ORDER BY datetime(COALESCE(
-        (SELECT MAX(pl3.created_at) FROM preset_likes pl3 WHERE pl3.preset_id = p.id),
-        p.updated_at
-      )) DESC, datetime(p.created_at) DESC
+      ORDER BY datetime(CASE
+        WHEN (SELECT MAX(pl3.created_at) FROM preset_likes pl3 WHERE pl3.preset_id = p.id) > p.updated_at
+        THEN (SELECT MAX(pl3.created_at) FROM preset_likes pl3 WHERE pl3.preset_id = p.id)
+        ELSE p.updated_at
+      END) DESC, datetime(p.created_at) DESC
     `)
     .bind(viewerDiscordId, viewerDiscordId, ...params)
     .all();
@@ -555,10 +556,11 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
       FROM workshop_entries e
       LEFT JOIN users u ON u.discord_id = e.owner_discord_id
       WHERE ${whereClauses.join(' AND ')}
-      ORDER BY datetime(COALESCE(
-        (SELECT MAX(wl3.created_at) FROM workshop_entry_likes wl3 WHERE wl3.entry_id = e.id),
-        e.updated_at
-      )) DESC, datetime(e.created_at) DESC
+      ORDER BY datetime(CASE
+        WHEN (SELECT MAX(wl3.created_at) FROM workshop_entry_likes wl3 WHERE wl3.entry_id = e.id) > e.updated_at
+        THEN (SELECT MAX(wl3.created_at) FROM workshop_entry_likes wl3 WHERE wl3.entry_id = e.id)
+        ELSE e.updated_at
+      END) DESC, datetime(e.created_at) DESC
     `)
     .bind(viewerDiscordId, viewerDiscordId, ...params)
     .all();
