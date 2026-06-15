@@ -266,8 +266,6 @@ async function handlePresetList(request, env, baseUrl = null) {
           p.status,
           p.created_at,
           p.updated_at,
-          pl.last_liked_at,
-          pd.last_downloaded_at,
           MAX(
             COALESCE(p.updated_at, ''),
             COALESCE(pl.last_liked_at, ''),
@@ -566,7 +564,6 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
           e.status,
           e.created_at,
           e.updated_at,
-          wl.last_liked_at,
           MAX(
             COALESCE(e.updated_at, ''),
             COALESCE(wl.last_liked_at, '')
