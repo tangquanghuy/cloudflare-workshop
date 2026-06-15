@@ -266,11 +266,7 @@ async function handlePresetList(request, env, baseUrl = null) {
           p.status,
           p.created_at,
           p.updated_at,
-          MAX(
-            COALESCE(p.updated_at, ''),
-            COALESCE(pl.last_liked_at, ''),
-            COALESCE(pd.last_downloaded_at, '')
-          ) AS activity_at,
+          p.last_activity_at AS activity_at,
           CASE
             WHEN ? != '' AND vpl.user_discord_id IS NOT NULL THEN 1
             ELSE 0
@@ -279,16 +275,6 @@ async function handlePresetList(request, env, baseUrl = null) {
           u.avatar_url
         FROM presets p
         LEFT JOIN users u ON u.discord_id = p.owner_discord_id
-        LEFT JOIN (
-          SELECT preset_id, MAX(created_at) AS last_liked_at
-          FROM preset_likes
-          GROUP BY preset_id
-        ) pl ON pl.preset_id = p.id
-        LEFT JOIN (
-          SELECT preset_id, MAX(created_at) AS last_downloaded_at
-          FROM preset_download_events
-          GROUP BY preset_id
-        ) pd ON pd.preset_id = p.id
         LEFT JOIN preset_likes vpl
           ON vpl.preset_id = p.id
           AND vpl.user_discord_id = ?
@@ -371,11 +357,12 @@ async function handlePresetCreate(request, env) {
         tags_json,
         preset_json,
         like_count,
-        download_count,
-        status,
-        created_at,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      download_count,
+      status,
+      created_at,
+      updated_at,
+      last_activity_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `)
     .bind(
       presetId,
@@ -461,7 +448,8 @@ async function handlePresetUpdate(presetId, request, env) {
         tags_json = ?,
         preset_json = ?,
         status = ?,
-        updated_at = CURRENT_TIMESTAMP
+        updated_at = CURRENT_TIMESTAMP,
+        last_activity_at = CURRENT_TIMESTAMP
       WHERE id = ? AND owner_discord_id = ?
     `)
     .bind(
@@ -564,10 +552,7 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
           e.status,
           e.created_at,
           e.updated_at,
-          MAX(
-            COALESCE(e.updated_at, ''),
-            COALESCE(wl.last_liked_at, '')
-          ) AS activity_at,
+          e.last_activity_at AS activity_at,
           CASE
             WHEN ? != '' AND vwl.user_discord_id IS NOT NULL THEN 1
             ELSE 0
@@ -576,11 +561,6 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
           u.avatar_url
         FROM workshop_entries e
         LEFT JOIN users u ON u.discord_id = e.owner_discord_id
-        LEFT JOIN (
-          SELECT entry_id, MAX(created_at) AS last_liked_at
-          FROM workshop_entry_likes
-          GROUP BY entry_id
-        ) wl ON wl.entry_id = e.id
         LEFT JOIN workshop_entry_likes vwl
           ON vwl.entry_id = e.id
           AND vwl.user_discord_id = ?
@@ -679,11 +659,12 @@ async function handleWorkshopContentCreate(request, env) {
         cover_object_key,
         tags_json,
         content_text,
-        like_count,
-        status,
-        created_at,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      like_count,
+      status,
+      created_at,
+      updated_at,
+      last_activity_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `)
     .bind(
       entryId,
@@ -814,7 +795,8 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
         tags_json = ?,
         content_text = ?,
         status = ?,
-        updated_at = CURRENT_TIMESTAMP
+        updated_at = CURRENT_TIMESTAMP,
+        last_activity_at = CURRENT_TIMESTAMP
       WHERE id = ? AND owner_discord_id = ?
     `)
     .bind(
@@ -899,12 +881,12 @@ async function handleWorkshopContentLikeToggle(entryId, request, env) {
   if (likeRow?.liked) {
     await env.ngnl_build.batch([
       env.ngnl_build.prepare('DELETE FROM workshop_entry_likes WHERE entry_id = ? AND user_discord_id = ?').bind(entryId, userDiscordId),
-      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = MAX(like_count - 1, 0) WHERE id = ?').bind(entryId),
+      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = MAX(like_count - 1, 0), last_activity_at = CURRENT_TIMESTAMP WHERE id = ?').bind(entryId),
     ]);
   } else {
     await env.ngnl_build.batch([
       env.ngnl_build.prepare('INSERT INTO workshop_entry_likes (entry_id, user_discord_id) VALUES (?, ?)').bind(entryId, userDiscordId),
-      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = like_count + 1 WHERE id = ?').bind(entryId),
+      env.ngnl_build.prepare('UPDATE workshop_entries SET like_count = like_count + 1, last_activity_at = CURRENT_TIMESTAMP WHERE id = ?').bind(entryId),
     ]);
   }
 
@@ -949,7 +931,7 @@ async function handlePresetDownload(presetId, request, env) {
 
   await env.ngnl_build.batch([
     env.ngnl_build.prepare('INSERT INTO preset_download_events (preset_id, user_discord_id, ip_hash) VALUES (?, ?, ?)').bind(presetId, userDiscordId || null, ipHash || null),
-    env.ngnl_build.prepare('UPDATE presets SET download_count = download_count + 1 WHERE id = ?').bind(presetId),
+    env.ngnl_build.prepare('UPDATE presets SET download_count = download_count + 1, last_activity_at = CURRENT_TIMESTAMP WHERE id = ?').bind(presetId),
   ]);
 
   await purgePresetCache(request, presetId);
@@ -981,12 +963,12 @@ async function handlePresetLikeToggle(presetId, request, env) {
   if (likeRow?.liked) {
     await env.ngnl_build.batch([
       env.ngnl_build.prepare('DELETE FROM preset_likes WHERE preset_id = ? AND user_discord_id = ?').bind(presetId, userDiscordId),
-      env.ngnl_build.prepare('UPDATE presets SET like_count = MAX(like_count - 1, 0) WHERE id = ?').bind(presetId),
+      env.ngnl_build.prepare('UPDATE presets SET like_count = MAX(like_count - 1, 0), last_activity_at = CURRENT_TIMESTAMP WHERE id = ?').bind(presetId),
     ]);
   } else {
     await env.ngnl_build.batch([
       env.ngnl_build.prepare('INSERT INTO preset_likes (preset_id, user_discord_id) VALUES (?, ?)').bind(presetId, userDiscordId),
-      env.ngnl_build.prepare('UPDATE presets SET like_count = like_count + 1 WHERE id = ?').bind(presetId),
+      env.ngnl_build.prepare('UPDATE presets SET like_count = like_count + 1, last_activity_at = CURRENT_TIMESTAMP WHERE id = ?').bind(presetId),
     ]);
   }
 
@@ -1063,13 +1045,17 @@ async function getPresetRow(db, presetId, viewerDiscordId = '') {
         p.status,
         p.created_at,
         p.updated_at,
-        pl.last_liked_at,
-        pd.last_downloaded_at,
-        MAX(
-          COALESCE(p.updated_at, ''),
-          COALESCE(pl.last_liked_at, ''),
-          COALESCE(pd.last_downloaded_at, '')
-        ) AS activity_at,
+        (
+          SELECT MAX(pl.created_at)
+          FROM preset_likes pl
+          WHERE pl.preset_id = p.id
+        ) AS last_liked_at,
+        (
+          SELECT MAX(pd.created_at)
+          FROM preset_download_events pd
+          WHERE pd.preset_id = p.id
+        ) AS last_downloaded_at,
+        p.last_activity_at AS activity_at,
         CASE
           WHEN ? != '' AND vpl.user_discord_id IS NOT NULL THEN 1
           ELSE 0
@@ -1078,16 +1064,6 @@ async function getPresetRow(db, presetId, viewerDiscordId = '') {
         u.avatar_url
       FROM presets p
       LEFT JOIN users u ON u.discord_id = p.owner_discord_id
-      LEFT JOIN (
-        SELECT preset_id, MAX(created_at) AS last_liked_at
-        FROM preset_likes
-        GROUP BY preset_id
-      ) pl ON pl.preset_id = p.id
-      LEFT JOIN (
-        SELECT preset_id, MAX(created_at) AS last_downloaded_at
-        FROM preset_download_events
-        GROUP BY preset_id
-      ) pd ON pd.preset_id = p.id
       LEFT JOIN preset_likes vpl
         ON vpl.preset_id = p.id
         AND vpl.user_discord_id = ?
@@ -1121,11 +1097,12 @@ async function getWorkshopEntryRow(db, entryId, viewerDiscordId = '') {
         e.status,
         e.created_at,
         e.updated_at,
-        wl.last_liked_at,
-        MAX(
-          COALESCE(e.updated_at, ''),
-          COALESCE(wl.last_liked_at, '')
-        ) AS activity_at,
+        (
+          SELECT MAX(wl.created_at)
+          FROM workshop_entry_likes wl
+          WHERE wl.entry_id = e.id
+        ) AS last_liked_at,
+        e.last_activity_at AS activity_at,
         CASE
           WHEN ? != '' AND vwl.user_discord_id IS NOT NULL THEN 1
           ELSE 0
@@ -1134,11 +1111,6 @@ async function getWorkshopEntryRow(db, entryId, viewerDiscordId = '') {
         u.avatar_url
       FROM workshop_entries e
       LEFT JOIN users u ON u.discord_id = e.owner_discord_id
-      LEFT JOIN (
-        SELECT entry_id, MAX(created_at) AS last_liked_at
-        FROM workshop_entry_likes
-        GROUP BY entry_id
-      ) wl ON wl.entry_id = e.id
       LEFT JOIN workshop_entry_likes vwl
         ON vwl.entry_id = e.id
         AND vwl.user_discord_id = ?
