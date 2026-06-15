@@ -7,6 +7,7 @@ const PRESET_PREFIX = 'presets';
 const COVER_PREFIX = 'covers';
 const CONTENT_COVER_PREFIX = 'content-covers';
 const WORKSHOP_ENTRY_TYPES = new Set(['character', 'extension']);
+const EDGE_CACHE_TTL_SECONDS = 300;
 
 export default {
   async fetch(request, env) {
@@ -32,7 +33,7 @@ export default {
     }
 
     if (url.pathname === '/api/site-config' && request.method === 'GET') {
-      return await handleSiteConfig(env);
+      return await handleSiteConfig(request, env);
     }
 
     if (!url.pathname.startsWith('/api/')) {
@@ -73,7 +74,7 @@ export default {
         const action = presetRouteMatch[2] || '';
 
         if (!action && request.method === 'GET') {
-          return await handlePresetGet(presetId, env, url);
+          return await handlePresetGet(request, presetId, env, url);
         }
         if (!action && request.method === 'PUT') {
           return await handlePresetUpdate(presetId, request, env, url);
@@ -101,7 +102,7 @@ export default {
         const action = contentRouteMatch[2] || '';
 
         if (!action && request.method === 'GET') {
-          return await handleWorkshopContentGet(entryId, env, url);
+          return await handleWorkshopContentGet(request, entryId, env, url);
         }
         if (!action && request.method === 'PUT') {
           return await handleWorkshopContentUpdate(entryId, request, env);
@@ -148,77 +149,79 @@ async function handleUserSync(request, env) {
   return jsonResponse({ ok: true, user: { discord_id: discordId, username, avatar_url: avatarUrl } });
 }
 
-async function handleSiteConfig(env) {
-  const [hasFeaturedSlotsTable, hasAnnouncementsTable] = await Promise.all([
-    hasTable(env.ngnl_build, 'site_featured_slots'),
-    hasTable(env.ngnl_build, 'site_announcements'),
-  ]);
+async function handleSiteConfig(request, env) {
+  return await withOptionalEdgeCache(request, { scope: 'public', ttl: EDGE_CACHE_TTL_SECONDS }, async () => {
+    const [hasFeaturedSlotsTable, hasAnnouncementsTable] = await Promise.all([
+      hasTable(env.ngnl_build, 'site_featured_slots'),
+      hasTable(env.ngnl_build, 'site_announcements'),
+    ]);
 
-  const featuredResult = hasFeaturedSlotsTable
-    ? await env.ngnl_build
-      .prepare(`
-        SELECT
-          id,
-          slot_key,
-          target_type,
-          target_id,
-          badge_text,
-          title,
-          summary,
-          status,
-          starts_at,
-          ends_at,
-          created_at,
-          updated_at
-        FROM site_featured_slots
-        WHERE status = 'active'
-          AND (starts_at IS NULL OR starts_at = '' OR datetime(starts_at) <= CURRENT_TIMESTAMP)
-          AND (ends_at IS NULL OR ends_at = '' OR datetime(ends_at) >= CURRENT_TIMESTAMP)
-        ORDER BY
-          CASE slot_key
-            WHEN 'build' THEN 0
-            WHEN 'character' THEN 1
-            WHEN 'extension' THEN 2
-            ELSE 99
-          END,
-          datetime(updated_at) DESC,
-          datetime(created_at) DESC
-      `)
-      .all()
-    : { results: [] };
+    const featuredResult = hasFeaturedSlotsTable
+      ? await env.ngnl_build
+        .prepare(`
+          SELECT
+            id,
+            slot_key,
+            target_type,
+            target_id,
+            badge_text,
+            title,
+            summary,
+            status,
+            starts_at,
+            ends_at,
+            created_at,
+            updated_at
+          FROM site_featured_slots
+          WHERE status = 'active'
+            AND (starts_at IS NULL OR starts_at = '' OR datetime(starts_at) <= CURRENT_TIMESTAMP)
+            AND (ends_at IS NULL OR ends_at = '' OR datetime(ends_at) >= CURRENT_TIMESTAMP)
+          ORDER BY
+            CASE slot_key
+              WHEN 'build' THEN 0
+              WHEN 'character' THEN 1
+              WHEN 'extension' THEN 2
+              ELSE 99
+            END,
+            datetime(updated_at) DESC,
+            datetime(created_at) DESC
+        `)
+        .all()
+      : { results: [] };
 
-  const announcementResult = hasAnnouncementsTable
-    ? await env.ngnl_build
-      .prepare(`
-        SELECT
-          id,
-          title,
-          message,
-          badge_text,
-          display_mode,
-          link_label,
-          link_url,
-          dismiss_key,
-          sort_order,
-          status,
-          starts_at,
-          ends_at,
-          created_at,
-          updated_at
-        FROM site_announcements
-        WHERE status = 'active'
-          AND (starts_at IS NULL OR starts_at = '' OR datetime(starts_at) <= CURRENT_TIMESTAMP)
-          AND (ends_at IS NULL OR ends_at = '' OR datetime(ends_at) >= CURRENT_TIMESTAMP)
-        ORDER BY sort_order ASC, datetime(updated_at) DESC, datetime(created_at) DESC
-      `)
-      .all()
-    : { results: [] };
+    const announcementResult = hasAnnouncementsTable
+      ? await env.ngnl_build
+        .prepare(`
+          SELECT
+            id,
+            title,
+            message,
+            badge_text,
+            display_mode,
+            link_label,
+            link_url,
+            dismiss_key,
+            sort_order,
+            status,
+            starts_at,
+            ends_at,
+            created_at,
+            updated_at
+          FROM site_announcements
+          WHERE status = 'active'
+            AND (starts_at IS NULL OR starts_at = '' OR datetime(starts_at) <= CURRENT_TIMESTAMP)
+            AND (ends_at IS NULL OR ends_at = '' OR datetime(ends_at) >= CURRENT_TIMESTAMP)
+          ORDER BY sort_order ASC, datetime(updated_at) DESC, datetime(created_at) DESC
+        `)
+        .all()
+      : { results: [] };
 
-  return jsonResponse({
-    ok: true,
-    featured: (featuredResult.results || []).map((row) => mapSiteFeaturedSlotRow(row)),
-    announcements: (announcementResult.results || []).map((row) => mapSiteAnnouncementRow(row)),
-    server_time: new Date().toISOString(),
+    return jsonResponse({
+      ok: true,
+      featured: (featuredResult.results || []).map((row) => mapSiteFeaturedSlotRow(row)),
+      announcements: (announcementResult.results || []).map((row) => mapSiteAnnouncementRow(row)),
+      server_time: new Date().toISOString(),
+    });
   });
 }
 
@@ -243,57 +246,73 @@ async function handlePresetList(request, env, baseUrl = null) {
     params.push(keyword, keyword, keyword, keyword);
   }
 
-  const { results } = await env.ngnl_build
-    .prepare(`
-      SELECT
-        p.id,
-        p.owner_discord_id,
-        p.title,
-        p.intro,
-        p.cover_url,
-        p.cover_object_key,
-        p.object_key,
-        p.class_name,
-        p.race,
-        p.tags_json,
-        p.preset_json,
-        p.like_count,
-        p.download_count,
-        p.status,
-        p.created_at,
-        p.updated_at,
-        (SELECT MAX(pl2.created_at) FROM preset_likes pl2 WHERE pl2.preset_id = p.id) AS last_liked_at,
-        CASE
-          WHEN ? != '' AND EXISTS(
-            SELECT 1 FROM preset_likes pl
-            WHERE pl.preset_id = p.id AND pl.user_discord_id = ?
-          ) THEN 1
-          ELSE 0
-        END AS liked,
-        u.username,
-        u.avatar_url
-      FROM presets p
-      LEFT JOIN users u ON u.discord_id = p.owner_discord_id
-      WHERE ${whereClauses.join(' AND ')}
-      ORDER BY datetime(CASE
-        WHEN (SELECT MAX(pl3.created_at) FROM preset_likes pl3 WHERE pl3.preset_id = p.id) > p.updated_at
-        THEN (SELECT MAX(pl3.created_at) FROM preset_likes pl3 WHERE pl3.preset_id = p.id)
-        ELSE p.updated_at
-      END) DESC, datetime(p.created_at) DESC
-    `)
-    .bind(viewerDiscordId, viewerDiscordId, ...params)
-    .all();
+  return await withOptionalEdgeCache(request, { scope: viewerDiscordId ? 'private' : 'public', ttl: EDGE_CACHE_TTL_SECONDS }, async () => {
+    const { results } = await env.ngnl_build
+      .prepare(`
+        SELECT
+          p.id,
+          p.owner_discord_id,
+          p.title,
+          p.intro,
+          p.cover_url,
+          p.cover_object_key,
+          p.object_key,
+          p.class_name,
+          p.race,
+          p.tags_json,
+          p.preset_json,
+          p.like_count,
+          p.download_count,
+          p.status,
+          p.created_at,
+          p.updated_at,
+          pl.last_liked_at,
+          pd.last_downloaded_at,
+          MAX(
+            COALESCE(p.updated_at, ''),
+            COALESCE(pl.last_liked_at, ''),
+            COALESCE(pd.last_downloaded_at, '')
+          ) AS activity_at,
+          CASE
+            WHEN ? != '' AND vpl.user_discord_id IS NOT NULL THEN 1
+            ELSE 0
+          END AS liked,
+          u.username,
+          u.avatar_url
+        FROM presets p
+        LEFT JOIN users u ON u.discord_id = p.owner_discord_id
+        LEFT JOIN (
+          SELECT preset_id, MAX(created_at) AS last_liked_at
+          FROM preset_likes
+          GROUP BY preset_id
+        ) pl ON pl.preset_id = p.id
+        LEFT JOIN (
+          SELECT preset_id, MAX(created_at) AS last_downloaded_at
+          FROM preset_download_events
+          GROUP BY preset_id
+        ) pd ON pd.preset_id = p.id
+        LEFT JOIN preset_likes vpl
+          ON vpl.preset_id = p.id
+          AND vpl.user_discord_id = ?
+        WHERE ${whereClauses.join(' AND ')}
+        ORDER BY datetime(activity_at) DESC, datetime(p.created_at) DESC
+      `)
+      .bind(viewerDiscordId, viewerDiscordId, ...params)
+      .all();
 
-  return jsonResponse({ ok: true, presets: (results || []).map((row) => mapPresetRow(row)) });
+    return jsonResponse({ ok: true, presets: (results || []).map((row) => mapPresetRow(row)) });
+  });
 }
 
-async function handlePresetGet(presetId, env, url = null) {
+async function handlePresetGet(request, presetId, env, url = null) {
   const viewerDiscordId = readString(url?.searchParams.get('viewer_discord_id') || url?.searchParams.get('user_discord_id'));
-  const row = await getPresetRow(env.ngnl_build, presetId, viewerDiscordId);
-  if (!row) {
-    return jsonResponse({ ok: false, error: 'Preset not found.' }, 404);
-  }
-  return jsonResponse({ ok: true, preset: mapPresetRow(row) });
+  return await withOptionalEdgeCache(request, { scope: viewerDiscordId ? 'private' : 'public', ttl: EDGE_CACHE_TTL_SECONDS }, async () => {
+    const row = await getPresetRow(env.ngnl_build, presetId, viewerDiscordId);
+    if (!row) {
+      return jsonResponse({ ok: false, error: 'Preset not found.' }, 404);
+    }
+    return jsonResponse({ ok: true, preset: mapPresetRow(row) });
+  });
 }
 
 async function handlePresetCreate(request, env) {
@@ -376,6 +395,7 @@ async function handlePresetCreate(request, env) {
     )
     .run();
 
+  await purgePresetCache(request, presetId);
   const row = await getPresetRow(env.ngnl_build, presetId);
   return jsonResponse({ ok: true, preset: mapPresetRow(row) }, 201);
 }
@@ -462,6 +482,7 @@ async function handlePresetUpdate(presetId, request, env) {
     )
     .run();
 
+  await purgePresetCache(request, presetId);
   const row = await getPresetRow(env.ngnl_build, presetId);
   return jsonResponse({ ok: true, preset: mapPresetRow(row) });
 }
@@ -488,6 +509,7 @@ async function handlePresetDelete(presetId, request, env) {
     env.ngnl_build.prepare('DELETE FROM presets WHERE id = ? AND owner_discord_id = ?').bind(presetId, ownerDiscordId),
   ]);
 
+  await purgePresetCache(request, presetId);
   return jsonResponse({ ok: true, deleted_id: presetId });
 }
 
@@ -522,62 +544,71 @@ async function handleWorkshopContentList(request, env, baseUrl = null) {
     params.push(keyword, keyword, keyword, keyword);
   }
 
-  const { results } = await env.ngnl_build
-    .prepare(`
-      SELECT
-        e.id,
-        e.entry_type,
-        e.owner_discord_id,
-        e.title,
-        e.intro,
-        e.overview_text,
-        e.content_sections_json,
-        e.trigger_words,
-        e.worldbook_position_type,
-        e.worldbook_depth,
-        e.worldbook_order,
-        e.cover_url,
-        e.cover_object_key,
-        e.tags_json,
-        e.like_count,
-        e.status,
-        e.created_at,
-        e.updated_at,
-        (SELECT MAX(wl2.created_at) FROM workshop_entry_likes wl2 WHERE wl2.entry_id = e.id) AS last_liked_at,
-        CASE
-          WHEN ? != '' AND EXISTS(
-            SELECT 1 FROM workshop_entry_likes wl
-            WHERE wl.entry_id = e.id AND wl.user_discord_id = ?
-          ) THEN 1
-          ELSE 0
-        END AS liked,
-        u.username,
-        u.avatar_url
-      FROM workshop_entries e
-      LEFT JOIN users u ON u.discord_id = e.owner_discord_id
-      WHERE ${whereClauses.join(' AND ')}
-      ORDER BY datetime(CASE
-        WHEN (SELECT MAX(wl3.created_at) FROM workshop_entry_likes wl3 WHERE wl3.entry_id = e.id) > e.updated_at
-        THEN (SELECT MAX(wl3.created_at) FROM workshop_entry_likes wl3 WHERE wl3.entry_id = e.id)
-        ELSE e.updated_at
-      END) DESC, datetime(e.created_at) DESC
-    `)
-    .bind(viewerDiscordId, viewerDiscordId, ...params)
-    .all();
+  return await withOptionalEdgeCache(request, { scope: viewerDiscordId ? 'private' : 'public', ttl: EDGE_CACHE_TTL_SECONDS }, async () => {
+    const { results } = await env.ngnl_build
+      .prepare(`
+        SELECT
+          e.id,
+          e.entry_type,
+          e.owner_discord_id,
+          e.title,
+          e.intro,
+          e.overview_text,
+          e.content_sections_json,
+          e.trigger_words,
+          e.worldbook_position_type,
+          e.worldbook_depth,
+          e.worldbook_order,
+          e.cover_url,
+          e.cover_object_key,
+          e.tags_json,
+          e.like_count,
+          e.status,
+          e.created_at,
+          e.updated_at,
+          wl.last_liked_at,
+          MAX(
+            COALESCE(e.updated_at, ''),
+            COALESCE(wl.last_liked_at, '')
+          ) AS activity_at,
+          CASE
+            WHEN ? != '' AND vwl.user_discord_id IS NOT NULL THEN 1
+            ELSE 0
+          END AS liked,
+          u.username,
+          u.avatar_url
+        FROM workshop_entries e
+        LEFT JOIN users u ON u.discord_id = e.owner_discord_id
+        LEFT JOIN (
+          SELECT entry_id, MAX(created_at) AS last_liked_at
+          FROM workshop_entry_likes
+          GROUP BY entry_id
+        ) wl ON wl.entry_id = e.id
+        LEFT JOIN workshop_entry_likes vwl
+          ON vwl.entry_id = e.id
+          AND vwl.user_discord_id = ?
+        WHERE ${whereClauses.join(' AND ')}
+        ORDER BY datetime(activity_at) DESC, datetime(e.created_at) DESC
+      `)
+      .bind(viewerDiscordId, viewerDiscordId, ...params)
+      .all();
 
-  return jsonResponse({
-    ok: true,
-    items: (results || []).map((row) => mapWorkshopEntryRow(row)),
+    return jsonResponse({
+      ok: true,
+      items: (results || []).map((row) => mapWorkshopEntryRow(row)),
+    });
   });
 }
 
-async function handleWorkshopContentGet(entryId, env, url = null) {
+async function handleWorkshopContentGet(request, entryId, env, url = null) {
   const viewerDiscordId = readString(url?.searchParams.get('viewer_discord_id') || url?.searchParams.get('user_discord_id'));
-  const row = await getWorkshopEntryRow(env.ngnl_build, entryId, viewerDiscordId);
-  if (!row) {
-    return jsonResponse({ ok: false, error: 'Content not found.' }, 404);
-  }
-  return jsonResponse({ ok: true, item: mapWorkshopEntryRow(row, { includeContentText: true }) });
+  return await withOptionalEdgeCache(request, { scope: viewerDiscordId ? 'private' : 'public', ttl: EDGE_CACHE_TTL_SECONDS }, async () => {
+    const row = await getWorkshopEntryRow(env.ngnl_build, entryId, viewerDiscordId);
+    if (!row) {
+      return jsonResponse({ ok: false, error: 'Content not found.' }, 404);
+    }
+    return jsonResponse({ ok: true, item: mapWorkshopEntryRow(row, { includeContentText: true }) });
+  });
 }
 
 async function handleWorkshopContentCreate(request, env) {
@@ -677,6 +708,7 @@ async function handleWorkshopContentCreate(request, env) {
     )
     .run();
 
+  await purgeWorkshopContentCache(request, entryId);
   const row = await getWorkshopEntryRow(env.ngnl_build, entryId);
   return jsonResponse({ ok: true, item: mapWorkshopEntryRow(row, { includeContentText: true }) }, 201);
 }
@@ -816,6 +848,7 @@ async function handleWorkshopContentUpdate(entryId, request, env) {
     )
     .run();
 
+  await purgeWorkshopContentCache(request, entryId);
   const row = await getWorkshopEntryRow(env.ngnl_build, entryId);
   return jsonResponse({ ok: true, item: mapWorkshopEntryRow(row, { includeContentText: true }) });
 }
@@ -839,6 +872,7 @@ async function handleWorkshopContentDelete(entryId, request, env) {
     env.ngnl_build.prepare('DELETE FROM workshop_entries WHERE id = ? AND owner_discord_id = ?').bind(entryId, ownerDiscordId),
   ]);
 
+  await purgeWorkshopContentCache(request, entryId);
   return jsonResponse({ ok: true, deleted_id: entryId });
 }
 
@@ -877,6 +911,7 @@ async function handleWorkshopContentLikeToggle(entryId, request, env) {
     ]);
   }
 
+  await purgeWorkshopContentCache(request, entryId);
   const row = await getWorkshopEntryRow(env.ngnl_build, entryId, userDiscordId);
   return jsonResponse({ ok: true, liked: !likeRow?.liked, like_count: Number(row?.like_count || 0), item: row ? mapWorkshopEntryRow(row, { includeContentText: true }) : null });
 }
@@ -917,9 +952,10 @@ async function handlePresetDownload(presetId, request, env) {
 
   await env.ngnl_build.batch([
     env.ngnl_build.prepare('INSERT INTO preset_download_events (preset_id, user_discord_id, ip_hash) VALUES (?, ?, ?)').bind(presetId, userDiscordId || null, ipHash || null),
-    env.ngnl_build.prepare('UPDATE presets SET download_count = download_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(presetId),
+    env.ngnl_build.prepare('UPDATE presets SET download_count = download_count + 1 WHERE id = ?').bind(presetId),
   ]);
 
+  await purgePresetCache(request, presetId);
   const row = await getPresetRow(env.ngnl_build, presetId);
   return jsonResponse({ ok: true, download_count: Number(row?.download_count || 0), preset: row ? mapPresetRow(row) : null });
 }
@@ -957,6 +993,7 @@ async function handlePresetLikeToggle(presetId, request, env) {
     ]);
   }
 
+  await purgePresetCache(request, presetId);
   const row = await getPresetRow(env.ngnl_build, presetId, userDiscordId);
   return jsonResponse({ ok: true, liked: !likeRow?.liked, like_count: Number(row?.like_count || 0), preset: row ? mapPresetRow(row) : null });
 }
@@ -1029,17 +1066,34 @@ async function getPresetRow(db, presetId, viewerDiscordId = '') {
         p.status,
         p.created_at,
         p.updated_at,
+        pl.last_liked_at,
+        pd.last_downloaded_at,
+        MAX(
+          COALESCE(p.updated_at, ''),
+          COALESCE(pl.last_liked_at, ''),
+          COALESCE(pd.last_downloaded_at, '')
+        ) AS activity_at,
         CASE
-          WHEN ? != '' AND EXISTS(
-            SELECT 1 FROM preset_likes pl
-            WHERE pl.preset_id = p.id AND pl.user_discord_id = ?
-          ) THEN 1
+          WHEN ? != '' AND vpl.user_discord_id IS NOT NULL THEN 1
           ELSE 0
         END AS liked,
         u.username,
         u.avatar_url
       FROM presets p
       LEFT JOIN users u ON u.discord_id = p.owner_discord_id
+      LEFT JOIN (
+        SELECT preset_id, MAX(created_at) AS last_liked_at
+        FROM preset_likes
+        GROUP BY preset_id
+      ) pl ON pl.preset_id = p.id
+      LEFT JOIN (
+        SELECT preset_id, MAX(created_at) AS last_downloaded_at
+        FROM preset_download_events
+        GROUP BY preset_id
+      ) pd ON pd.preset_id = p.id
+      LEFT JOIN preset_likes vpl
+        ON vpl.preset_id = p.id
+        AND vpl.user_discord_id = ?
       WHERE p.id = ?
       LIMIT 1
     `)
@@ -1070,17 +1124,27 @@ async function getWorkshopEntryRow(db, entryId, viewerDiscordId = '') {
         e.status,
         e.created_at,
         e.updated_at,
+        wl.last_liked_at,
+        MAX(
+          COALESCE(e.updated_at, ''),
+          COALESCE(wl.last_liked_at, '')
+        ) AS activity_at,
         CASE
-          WHEN ? != '' AND EXISTS(
-            SELECT 1 FROM workshop_entry_likes wl
-            WHERE wl.entry_id = e.id AND wl.user_discord_id = ?
-          ) THEN 1
+          WHEN ? != '' AND vwl.user_discord_id IS NOT NULL THEN 1
           ELSE 0
         END AS liked,
         u.username,
         u.avatar_url
       FROM workshop_entries e
       LEFT JOIN users u ON u.discord_id = e.owner_discord_id
+      LEFT JOIN (
+        SELECT entry_id, MAX(created_at) AS last_liked_at
+        FROM workshop_entry_likes
+        GROUP BY entry_id
+      ) wl ON wl.entry_id = e.id
+      LEFT JOIN workshop_entry_likes vwl
+        ON vwl.entry_id = e.id
+        AND vwl.user_discord_id = ?
       WHERE e.id = ?
       LIMIT 1
     `)
@@ -1376,6 +1440,8 @@ function mapPresetRow(row) {
     createdAt: row.created_at || '',
     updatedAt: row.updated_at || '',
     lastLikedAt: row.last_liked_at || '',
+    lastDownloadedAt: row.last_downloaded_at || '',
+    activityAt: row.activity_at || row.last_liked_at || row.last_downloaded_at || row.updated_at || row.created_at || '',
     presetData: safeJsonParse(row.preset_json, null),
     downloadUrl: `/api/presets/${encodeURIComponent(row.id)}/file`,
   };
@@ -1413,6 +1479,7 @@ function mapWorkshopEntryRow(row, options = {}) {
     createdAt: row.created_at || '',
     updatedAt: row.updated_at || '',
     lastLikedAt: row.last_liked_at || '',
+    activityAt: row.activity_at || row.last_liked_at || row.updated_at || row.created_at || '',
   };
 }
 
@@ -1732,4 +1799,79 @@ async function sha256Hex(value) {
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
+}
+
+function buildCacheKey(request, scope) {
+  const url = new URL(request.url);
+  if (scope !== 'private') {
+    url.searchParams.delete('viewer_discord_id');
+    url.searchParams.delete('user_discord_id');
+  }
+  return new Request(url.toString(), { method: 'GET' });
+}
+
+async function withOptionalEdgeCache(request, options, resolver) {
+  if (request.method !== 'GET') {
+    return await resolver();
+  }
+  if (options?.scope === 'private') {
+    return await resolver();
+  }
+  const cache = caches.default;
+  const cacheKey = buildCacheKey(request, options?.scope || 'public');
+  const cached = await cache.match(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const response = await resolver();
+  if (!response || response.status >= 400) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  const ttl = Number(options?.ttl || EDGE_CACHE_TTL_SECONDS);
+  headers.set('cache-control', `public, max-age=${ttl}, s-maxage=${ttl}`);
+  const cacheableResponse = new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+  await cache.put(cacheKey, cacheableResponse.clone());
+  return cacheableResponse;
+}
+
+async function purgeEdgeCacheKeys(keys) {
+  const cache = caches.default;
+  await Promise.all(keys.map((key) => cache.delete(key)));
+}
+
+function buildApiCacheKey(request, pathname, searchParams = null) {
+  const url = new URL(request.url);
+  url.pathname = pathname;
+  url.search = '';
+  if (searchParams) {
+    for (const [key, value] of searchParams.entries()) {
+      url.searchParams.set(key, value);
+    }
+  }
+  return buildCacheKey(new Request(url.toString(), { method: 'GET' }), 'public');
+}
+
+async function purgePresetCache(request, presetId) {
+  const keys = [
+    buildApiCacheKey(request, '/api/presets'),
+    buildApiCacheKey(request, `/api/presets/${encodeURIComponent(presetId)}`),
+  ];
+  await purgeEdgeCacheKeys(keys);
+}
+
+async function purgeWorkshopContentCache(request, entryId) {
+  const keys = [
+    buildApiCacheKey(request, '/api/content'),
+    buildApiCacheKey(request, '/api/content', new URLSearchParams({ type: 'character' })),
+    buildApiCacheKey(request, '/api/content', new URLSearchParams({ type: 'extension' })),
+    buildApiCacheKey(request, `/api/content/${encodeURIComponent(entryId)}`),
+  ];
+  await purgeEdgeCacheKeys(keys);
 }

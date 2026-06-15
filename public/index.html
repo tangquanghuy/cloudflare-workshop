@@ -4177,6 +4177,8 @@
         build.createdAt = rawItem.createdAt || '';
         build.updatedAt = rawItem.updatedAt || '';
         build.lastLikedAt = rawItem.lastLikedAt || '';
+        build.lastDownloadedAt = rawItem.lastDownloadedAt || '';
+        build.activityAt = rawItem.activityAt || rawItem.lastDownloadedAt || rawItem.lastLikedAt || rawItem.updatedAt || rawItem.createdAt || '';
         build.downloadUrl = rawItem.downloadUrl || '';
         build.liked = !!rawItem.liked;
         build.status = rawItem.status || '';
@@ -4318,6 +4320,7 @@
             createdAt: rawItem.createdAt || '',
             updatedAt: rawItem.updatedAt || '',
             lastLikedAt: rawItem.lastLikedAt || '',
+            activityAt: rawItem.activityAt || rawItem.lastLikedAt || rawItem.updatedAt || rawItem.createdAt || '',
         };
     }
 
@@ -4344,6 +4347,10 @@
             return '刚刚更新';
         }
         return text.replace('T', ' ').slice(0, 16);
+    }
+
+    function compareDateDesc(left, right, field) {
+        return String(right?.[field] || '').localeCompare(String(left?.[field] || ''));
     }
 
     function normalizeAnnouncementDisplayMode(value) {
@@ -5192,10 +5199,12 @@
                         || build.author.toLowerCase().includes(q)
                         || build.race.toLowerCase().includes(q);
                 });
-                if (buildSortMode.value === 'updated') {
-                    filtered.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+                if (buildSortMode.value === 'activity') {
+                    filtered.sort((a, b) => compareDateDesc(a, b, 'activityAt'));
+                } else if (buildSortMode.value === 'updated') {
+                    filtered.sort((a, b) => compareDateDesc(a, b, 'updatedAt'));
                 } else if (buildSortMode.value === 'created') {
-                    filtered.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+                    filtered.sort((a, b) => compareDateDesc(a, b, 'createdAt'));
                 }
                 return promoteFeaturedItems(filtered, 'build', buildScope.value === 'all');
             });
@@ -5256,10 +5265,12 @@
                             || item.intro.toLowerCase().includes(query)
                             || item.tags.some((tag) => tag.toLowerCase().includes(query));
                     });
-                    if (section.sortMode === 'updated') {
-                        filtered.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+                    if (section.sortMode === 'activity') {
+                        filtered.sort((a, b) => compareDateDesc(a, b, 'activityAt'));
+                    } else if (section.sortMode === 'updated') {
+                        filtered.sort((a, b) => compareDateDesc(a, b, 'updatedAt'));
                     } else if (section.sortMode === 'created') {
-                        filtered.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+                        filtered.sort((a, b) => compareDateDesc(a, b, 'createdAt'));
                     }
                     return promoteFeaturedItems(filtered, type, section.scope === 'all');
                 });
@@ -6212,6 +6223,9 @@
                     fullBuild.ownerName = build.ownerName || "";
                     fullBuild.createdAt = build.createdAt || "";
                     fullBuild.updatedAt = build.updatedAt || "";
+                    fullBuild.lastLikedAt = build.lastLikedAt || "";
+                    fullBuild.lastDownloadedAt = build.lastDownloadedAt || "";
+                    fullBuild.activityAt = build.activityAt || build.lastDownloadedAt || build.lastLikedAt || build.updatedAt || build.createdAt || "";
                     fullBuild.source = build.source || "remote-published";
                     fullBuild.downloadUrl = build.downloadUrl || "";
                     return { build: fullBuild, rawText: text };
